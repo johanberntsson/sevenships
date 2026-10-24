@@ -104,7 +104,8 @@ most important routines included in each source file.
 | &nbsp;&nbsp;&nbsp;_diplomacy\_turn_ | once a turn: who has met whom, the attitudes, and the computer players' declarations and offers |
 | &nbsp;&nbsp;&nbsp;_diplomacy\_greet_ | the letters to the player, in popups, the offers answered Yes or No |
 |  |  |
-| path.c | routes along the shallows for galleys: a breadth-first search |
+| path.c | routes along the shallows for galleys, and over land for GOTO: a breadth-first search |
+| goto.c | GOTO: the human's units walking to a hexagon picked with `g`, a turn's moves at a time |
 | aiplace.c | where the computer players start, out of ai.c into region 0 |
 | aibuild.c | what each computer player's city builds, out of ai.c into region 2 |
 | emporium.c | merchant ships and the emporia they found on foreign coasts |
@@ -170,7 +171,7 @@ to `release/`), holding these files:
 | SEVENSHIPS.R1 | code region 1, the computer players and the cities' growth: a header and the code, kept in Attic RAM and run at \$6000 from bank 1 |
 | SEVENSHIPS.R2 | code region 2, Top Five Cities, the builders' improvements and what the computer players' cities build, the same way |
 | SEVENSHIPS.R3 | code region 3, diplomacy, the same way |
-| SEVENSHIPS.R4 | code region 4, trade, the ships' routes, exploring and fishing, merchant ships and emporia, and the menus, the same way |
+| SEVENSHIPS.R4 | code region 4, trade, the ships' routes, exploring and fishing, merchant ships and emporia, and GOTO, the same way |
 | SEVENSHIPS.R5 | code region 5, the Crisis and the peoples' collapse, the score and the end of the game, and the pictures, the same way |
 | SEVENSHIPS.R6 | code region 6, the menus and their commands, the treasury, and buildings and wonders, the same way |
 | SEVENSHIPS.R7 | code region 7, the city screen, the same way |
@@ -232,23 +233,23 @@ BASIC ROM and is the program's once `src/bank.s` has banked BASIC out, before
 `main()` runs. **\$6000-\$7fff of the 32 KB is a code window** (see
 *Code banking* below): resident code lives on either side of it, and the
 window shows one region of code at a time. The figures below are from the linker's listing,
-`build/sevenships.lst`, for the build of 24 October 2026.
+`build/sevenships.lst`, for the build of 25 October 2026.
 
 | **Address range** | **KB** |  **Usage** |
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1b20 | 1.2 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view and the minimap, and the galleys' route search |
-| \$1b21-\$1eff | 1.0 | free |
-| \$2001-\$5ad1 | 14.7 | BASIC stub, startup and resident code |
-| \$5ad2-\$5b42 | 0.1 | initialised data: the DMA lists |
-| \$5b43-\$5c42 | 0.25 | C stack |
-| \$5c43-\$5e1a | 0.5 | BSS: small state |
-| \$5e1b-\$5fff | 0.5 | free |
+| \$1638-\$1c20 | 1.5 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view and the minimap, and the route search of the galleys and of GOTO |
+| \$1c21-\$1eff | 0.7 | free |
+| \$2001-\$5c3e | 15.1 | BASIC stub, startup and resident code |
+| \$5c3f-\$5c8b | 0.1 | initialised data: the DMA lists |
+| \$5c8c-\$5d8b | 0.25 | C stack |
+| \$5d8c-\$5f67 | 0.5 | BSS: small state |
+| \$5f68-\$5fff | 0.15 | free |
 | \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.6 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
-| \$a000-\$bb99 | 6.9 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the unit and city arrays (the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, and the resources, a list by hexagon row |
-| \$bb9a-\$bfff | 1.1 | free |
+| \$a000-\$bc59 | 7.1 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, and the resources, a list by hexagon row |
+| \$bc5a-\$bfff | 0.9 | free |
 
 The long texts and the names are not in this table at all: they are in
 TEXT.PAK, read into Attic RAM at start-up, which is most of why the
@@ -305,7 +306,7 @@ region 2 Top Five Cities, the builders'
 improvements and what the computer players' cities build, which calls
 the improvements for every city and so is beside them; region 3
 diplomacy; region 4 trade, the ships' routes, exploring and fishing,
-merchant ships and emporia; region 5 the Crisis and the peoples'
+merchant ships and emporia, and GOTO; region 5 the Crisis and the peoples'
 collapse, the score and the end of the game, and the pictures; region 6
 the menus and their commands, the treasury, and buildings and wonders;
 region 7 the city screen.

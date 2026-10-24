@@ -62,6 +62,7 @@
 #define ORDERS_IRRIGATE 2       // a builder at work (src/improve.h)
 #define ORDERS_MINE 3
 #define ORDERS_PASTURE 4        // MAP_IRRIGATED on cattle or horses
+#define ORDERS_GOTO 5           // on its way to unit_goto_x/y (src/goto.h)
 
 // The players: the human, and a computer player for each of the other
 // peoples (src/ai.c). Player p leads people player_civ[p] (civ.h).
@@ -82,6 +83,9 @@ extern byte unit_orders[MAX_UNITS];
 // Turns a builder has worked on its improvement; set by improve_start(),
 // meaningful only with ORDERS_IRRIGATE, ORDERS_MINE or ORDERS_PASTURE.
 extern byte unit_work[MAX_UNITS];
+// Where a unit with ORDERS_GOTO is going; meaningful only with it.
+extern byte unit_goto_x[MAX_UNITS];
+extern byte unit_goto_y[MAX_UNITS];
 
 // The unit waiting for orders, which view_redraw() draws on top of anything
 // else on its hexagon. UNIT_NONE between units and between turns.

@@ -56,6 +56,10 @@ on highter levels to make the game challenging)
 
 The Civilopedia's pages (Help/Terrain Types, Help/Military Units) are placeholders
 
+GOTO is in (25 Oct 2026; CLAUDE.md "GOTO"): g, then Return or a click on a hexagon.
+To try: a galley's GOTO with a cargo, a unit blocked on the way, a save and load during
+one, and all of it on a real MEGA65. Not in: an Orders menu item (region 6 is full)
+
 --- IDEAS, not yet decided implement or not --
 
 You can irrigate and mine etc outside the city area

@@ -46,6 +46,8 @@ static const struct block blocks[] = {
     { unit_moves, sizeof unit_moves },
     { unit_orders, sizeof unit_orders },
     { unit_work, sizeof unit_work },
+    { unit_goto_x, sizeof unit_goto_x },
+    { unit_goto_y, sizeof unit_goto_y },
     { ai_heading, sizeof ai_heading },
     { ai_seen, sizeof ai_seen },
     { &city_count, sizeof city_count },

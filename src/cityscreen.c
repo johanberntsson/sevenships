@@ -316,6 +316,8 @@ static void draw_units(byte c)
         screen_putsxy(x + 2, y, unit_kind_name[unit_kind[u]], TEXT_COLOUR);
         if (unit_orders[u] == ORDERS_FORTIFY)
             screen_putsxy(x + 2, y + 1, "fortified", COLOR_LIGHTGREY);
+        else if (unit_orders[u] == ORDERS_GOTO)
+            screen_putsxy(x + 2, y + 1, "on its way", COLOR_LIGHTGREY);
         else if (unit_orders[u] != ORDERS_NONE)
             screen_putsxy(x + 2, y + 1, "working", COLOR_LIGHTGREY);
         y += 2;

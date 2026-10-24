@@ -218,7 +218,7 @@ stub:       .macro  name, target, region
             stub    diplomacy_screen, diplomacy_screen_r3, 3
 
 ; Region 4, slot 2: trade, routes over the sea, the ships' exploring, the
-; merchant ships and emporia.
+; merchant ships and emporia, and GOTO.
             stub    trade_reset, trade_reset_r4, 4
             stub    trade_turn, trade_turn_r4, 4
             stub    trade_agree, trade_agree_r4, 4
@@ -228,6 +228,8 @@ stub:       .macro  name, target, region
             stub    boat_order, boat_order_r4, 4
             stub    emporium_order, emporium_order_r4, 4
             stub    emporium_ai, emporium_ai_r4, 4
+            stub    goto_order, goto_order_r4, 4
+            stub    goto_turn, goto_turn_r4, 4
 
 ; Region 5, slot 2: the Crisis, the score and the end of the game, and the
 ; pictures.

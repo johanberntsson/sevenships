@@ -16,6 +16,7 @@
 #include "treasury.h"
 #include "culture.h"
 #include "emporium.h"
+#include "goto.h"
 #include "diplomacy.h"
 #include "growth.h"
 #include "improve.h"
@@ -86,6 +87,7 @@ void game_end_turn(void)
         ++game_turn;
     }
     unit_begin_turn(PLAYER_HUMAN);
+    goto_turn();                // before anyone is asked for orders
     draw_status();
     select_unit(UNIT_NONE);
 }

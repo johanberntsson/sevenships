@@ -27,6 +27,7 @@
 #include "diplomacy.h"
 #include "combat.h"
 #include "fight.h"
+#include "goto.h"
 #include "sevenships.h"
 #include "input.h"
 #include "map.h"
@@ -70,6 +71,7 @@ word game_year;
 byte selecting;
 byte sel_ax, sel_ay;
 static byte sel_hidden;         // the ring's half of the blink
+static byte going;              // ... put up by g: the ring picks a GOTO
 
 // The active unit blinks: BLINK_FRAMES drawn, BLINK_FRAMES not, half a
 // second each at 50 Hz. Each change is a whole redraw, which is what a held
@@ -433,6 +435,8 @@ static void improve(byte orders)
     select_unit(u);
 }
 
+static void select_begin(void);
+
 void unit_key(byte key)
 {
     byte u = unit_active;
@@ -466,6 +470,11 @@ void unit_key(byte key)
     case 'p': improve(ORDERS_PASTURE); break;
     case 'c':                               // bring it into the middle
         centre_on(unit_ax[u], unit_ay[u]);
+        break;
+    case 'g':                               // tile select picks where to
+        select_begin();
+        going = 1;
+        message("Go to: Return", "or a click there");
         break;
     }
 }
@@ -534,14 +543,24 @@ static void set_orders_menu(void)
 }
 
 // A click on hexagon (ax, ay) of the map, by the arrow or by Return in tile
-// select. Next to the unit with orders it moves the unit there; on one of
+// select. After g, it is where the unit is to go. Next to the unit with
+// orders it moves the unit there; on one of
 // the player's cities it opens the city screen, and on one next to the unit
 // with orders it asks which; on one of the player's own
 // units that still has moves it gives that unit the orders, waking it if it
 // was fortified. Anywhere else it centres the view there.
+static void select_end(void);
+
 static void click_hex(byte ax, byte ay)
 {
     byte u, dir = DIR_NONE, c;
+
+    // The active unit is to go there, and sets off (goto.h).
+    if (going) {
+        select_end();
+        if (unit_active != UNIT_NONE) goto_order(unit_active, ax, ay);
+        return;
+    }
 
     c = city_at(ax, ay);
     if (c != CITY_NONE && city_owner[c] != PLAYER_HUMAN) c = CITY_NONE;
@@ -621,6 +640,7 @@ static void select_begin(void)
 static void select_end(void)
 {
     selecting = 0;
+    going = 0;
     message("", "");
     dirty = 1;
     hover_dirty = 1;

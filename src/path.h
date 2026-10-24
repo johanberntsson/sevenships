@@ -1,5 +1,6 @@
 // Routes over the shallows, for galleys (milestone 9): the computer
-// players' ferrying (ai.c), and later the Sea Peoples and sea trade.
+// players' ferrying (ai.c), and later the Sea Peoples and sea trade; and
+// since 25 Oct 2026 over land too, for the human's GOTO (src/goto.h).
 //
 // **A breadth-first search from the target out over the shallows** until
 // it reaches the ship, so the cell that reached it is the first step. The
@@ -19,5 +20,12 @@
 // to it or on it, or no way there. (fx, fy) may be anything, a city among
 // them; (tx, ty) too, and the route ends next to it.
 byte sea_route(byte fx, byte fy, byte tx, byte ty);
+
+// The same for a unit of `kind` (GOTO, src/goto.h): a ship along the
+// shallows, a land unit over land, a chariot off mountains, and with
+// `explored_only` only over hexagons the human has explored. **Region 4's
+// own**: no stub, so only for code in region 4.
+byte path_route(byte fx, byte fy, byte tx, byte ty, byte kind,
+                byte explored_only);
 
 #endif // SEVENSHIPS_PATH_H

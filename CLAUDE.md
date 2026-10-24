@@ -206,13 +206,13 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. About 0.5 KB free, nearly all at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. About 150 bytes free (25 Oct 2026, after GOTO), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the computer players' starts (`src/aiplace.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 0.4 KB free |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze. 0.8 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`; 3.1 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 2.2 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia; 1.5 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, the treasury, buildings and wonders, `src/menu.c`, `src/command.c`, `src/treasury.c`, `src/culture.c`, `src/cities.c`; 0.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`; 3.1 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 2.2 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, the treasury, buildings and wonders, `src/menu.c`, `src/command.c`, `src/treasury.c`, `src/culture.c`, `src/cities.c`; 0.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 7.6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries; about 1.4 KB free — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
-| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the sea routes' search (`src/path.c`), 990 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
+| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
@@ -884,7 +884,8 @@ stopped to play-test):
    keys are gone; the Finance screen's upkeep rows; F1-F4 (F2 and F4 are
    shifted F1 and F3 there), Advisors → Military, and HELP. And from 23
    Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
-   the temple and the Lion Gate, the legacy victory.
+   the temple and the Lion Gate, the legacy victory. And from 25 Oct:
+   GOTO (`g`).
 3. **Tune the AI to the two rings**: `CITY_SPACING` (4) with overlapping
    outer rings, and settlers perhaps weighing the outer ring's resources
    less; the Egyptians fell by turn 300 on seed 7 in the first run with
@@ -899,10 +900,13 @@ stopped to play-test):
    the score; escorts for the merchant ships, and the computer players'
    galleys against the Sea Peoples.
 
-**Room is short in places** (24 Oct 2026): resident 0.5 KB, region 0
-0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region 3 2.1 KB, region 4 1.5
-KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 2.2 KB, highram 1.1
-KB. Region 6 is the menus' and the treasury's (3 KB of it); a region 8
+**Room is short in places** (25 Oct 2026, after GOTO): **resident
+about 150 bytes** (it was nearer 300 than 0.5 KB before GOTO, which took
+140), region 0 0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region 3 2.1
+KB, region 4 0.6 KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 2.2
+KB, highram 0.9 KB, `LOW_FREE` 735 bytes. Resident room is the one to
+watch: the next thing that needs it should first move something out of
+`game.c` (**The way to resident room is `game.c`**). Region 6 is the menus' and the treasury's (3 KB of it); a region 8
 for the treasury is the next room there (**A new region**, under
 **Growing past 32 KB**, is the recipe; attic holds eight).
 
@@ -1640,8 +1644,8 @@ and `find_site()` tests the terrain before the distance, so a far search
 is tens of milliseconds. **Galleys sail by `sea_route()`** (`src/path.c`,
 region 4): a breadth-first search from the target out over the shallows
 until it reaches the galley, the cell that reached it being the first
-step, again for every step; a visited bitmap (320 bytes) and a 128-cell
-queue in `LOW_FREE`. The greedy `approach()` it replaced got stuck
+step, again for every step; a visited bitmap (320 bytes) and a 256-cell
+queue in `LOW_FREE` (128 until GOTO searched land as well). The greedy `approach()` it replaced got stuck
 behind every peninsula. With nobody to ferry the galley explores the
 coasts as the fishing boat does (`boat_explore()`, below). **Armies
 too** (22 Oct 2026): a warrior or spearman that comes no nearer the
@@ -2122,7 +2126,7 @@ the keyboard); a unit moves by Tab and the cursor keys and Return, or a
 click, and a move onto another player's unit or city is an attack; `b` founds a
 city with a settler; `i`, `m` and `p` irrigate, mine and build a pasture
 with a builder; MEGA or CTRL with a menu title's first letter (`g o a w d h`) opens it; space skips the unit this turn, `w` asks again
-after the others, `f` fortifies, `c` centres the view on the active unit; Return ends the turn; the cursor keys
+after the others, `f` fortifies, `c` centres the view on the active unit, `g` goes to (**GOTO** below); Return ends the turn; the cursor keys
 scroll; ESC or RUN/STOP quits to BASIC, after asking with `popup_ask()`
 (Esc again is No). `w a s d` do not scroll.
 **HELP opens the help screen** (PageUp in xemu, which maps it there) (`src/help.c`, and what it says is
@@ -2132,6 +2136,29 @@ back. HELP arrives in `$D610` as `$1F` (mega65-core's
 `matrix_to_ascii.vhdl`, which xemu copies), `KEY_HELP`, so `FAKE_KEYS`
 presses it as 31. Until 24 Oct 2026 F1 was help too, as 241, and the
 advisors took it.
+
+**GOTO** (25 Oct 2026, the user's, from play; `src/goto.c`, region 4,
+Civilization's): `g` puts up tile select's ring (`going` in `game.c`),
+and Return or a click on a hexagon (`click_hex()`) gives the active unit
+`ORDERS_GOTO` and the target in `unit_goto_x/y[]` (`HIGH_BSS`, saved,
+`SAVE_VERSION` 18) through `goto_order()`, which walks it at once with
+the moves it has left; `goto_turn()`, from `game_end_turn()` after
+`unit_begin_turn(PLAYER_HUMAN)`, walks every such unit at the start of
+each turn, Play 50 Turns included. **The way is `path_route()`**, the
+galleys' breadth-first search made general (`src/path.c`): the shallows
+for a ship, land for a land unit, no mountains for a chariot, and only
+explored hexagons (with Show Map, all), found again for every step. A
+target unexplored, of the wrong terrain or out of reach is refused in the
+panel ("Unexplored", "Cannot go there", "No way there"); a step onto
+another player's unit or city, or a way that has gone, stops the unit
+with its orders back ("Settler / cannot get through") — it never
+attacks. Arrived, it has its orders back, and is asked at once if it has
+moves left. A click on it or the city screen's list (where it is "on its
+way") wakes it. There is no Orders menu item for it (region 6 has 0.3
+KB). Checked headlessly on seed 1 with Show Map: four hexagons east in
+four turns, a 6-step detour round water to a hexagon 5 away, and a
+target across the water refused. **Not yet tried**: a ship's GOTO, a
+unit blocked on the way, a save during one, and a real MEGA65.
 
 **The game knows when it is in xemu**: bit 5 of `$D60F` is set on a real
 MEGA65 and clear in xemu, read into `input_real_hw` by `input_init()`. In
