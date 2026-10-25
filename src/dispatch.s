@@ -169,7 +169,7 @@ stub:       .macro  name, target, region
             jmp     dispatch
             .endm
 
-; Region 0: the screens, the save file and the tile sheet's
+; Region 0: the screens and the tile sheet's
 ; and the map's loaders.
             stub    sheet_load, sheet_load_r0, 0
             stub    map_load, map_load_r0, 0
@@ -177,8 +177,6 @@ stub:       .macro  name, target, region
             stub    title_show, title_show_r0, 0
             stub    title_run, title_run_r0, 0
             stub    title_splash, title_splash_r0, 0
-            stub    save_write, save_write_r0, 0
-            stub    save_read, save_read_r0, 0
             stub    game_init, game_init_r0, 0
             stub    game_end_turn, game_end_turn_r0, 0
             stub    game_autoplay, game_autoplay_r0, 0
@@ -243,7 +241,9 @@ stub:       .macro  name, target, region
             stub    picture_show, picture_show_r5, 5
             stub    picture_end, picture_end_r5, 5
 
-; Region 6, slot 2: the menus, and buildings and wonders.
+; Region 6, slot 2: the menus, buildings and wonders, and saving.
+            stub    save_screen, save_screen_r6, 6
+            stub    save_read, save_read_r6, 6
             stub    menu_orders, menu_orders_r6, 6
             stub    menu_draw, menu_draw_r6, 6
             stub    menu_click, menu_click_r6, 6

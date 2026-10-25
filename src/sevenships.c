@@ -32,8 +32,9 @@ static void fatal(const char *message)
 
 int main(void)
 {
+    byte ended = GAME_RETIRE, load_failed = 0;
 #ifndef NO_TITLE
-    byte choice, load_failed = 0;
+    byte choice;
 #endif
 
     region_init();
@@ -68,7 +69,8 @@ int main(void)
     picture_end();              // the tiles' palette, as sheet_load() left it
 #endif
 
-    // Round again for every game retired from, back to the title screen.
+    // Round again for every game retired from, back to the title screen,
+    // and for every Game/Load Game, straight into the game loaded.
     for (;;) {
         // The title's menu is on the plain text screen, so it has to be done
         // with before view_init() takes the map window's cells -- which it
@@ -76,28 +78,32 @@ int main(void)
         // map, which is what a headless check of the view wants, and
         // straight into a new game after a retire.
 #ifndef NO_TITLE
-        title_show();
-        choice = title_run(load_failed);
-        if (choice == TITLE_QUIT) break;
-        screen_clear();
+        if (ended != GAME_LOAD) {
+            title_show();
+            choice = title_run(load_failed);
+            if (choice == TITLE_QUIT) break;
+            if (choice == TITLE_LOAD) ended = GAME_LOAD;
+        }
 #endif
+        screen_clear();
 
         view_init();
         game_init();
-#ifndef NO_TITLE
         load_failed = 0;
-        if (choice == TITLE_LOAD && !game_load()) {
+        if (ended == GAME_LOAD && !game_load()) {
+            // Back to the title, which says so; a NO_TITLE build plays a
+            // new game.
             load_failed = 1;
+            ended = GAME_RETIRE;
             continue;
         }
-#endif
 
         // The store starts blank; after that view_redraw() covers every byte
         // of it and deliberately does not clear, so that it can stay ahead of
         // the beam.
         view_clear();
 
-        if (game_run() == GAME_QUIT) break;
+        if ((ended = game_run()) == GAME_QUIT) break;
     }
 
     input_shutdown();

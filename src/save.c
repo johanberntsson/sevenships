@@ -1,7 +1,8 @@
-// In region 0 (src/region.h): called through the stubs in src/dispatch.s,
-// under these names here.
-#define save_write save_write_r0
-#define save_read save_read_r0
+// In region 6 (src/region.h), with the menus' commands, since 26 Oct 2026
+// and the slots (region 0 had no room for them): called through the stubs
+// in src/dispatch.s, under these names here.
+#define save_screen save_screen_r6
+#define save_read save_read_r6
 
 #include <fcntl.h>
 #include <string.h>
@@ -23,8 +24,11 @@
 #include "unit.h"
 #include "road.h"
 #include "tablets.h"
+#include "input.h"
+#include "screen.h"
+#include "text.h"
 
-#pragma clang section text="r0text" rodata="r0rodata"
+#pragma clang section text="r6text" rodata="r6rodata"
 
 // Everything a game is, in file order. The map goes with its explored and
 // occupied bits; the terrain in it is the loaded map's, which is the same
@@ -106,15 +110,39 @@ static const struct block blocks[] = {
 
 static const char header[4] = { 'S', 'S', 'V', SAVE_VERSION };
 
-// "@0:" replaces the file if it is there; ",S,W" makes it a SEQ file and
-// opens it for writing, which a secondary address of 3 or more would not.
-byte save_write(void)
+HIGH_BSS byte save_slot;
+// The header as read, or as it will be written: the four bytes, then the
+// comment. One slot's at a time; the list on the screen is the only copy
+// of the others.
+HIGH_BSS static char head[sizeof header + SAVE_COMMENT];
+#define comment (head + sizeof header)
+
+// SEVENSHIPS.SV0 to .SV9. For writing, "@0:" replaces the file if it is
+// there, and ",S,W" makes it a SEQ file and opens it for writing, which a
+// secondary address of 3 or more would not. On the C stack, not in the
+// region: the KERNAL reads the name with its own map.
+static int open_slot(char *name, byte slot, byte writing)
 {
-    int fd = _Stub_open("@0:" SAVE_FILE_NAME ",S,W", O_WRONLY | O_BINARY);
+    static const char write_name[] = "@0:" SAVE_FILE_NAME "0,S,W";
+    byte i;
+
+    for (i = 0; i < sizeof write_name; ++i) name[i] = write_name[i];
+    name[3 + sizeof SAVE_FILE_NAME - 1] = (char)('0' + slot);
+    if (writing)
+        return _Stub_open(name, O_WRONLY | O_BINARY);
+    name[3 + sizeof SAVE_FILE_NAME] = 0;
+    return _Stub_open(name + 3, O_RDONLY | O_BINARY);
+}
+
+static byte save_write(void)
+{
+    char name[sizeof SAVE_FILE_NAME + 8];
+    int fd = open_slot(name, save_slot, 1);
     byte i, ok;
 
     if (fd < 0) return 0;
-    ok = _Stub_write(fd, header, sizeof header) == sizeof header;
+    for (i = 0; i < sizeof header; ++i) head[i] = header[i];
+    ok = _Stub_write(fd, head, sizeof head) == sizeof head;
     for (i = 0; ok && i < BLOCKS; ++i)
         ok = _Stub_write(fd, blocks[i].at, blocks[i].size) == blocks[i].size;
     _Stub_close(fd);
@@ -137,17 +165,211 @@ static byte read_block(int fd, byte *at, word size)
     return 1;
 }
 
+// What is in a slot: nothing, a save of another version, or one this build
+// can load, with its comment in `head`. The file is left open for
+// save_read() if `fd` is not 0.
+#define SLOT_EMPTY 0
+#define SLOT_OTHER 1
+#define SLOT_GAME 2
+
+static byte peek(byte slot, int *fd)
+{
+    char name[sizeof SAVE_FILE_NAME + 8];
+    int f = open_slot(name, slot, 0);
+    byte i, got = SLOT_EMPTY;
+
+    if (f < 0) return SLOT_EMPTY;
+    if (read_block(f, (byte *)head, sizeof head)) {
+        got = SLOT_GAME;
+        for (i = 0; i < sizeof header; ++i)
+            if (head[i] != header[i]) got = SLOT_OTHER;
+        comment[SAVE_COMMENT - 1] = 0;
+    }
+    if (got == SLOT_GAME && fd) *fd = f;
+    else _Stub_close(f);
+    return got;
+}
+
 byte save_read(void)
 {
-    static byte got[sizeof header];
-    int fd = _Stub_open(SAVE_FILE_NAME, O_RDONLY | O_BINARY);
+    int fd;
     byte i, ok;
 
-    if (fd < 0) return 0;
-    ok = read_block(fd, got, sizeof got)
-         && memcmp(got, header, sizeof header) == 0;
-    for (i = 0; ok && i < BLOCKS; ++i)
+    if (peek(save_slot, &fd) != SLOT_GAME) return 0;
+    for (ok = 1, i = 0; ok && i < BLOCKS; ++i)
         ok = read_block(fd, blocks[i].at, blocks[i].size);
     _Stub_close(fd);
     return ok;
+}
+
+// ------------------------------------------------------------ the screen
+
+#define TOP 4                   // slot 0's row; they are two rows apart
+#define NUMBER_LEFT 20
+#define COMMENT_LEFT 24
+#define HINT_ROW 24
+
+static byte length(const char *s)
+{
+    byte n = 0;
+    while (s[n]) ++n;
+    return n;
+}
+
+static void hint(const char *s)
+{
+    screen_fill(0, HINT_ROW, SCREEN_COLUMNS, COLOR_LIGHTGREY);
+    screen_putsxy((byte)((SCREEN_COLUMNS - length(s)) / 2), HINT_ROW, s,
+                  COLOR_LIGHTGREY);
+}
+
+static void add(const char *s)
+{
+    byte n = length(comment);
+    while (*s && n < SAVE_COMMENT - 1) comment[n++] = *s++;
+    comment[n] = 0;
+}
+
+// "Agamemnon - Mycenaeans - 1450 BC", which the player may change.
+static void default_comment(void)
+{
+    byte civ = player_civ[PLAYER_HUMAN];
+    char year[8];
+    byte i = 4;
+    word y = game_year;
+
+    year[i] = 0;
+    do { year[--i] = (char)('0' + y % 10); y /= 10; } while (y);
+    comment[0] = 0;
+    add(civ_leader(civ));
+    add(" - ");
+    add(civ_people(civ));
+    add(" - ");
+    add(year + i);
+    add(" BC");
+}
+
+static void draw_comment(byte slot, byte colour, byte editing)
+{
+    byte y = TOP + 2 * slot, n = length(comment);
+
+    screen_fill(COMMENT_LEFT, y, SCREEN_COLUMNS - COMMENT_LEFT, colour);
+    screen_putsxy(COMMENT_LEFT, y, comment, colour);
+    if (editing)
+        screen_putcxy(COMMENT_LEFT + n, y, ' ', ATTR_REVERSE | COLOR_WHITE);
+}
+
+static void mark(byte slot, byte on)
+{
+    screen_putsxy(NUMBER_LEFT - 2, TOP + 2 * slot, on ? ">" : " ",
+                  COLOR_YELLOW);
+}
+
+// A slot's row as peek() found it, with its comment in `head`.
+static void draw_slot(byte slot, byte got)
+{
+    if (got == SLOT_GAME) {
+        draw_comment(slot, COLOR_LIGHTGREEN, 0);
+        return;
+    }
+    comment[0] = 0;
+    add(got == SLOT_EMPTY ? "empty" : "from another version");
+    draw_comment(slot, COLOR_GREY, 0);
+}
+
+// The comment typed on the slot's row: Return keeps it, Esc gives up.
+static byte edit(byte slot)
+{
+    byte key, n;
+
+    default_comment();
+    hint("Type a comment, then Return to save or Esc to go back");
+    for (;;) {
+        draw_comment(slot, COLOR_WHITE, 1);
+        do {
+            screen_wait_raster(SCREEN_ROW_LINE(SCREEN_ROWS - 1));
+            key = input_poll();
+        } while (!key);
+        n = length(comment);
+        if (key == KEY_RETURN) return 1;
+        if (key == KEY_ESC || key == KEY_RUNSTOP) return 0;
+        if (key == KEY_DEL) {
+            if (n) comment[n - 1] = 0;
+        } else if (key >= ' ' && key <= 'z' && n < SAVE_COMMENT - 1) {
+            comment[n] = (char)key;
+            comment[n + 1] = 0;
+        }
+    }
+}
+
+byte save_screen(byte saving)
+{
+    byte slot, got[SAVE_SLOTS], key, row;
+    // The slot used last, if any; HIGH_BSS is not cleared, so it may be
+    // anything at first.
+    byte selected = save_slot < SAVE_SLOTS ? save_slot : 0;
+
+    sprite_hide(2);             // the minimap's outline, if it is up
+    sprite_hide(3);
+    screen_clear();
+    hint("Reading the disk...");
+    screen_putsxy(saving ? 35 : 32, 1, saving ? "Save Game" : "Load Saved Game",
+                  COLOR_WHITE);
+    for (slot = 0; slot < SAVE_SLOTS; ++slot) {
+        screen_putcxy(NUMBER_LEFT, TOP + 2 * slot, (char)('0' + slot),
+                      COLOR_YELLOW);
+        got[slot] = peek(slot, 0);
+        draw_slot(slot, got[slot]);
+    }
+
+again:
+    hint(saving ? "Pick a slot to save in, or Esc to go back"
+                : "Pick a game to load, or Esc to go back");
+    mark(selected, 1);
+    for (;;) {
+        screen_wait_raster(SCREEN_ROW_LINE(SCREEN_ROWS - 1));
+        key = input_poll();
+        slot = SAVE_NONE;
+        if (input_moved() || key == KEY_CLICK) {
+            row = (byte)(input_y >> 3);
+            if (row >= TOP && row < TOP + 2 * SAVE_SLOTS && !(row & 1))
+                slot = (byte)((row - TOP) >> 1);
+            if (slot != SAVE_NONE && slot != selected) {
+                mark(selected, 0);
+                mark(selected = slot, 1);
+            }
+            if (key != KEY_CLICK) continue;
+        }
+        if (key == KEY_UP && selected > 0) {
+            mark(selected--, 0);
+            mark(selected, 1);
+        } else if (key == KEY_DOWN && selected < SAVE_SLOTS - 1) {
+            mark(selected++, 0);
+            mark(selected, 1);
+        } else if (key == KEY_ESC || key == KEY_RUNSTOP) {
+            return SAVE_NONE;
+        } else if (key >= '0' && key < '0' + SAVE_SLOTS) {
+            mark(selected, 0);
+            mark(selected = key - '0', 1);
+            slot = selected;
+        } else if (key == KEY_RETURN || key == KEY_SPACE) {
+            slot = selected;
+        }
+        if (slot == SAVE_NONE) continue;
+
+        save_slot = slot;
+        if (!saving) {
+            if (got[slot] == SLOT_GAME) return 1;
+            continue;
+        }
+        if (!edit(slot)) {
+            // What was on the row.
+            if (got[slot] == SLOT_GAME) peek(slot, 0);
+            draw_slot(slot, got[slot]);
+            goto again;
+        }
+        draw_comment(slot, COLOR_WHITE, 0);
+        hint("Saving...");
+        return save_write();
+    }
 }

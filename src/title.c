@@ -19,6 +19,7 @@
 #include "civ.h"
 #include "input.h"
 #include "picture.h"
+#include "save.h"
 #include "screen.h"
 #include "text.h"
 #include "view.h"
@@ -279,8 +280,11 @@ byte title_run(byte load_failed)
     for (;;) {
         pick = menu_run(TEXT_LIST_TITLE_MENU, 0, TITLE_ITEMS, "slq", pick);
         if (pick == MENU_BACK || pick == TITLE_QUIT) return TITLE_QUIT;
-        if (pick == TITLE_LOAD) return TITLE_LOAD;
-        if (new_game()) return TITLE_START;
+        if (pick == TITLE_LOAD) {
+            if (save_screen(0) != SAVE_NONE) return TITLE_LOAD;
+        } else if (new_game()) {
+            return TITLE_START;
+        }
         draw_screen(TEXT_TITLE);
     }
 }

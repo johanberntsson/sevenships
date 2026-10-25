@@ -2,6 +2,7 @@
 // room ran out for the buildings): once a pick, in region 6 with the menus
 // (src/region.h), sharing game.c's state through gameint.h as turn.c does.
 #define game_menu_command game_menu_command_r6
+#define save_screen save_screen_r6    // save.c is in region 6 too
 
 #include "game.h"
 #include "gameint.h"
@@ -62,9 +63,20 @@ void game_menu_command(byte command)
         game_end_wait ^= 1;
         message("End of Turn", game_end_wait ? "waits" : "automatic");
         break;
+    case MENU_LOAD:
+        // game_run() ends, and main() reads the slot into a new game.
+        if (save_screen(0) != SAVE_NONE) {
+            retired = GAME_LOAD;
+            quit = 1;
+        } else {
+            draw_screen();
+        }
+        break;
     case MENU_SAVE:
-        message("Saving", "");
-        message(save_write() ? "Game saved" : "Could not save", "");
+        command = save_screen(1);
+        draw_screen();
+        if (command != SAVE_NONE)
+            message(command ? "Game saved" : "Could not save", "");
         break;
     case MENU_FOUND_CITY:
     case MENU_EMPORIUM:

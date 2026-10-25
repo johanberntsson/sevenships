@@ -96,9 +96,9 @@ most important routines included in each source file.
 | &nbsp;&nbsp;&nbsp;_ai\_turn_ | one computer player's turn |
 | &nbsp;&nbsp;&nbsp;_ai\_barbarians_ | the barbarians' turn: new bands, and every barbarian's move |
 |  |  |
-| save.c | saving and loading a game: every state array, written out as it stands |
-| &nbsp;&nbsp;&nbsp;_save\_write_ | writes SEVENSHIPS.SAV, replacing the last one (Game/Save Game) |
-| &nbsp;&nbsp;&nbsp;_save\_read_ | reads it back over a freshly set-up game |
+| save.c | saving and loading a game, in region 6: every state array, written out as it stands, in ten slots |
+| &nbsp;&nbsp;&nbsp;_save\_screen_ | the slots and their comments on the whole screen, for Game/Save Game (which writes SEVENSHIPS.SV0 to .SV9, with a comment typed in) and for Load Saved Game and Game/Load Game |
+| &nbsp;&nbsp;&nbsp;_save\_read_ | reads the slot picked back over a freshly set-up game |
 |  |  |
 | diplomacy.c | contact, war, ceasefire and peace, the attitudes, the letters and the Diplomacy screen |
 | &nbsp;&nbsp;&nbsp;_diplomacy\_turn_ | once a turn: who has met whom, the attitudes, and the computer players' declarations and offers |
@@ -176,7 +176,7 @@ to `release/`), holding these files:
 | SEVENSHIPS.R3 | code region 3, diplomacy, the same way |
 | SEVENSHIPS.R4 | code region 4, trade, the ships' routes, exploring and fishing, merchant ships and emporia, and GOTO, the same way |
 | SEVENSHIPS.R5 | code region 5, the Crisis and the peoples' collapse, the score and the end of the game, and the pictures, the same way |
-| SEVENSHIPS.R6 | code region 6, the menus and their commands, and buildings and wonders, the same way |
+| SEVENSHIPS.R6 | code region 6, the menus and their commands, buildings and wonders, and saving and loading, the same way |
 | SEVENSHIPS.R7 | code region 7, the city screen, the same way |
 | SEVENSHIPS.R8 | code region 8, the treasury and the scribes, the same way |
 | INTRO.PIC, DEFEAT.PIC, WIN_SURVIVAL.PIC, WIN_HEGEMONY.PIC, WIN_LEGACY.PIC | the pictures shown at boot and at the end: a palette and 60x23 full colour characters, 87 KB each |
@@ -208,8 +208,9 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
    joystick can pick an item;
 5. clears the screen, writes the map window's character numbers into screen
    RAM, once (`view_init`), and places the player's settler (`game_init`) --
-   or, for Load Saved Game, reads SEVENSHIPS.SAV over what `game_init` set
-   up (`game_load`), going back to step 4 if there is none;
+   or, for Load Saved Game, reads the slot picked (SEVENSHIPS.SV0 to .SV9)
+   over what `game_init` set up (`game_load`), going back to step 4 if it
+   cannot;
 6. clears the tile store and enters the main loop (`game_run`).
 
 Apart from saving and loading a game, and the picture before the final
@@ -219,7 +220,8 @@ at \$a000-\$bfff, and that before `main()` starts.
 
 Game/Retire on the menu bar asks for confirmation and then goes back to
 step 4 for a new game; `game_init` clears everything the old one left on the
-map and in the unit and city lists. When the player quits, from the title
+map and in the unit and city lists. Game/Load Game goes back to step 5
+instead, reading the slot picked. When the player quits, from the title
 menu or from the game, `main()` turns
 the sprites off, writes back the VIC registers `screen_save()` read before
 the game touched them, so that BASIC gets its own 80-column screen and
@@ -250,10 +252,10 @@ window shows one region of code at a time. The figures below are from the linker
 | \$5b33-\$5c32 | 0.25 | C stack |
 | \$5c33-\$5e19 | 0.5 | BSS: small state |
 | \$5e1a-\$5fff | 0.5 | free |
-| \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.6 KB used) |
+| \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.2 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
-| \$a000-\$bed3 | 7.7 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, and the resources, a list by hexagon row |
-| \$bed4-\$bfff | 0.3 | free |
+| \$a000-\$bf15 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
+| \$bf16-\$bfff | 0.2 | free |
 
 The long texts and the names are not in this table at all: they are in
 TEXT.PAK, read into Attic RAM at start-up, which is most of why the
@@ -312,7 +314,7 @@ the improvements for every city and so is beside them; region 3
 diplomacy; region 4 trade, the ships' routes, exploring and fishing,
 merchant ships and emporia, and GOTO; region 5 the Crisis and the peoples'
 collapse, the score and the end of the game, and the pictures; region 6
-the menus and their commands, and buildings and wonders; region 7 the
+the menus and their commands, buildings and wonders, and saving; region 7 the
 city screen; region 8 the treasury and the scribes.
 
 Resident code calls a function in a region through a stub of the same

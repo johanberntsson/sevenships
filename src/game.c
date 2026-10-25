@@ -52,7 +52,7 @@ byte hover_unit;         // ... or on hover_ax/ay; see hover.c
 byte hover_ax, hover_ay;
 byte game_over;
 byte quit;
-byte retired;            // quit by Game/Retire, for the title screen
+byte retired;            // quit by Game/Retire or Load Game: game_run()'s result
 byte loaded;             // from a saved game: no opening popup
 byte game_end_wait;      // see game.h
 static byte end_due;     // the last unit has had its orders: end the turn
@@ -747,5 +747,5 @@ byte game_run(void)
     // The arrow stays for the title screen; the minimap's outline does not.
     sprite_hide(2);
     sprite_hide(3);
-    return retired ? GAME_RETIRE : GAME_QUIT;
+    return retired;             // GAME_QUIT, GAME_RETIRE or GAME_LOAD
 }

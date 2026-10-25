@@ -213,12 +213,12 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 48 bytes free (25 Oct 2026, after the city buildings), at the top of `$2001-$5FFF` |
-| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1 KB free |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 36 bytes free (26 Oct 2026, after the save slots and Load Game), at the top of `$2001-$5FFF` |
+| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.8 KB free (26 Oct 2026, when save and load moved to region 6) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 2.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 175 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 2.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
-| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going; 300 bytes free (25 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
+| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; 234 bytes free (26 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
@@ -899,7 +899,10 @@ stopped to play-test, a lot, before the next session):
    **the city buildings** (the stele, the edubba and the feasting hall
    in CHANGE, under BUY on the city screen, Help → City Buildings and
    Wonders, "Buildings' upkeep" on Finance, a building sold for want of
-   gold -- the last two not even tried headlessly).
+   gold -- the last two not even tried headlessly); **the ten save
+   slots** (26 Oct 2026: Game → Save Game, a comment typed in, Load
+   Saved Game on the title screen and Game → Load Game, a slot "from
+   another version").
    Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
 3. **Tuning**, from play, as TODO.txt's OPEN lists it: the Crisis, left
    mild on purpose (its options are in TODO.txt and **The Crisis** above:
@@ -921,11 +924,11 @@ stopped to play-test, a lot, before the next session):
    candidates), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
-**Room is short in places** (25 Oct 2026, after the escorts):
-**resident 48 bytes** (after the city buildings), region 0 1 KB, **region 1 72 bytes** (`road_site()` took
+**Room is short in places** (26 Oct 2026, after the save slots):
+**resident 36 bytes** (after Game → Load Game), region 0 1.8 KB, **region 1 72 bytes** (`road_site()` took
 460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
-KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.0 KB, **highram 275
-bytes** (the road list took 440), `LOW_FREE` 735
+KB, **region 6 175 bytes** (the save slots took 2.7 KB), region 7 1.9
+KB, region 8 2.0 KB, **highram 234 bytes** (the road list took 440), `LOW_FREE` 735
 bytes. Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
@@ -984,7 +987,7 @@ Alt to MEGA, so there it is Alt+G after all. **Compare a `KEY_MEGA` code
 from a byte variable** (`menu_hotkey()`): they are all above 127, and the
 first version, comparing against `(byte)(c + 0x60)`, met the sign
 extension bug below and opened nothing.
-Game has **Save Game** (see **Saving** below), **Options** and **Retire**.
+Game has **Load Game** and **Save Game** (see **Saving** below), **Options** and **Retire**.
 **Options** opens a box of its own over the Game dropdown, as Civilization's
 does (`civ1-reference/civ1-game-options.png`): menu index `OPTIONS` (=
 `MENUS`, not on the bar) in `src/menu.c`'s tables, at `OPTIONS_LEFT`,
@@ -1075,25 +1078,59 @@ redraw puts them back. Nothing restores panel text, so **a dropdown must
 end above row 9**, where the panel starts (row 11 until the minimap shrank
 to five rows).
 
-**Saving** (`src/save.c`) is one file, `SEVENSHIPS.SAV` on drive 8, and
-**it is the game's memory written out as it stands**: a table of
+**Saving** (`src/save.c`, region 6 since 26 Oct 2026) is **ten slots**,
+`SEVENSHIPS.SV0` to `.SV9` on drive 8 (the user's: one was too
+limiting; 22 blocks each), and **each is the game's memory written out
+as it stands**: a table of
 `{address, size}` for every state array and counter — the map with its
 explored and occupied bits, the unit and city arrays, the AI's headings,
 the wars, `rnd()`'s seed, the peoples, the level, the turn and the year —
-after a header of `"SSV"` and `SAVE_VERSION`. **Anything added to a
-game's state goes in that table, and a change to it means a new
-`SAVE_VERSION`**, or an old file is read into the wrong places. Left out
+after a header of `"SSV"`, `SAVE_VERSION` and a comment of
+`SAVE_COMMENT` (36) bytes. **Anything added to a game's state goes in
+that table, and a change to it means a new `SAVE_VERSION`**, or an old
+file is read into the wrong places. Left out
 because they are worked out again: the active unit, the panel, and the
-view, which centres on whoever wants orders. Game → Save Game writes it
-with `_Stub_write`, opening `"@0:SEVENSHIPS.SAV,S,W"` — `@0:` replaces an
-earlier save, `,S,W` makes a SEQ file open for writing — and says "Game
-saved" or "Could not save" in the panel; a full disk is not noticed,
-since that is in the error channel. Load Saved Game on the title screen
-returns `TITLE_LOAD`, and `main()` runs `game_init()` as for a new game
-and then `game_load()`, which reads the file over it in 128-byte pieces
-(the `_Stub_read` page bug) and makes `game_run()` skip the opening
-popup. If there is no file or the header is wrong, `main()` goes round to
-the title, and `title_run(1)` says "No saved game could be loaded". The
+view, which centres on whoever wants orders. **`save_screen()` is the
+slots' screen**, the whole screen, for Game → Save Game and for Load
+Saved Game: it reads each slot's header (`peek()`, through a 40-byte
+`HIGH_BSS` buffer, the screen being the only copy of the other slots'
+comments) and lists "empty", the comment, or "from another version";
+a slot is picked by hover and click, the cursor keys and Return, or its
+digit, starting on the one used last (`save_slot`, `HIGH_BSS`). To save,
+the comment is typed on the slot's row, starting as "Agamemnon -
+Mycenaeans - 1450 BC" (DEL, `KEY_DEL`, rubs out; Esc goes back to the
+list), and the file is written with `_Stub_write`, opening
+`"@0:SEVENSHIPS.SVn,S,W"` — `@0:` replaces an earlier save, `,S,W` makes
+a SEQ file open for writing — the name built on the C stack, since the
+KERNAL reads it with its own map; the panel then says "Game saved" or
+"Could not save". A full disk is not noticed, since that is in the error
+channel. Load Saved Game on the title screen puts up the screen, and
+picking a game of this version returns `TITLE_LOAD`; `main()` runs
+`game_init()` as for a new game and then `game_load()`, which reads
+`save_slot` over it in 128-byte pieces (the `_Stub_read` page bug) and
+makes `game_run()` skip the opening popup. **Game → Load Game** (the
+user's, the same day) is the same screen from the game: picking a game
+makes `game_run()` return `GAME_LOAD` (`retired`, which is now
+`game_run()`'s result as it stands), and `main()` goes round without the
+title, straight to `game_init()` and `game_load()`; there is no "are you
+sure", since picking a slot is already a step past the menu. If the read
+fails, `main()` goes round to the title, and `title_run(1)` says "No
+saved game could be loaded" (a `NO_TITLE` build plays a new game).
+`MENU_LOAD` is 28, which moved `MENU_TERRAIN` and `MENU_UNIT` up one.
+Checked headlessly: a save at turn 21, 20 more turns, then Load Game:
+turn 21 again, the map, the unit and city arrays and the gold
+byte-identical with a run that only saved. **Test builds need
+`CSTACK=160`** to link with a `FAKE_KEYS` script since then: resident
+room is 36 bytes. **It cost 2.7 KB of region 6** (region 0, where save.c was,
+had 1 KB), and gave region 0 back its 0.8. Checked headlessly: a save
+after 20 turns of autoplay into slot 3 with the comment edited, the list
+afterwards, and the slot loaded by a throwaway in a `NO_TITLE` build,
+the map, the unit and city arrays and the gold byte-identical. **A title
+build no longer links with even a five-key `FAKE_KEYS` script** (it did
+not at HEAD before the slots either), so the title's path to the screen
+was not tried headlessly. **To get a save from one test disk to
+another**, `c1541 -attach A.d81 -read "sevenships.sv3,s" F` and
+`-write F "sevenships.sv3,s"` (without the `,s` the read is refused). The
 statics the table needs were exported under module prefixes:
 `combat_war`, `combat_seed`, `city_named`, `ai_heading`, `game_turn`,
 `game_year`. Checked headlessly: the whole of `highram` is byte-identical
@@ -2595,7 +2632,7 @@ and a screenshot shows the result. Menu item *i* is at sprite y `92 + 16i`
 has hovered over stays selected after it leaves**, so a script that clicks
 somewhere and then comes back to a menu has to select with the cursor keys
 before pressing Return. The Game menu's title is at `{…,4,4,KEY_CLICK}`,
-Save Game at `{…,8,20,KEY_CLICK}` and Options at `{…,8,28,KEY_CLICK}`, Retire at `{…,8,36,KEY_CLICK}`, or MEGA+G is `{…,0,0,199}` (O 207, A 193, D 196,
+Load Game at `{…,8,20,KEY_CLICK}`, Save Game at `{…,8,28,KEY_CLICK}` (MEGA+G, down, Return: 199, 17, 13), Options at `{…,8,36,KEY_CLICK}`, Retire at `{…,8,44,KEY_CLICK}` (since Load Game, 26 Oct 2026), or MEGA+G is `{…,0,0,199}` (O 207, A 193, D 196,
 W 215, H 200) (the
 script skips `$D611`, so it cannot test the CTRL path); Debug at `{…,112,4,KEY_CLICK}` and
 Show Map at `{…,116,20,KEY_CLICK}` (since 20 Oct 2026, when Advisors went

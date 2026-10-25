@@ -498,8 +498,16 @@ World → Score shows the table at any time.
 
 ## 17. Saving
 
-**Game → Save Game** writes the game to the disk (one save, which a new
-save replaces). **Load Saved Game** on the title screen picks it up again.
+There are ten places to save a game in, numbered 0 to 9. **Game → Save
+Game** lists them, each with its comment or "empty": pick one with the
+cursor keys and Return, its number, or the mouse, and type a comment to
+remember the game by. It starts as your leader, your people and the year
+("Agamemnon - Mycenaeans - 1450 BC"); DEL rubs out, Return saves and Esc
+goes back to the list. A save in a place that holds one replaces it.
+**Load Saved Game** on the title screen, or **Game → Load Game** during
+a game, lists the same ten and picks up the one you choose; the game you
+were playing is lost unless you saved it. A save made by another version of the game is listed
+as "from another version" and cannot be loaded.
 
 ## 18. Some advice
 

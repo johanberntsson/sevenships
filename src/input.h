@@ -24,6 +24,7 @@
 #define KEY_RUNSTOP 3
 #define KEY_TAB 9
 #define KEY_RETURN 13
+#define KEY_DEL 20
 #define KEY_DOWN 17
 #define KEY_ESC 27
 #define KEY_RIGHT 29

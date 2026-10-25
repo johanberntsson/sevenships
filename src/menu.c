@@ -50,8 +50,13 @@ static const byte menu_x[MENUS] = { 0, 5, 12, 21, 27 };
 #endif
 
 // Each menu's items and what they ask for. An empty menu does not open.
-static const char *const game_items[] = { "Save Game", "Options", "Retire" };
-static const byte game_commands[] = { MENU_SAVE, MENU_OPTIONS, MENU_RETIRE };
+static const char *const game_items[] = {
+    "Load Game", "Save Game", "Options", "Retire"
+};
+static const byte game_commands[] = {
+    MENU_LOAD, MENU_SAVE, MENU_OPTIONS, MENU_RETIRE
+};
+#define GAME_ITEMS (sizeof game_commands)
 
 // The submenus. Options' items are ticked when on. Terrain Types' are
 // the names in res/text/list_terrains.txt, in alphabetical order, as
@@ -133,7 +138,7 @@ static const byte *const menu_commands[MENUS + 5] = {
     debug_commands, help_commands, options_commands, 0, 0, 0, 0
 };
 static byte menu_count[MENUS + 5] = {
-    3, 0, 4, 2, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES,
+    GAME_ITEMS, 0, 4, 2, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES,
     WONDER_PAGES
 };
 #else
@@ -146,7 +151,7 @@ static const byte *const menu_commands[MENUS + 5] = {
     help_commands, options_commands, 0, 0, 0, 0
 };
 static byte menu_count[MENUS + 5] = {
-    3, 0, 4, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES, WONDER_PAGES
+    GAME_ITEMS, 0, 4, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES, WONDER_PAGES
 };
 #endif
 

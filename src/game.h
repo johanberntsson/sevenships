@@ -14,6 +14,7 @@ void game_init(void);
 #define GAME_QUIT 0             // Esc: back to BASIC
 #define GAME_RETIRE 1           // Game/Retire, or the game is over: the score
                                 // has been shown; back to the title screen
+#define GAME_LOAD 2             // Game/Load Game: read save_slot (save.h)
 
 // Play until the player quits, retires or the game is over.
 byte game_run(void);
