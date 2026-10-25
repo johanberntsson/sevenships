@@ -14,7 +14,7 @@ or the pictures change.
 ```sh
 make            # build/sevenships.prg, build/sevenships.map and build/sevenships.d81
 make run        # build them and boot the disk in xemu
-make release    # build the disk and copy it into release/
+make release    # build the disk and the manual's PDF into release/
 make clean
 ```
 

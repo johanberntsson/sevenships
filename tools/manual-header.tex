@@ -1,0 +1,9 @@
+% For pandoc's PDF of documentation/sevenships_manual.md (the Makefile's
+% release). This TeX Live has no geometry.sty, so the margins are set by
+% hand, A4 with 2.5 cm each side; and pdflatex knows no U+2212 minus.
+\DeclareUnicodeCharacter{2212}{-}
+\setlength{\textwidth}{16cm}
+\setlength{\oddsidemargin}{0cm}
+\setlength{\evensidemargin}{0cm}
+\setlength{\textheight}{24cm}
+\setlength{\topmargin}{-1cm}

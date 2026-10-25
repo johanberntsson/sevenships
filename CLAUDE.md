@@ -31,7 +31,7 @@ BASIC nor the cc65 version ever scrolled correctly; see **Scrolling** below.
 than for working on the code — program structure, memory allocation and the
 main loop, in the format of Ozmoo's (pandoc markdown, `\$` in tables). **Keep
 it in step** when the memory map, the startup or the loop changes; the
-figures in it come from `build/sevenships.lst`. `documentation/player_manual.md` (25 Oct 2026, a first draft) is the
+figures in it come from `build/sevenships.lst`. `documentation/sevenships_manual.md` (25 Oct 2026, a first draft) is the
 player's manual: the setting, the rules, the Crisis and how a game is won
 or lost, with the figures (units, terrain, costs, the score) in tables.
 **A change to a rule or a figure has to be made there too**, as on the
@@ -52,7 +52,7 @@ make MAP_SEED=7           # another map; MAP_LAND=45 for more land
 make FAKE_KEYS='{10,0,0,13},{12,0,0,13},{14,0,0,13},{16,0,0,13},{30,0,0,98}'  # see below
 make NO_TITLE=1           # straight to the map, no title screen
 make DEBUG=0              # without the Debug menu, as a release is
-make release              # build the d81 (DEBUG=0) and copy it into release/
+make release              # build the d81 (DEBUG=0) and the manual's PDF (pandoc) into release/
 make clean
 ```
 
@@ -60,7 +60,10 @@ Needs `cc6502`/`as6502`/`ln6502` (Calypsi 5.18+), Python 3, Ruby (for
 `tools/diskutil.rb`, which builds the d81 with an interleave that reads
 faster from a real floppy) and `xemu-xmega65`. Pillow only if the tile art
 or the pictures change, since `res/tiles.fci` and `res/*.pic` are
-checked in.
+checked in. `make release` also needs pandoc and pdflatex, for
+`release/sevenships_manual.pdf` from `documentation/sevenships_manual.md`
+(renamed from `player_manual.md` on 25 Oct 2026); this TeX Live has no
+`geometry.sty`, so `tools/manual-header.tex` sets the margins by hand.
 
 **The program reads its texts, its code regions, the title's picture,
 its tile sheet and its map from drive 8** (`TEXT.PAK`, `SEVENSHIPS.R1`
@@ -210,7 +213,7 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 136 bytes free (25 Oct 2026, after roads), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 48 bytes free (25 Oct 2026, after the city buildings), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1 KB free |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
 | `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 2.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
@@ -892,18 +895,26 @@ stopped to play-test, a lot, before the next session):
    the difficulty levels; the peoples' starts and advantages; the scribes
    and the tablets on Advisors → Finance; the Orders menu's Build a Road
    and Go To; the three new wonders and what they do; GOTO's corners (a
-   galley with cargo, a unit blocked on the way, a save during one).
+   galley with cargo, a unit blocked on the way, a save during one);
+   **the city buildings** (the stele, the edubba and the feasting hall
+   in CHANGE, under BUY on the city screen, Help → City Buildings and
+   Wonders, "Buildings' upkeep" on Finance, a building sold for want of
+   gold -- the last two not even tried headlessly).
    Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
 3. **Tuning**, from play, as TODO.txt's OPEN lists it: the Crisis, left
    mild on purpose (its options are in TODO.txt and **The Crisis** above:
    stronger raids towards the end first, then shocks one turn in 8), the
    collapse, gold (treasuries of 2000-14000 by turn 400; the scribes now
    spend some), the levels' percentages, the peoples' advantages, how
-   often vassals come (`SUBMIT_RATIO`), legacy's weight in the score.
+   often vassals come (`SUBMIT_RATIO`), legacy's weight in the score --
+   **more pressing since the city buildings**, which took legacy from
+   53-104 a people to 88-190 by turn 255 (`LEGACY_TURNS` in
+   `src/culture.h`, `building_for()`'s sizes in `src/aibuild.c`).
 4. **Polish**: art for the placeholder resources, the temple, the wonders
    and the Sea Peoples' ships; the Civilopedia's pages, and one on the
-   tablets; the player's manual (`documentation/player_manual.md`, a
-   first draft) kept in step with every rule changed.
+   tablets; the player's manual (`documentation/sevenships_manual.md`, a
+   first draft; `make release` makes its PDF) kept in step with every
+   rule changed.
 5. **Make room first** before anything grows in resident code (48
    bytes) or region 1 (72 bytes): **The way to resident room is
    `game.c`** (`click_hex()`, tile select and the panel are the next

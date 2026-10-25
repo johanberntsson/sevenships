@@ -22,7 +22,7 @@ NEXT (CLAUDE.md "Where to start next time"):
    (region 8) with the scribes' + and -, and a tablet's popup; the Orders menu's Build a
    Road and Go To; the three new wonders in CHANGE, Help/Buildings and their popups, and
    what they do; GOTO with a galley and its cargo, a unit blocked on the way, a save and
-   load during one
+   load during one; the city buildings (see DONE above)
 Room (25 Oct, after the city buildings): resident 48 bytes, region 0 1 KB, region 1 72 bytes,
 region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7 KB, region 6 2.9 KB,
 region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.0 KB, highram 275

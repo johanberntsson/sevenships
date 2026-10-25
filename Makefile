@@ -331,7 +331,17 @@ $(D81): $(PRG) $(REGION_FILES) $(MAP) $(RES)/tiles.fci $(TEXT_PAK) $(PICTURES) t
 # refused is a release *of* a test build. `make clean` leaves release/ alone.
 RELEASE  = release
 
-release: $(D81)
+# The player's manual goes with it as a PDF, made by pandoc with pdflatex;
+# tools/manual-header.tex is the page layout.
+MANUAL     = documentation/sevenships_manual.md
+MANUAL_PDF = $(RELEASE)/sevenships_manual.pdf
+
+$(MANUAL_PDF): $(MANUAL) tools/manual-header.tex
+	mkdir -p $(RELEASE)
+	pandoc $(MANUAL) --pdf-engine=pdflatex -V papersize=a4 \
+	    -H tools/manual-header.tex -o $@
+
+release: $(D81) $(MANUAL_PDF)
 ifneq ($(FAKE_KEYS)$(NO_TITLE),)
 	$(error a release must not be built with FAKE_KEYS or NO_TITLE)
 endif
