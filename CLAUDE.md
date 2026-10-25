@@ -31,7 +31,11 @@ BASIC nor the cc65 version ever scrolled correctly; see **Scrolling** below.
 than for working on the code — program structure, memory allocation and the
 main loop, in the format of Ozmoo's (pandoc markdown, `\$` in tables). **Keep
 it in step** when the memory map, the startup or the loop changes; the
-figures in it come from `build/sevenships.lst`. `documentation/vision.md` is the game design document — a Late Bronze Age eastern
+figures in it come from `build/sevenships.lst`. `documentation/player_manual.md` (25 Oct 2026, a first draft) is the
+player's manual: the setting, the rules, the Crisis and how a game is won
+or lost, with the figures (units, terrain, costs, the score) in tables.
+**A change to a rule or a figure has to be made there too**, as on the
+Civilopedia's pages. `documentation/vision.md` is the game design document — a Late Bronze Age eastern
 Mediterranean 4X. Its §6 is the technical section and is written to agree
 with this file; **if the two ever disagree, this file is right and §6 is
 stale.** `documentation/vision-old.md` is a superseded draft. (All three
@@ -874,53 +878,37 @@ hover readout from region 0, the calendar, the score and the end
 screen, and the Crisis — omens, Sea Peoples, shocks — with the 96-unit
 list.
 
-**Where to start next time** (24 Oct 2026, end of the day; the user
-stopped to play-test):
+**Where to start next time** (25 Oct 2026, end of the day; the user
+stopped to play-test, a lot, before the next session):
 1. **Ask what the play-testing found**, and take the new items at the
-   top of TODO.txt first.
-2. **Try on a real MEGA65**: the fight popups (own attacks, attacks on
-   the human's units and cities during the other turns, several in one
-   turn); `p` on cattle and horses, chariots in CHANGE only with a
-   pasture on horses, moving by Tab and the cursor keys now the moving
-   keys are gone; the Finance screen's upkeep rows; F1-F4 (F2 and F4 are
-   shifted F1 and F3 there), Advisors → Military, and HELP. And from 23
-   Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
-   the temple and the Lion Gate, the legacy victory. And from 25 Oct:
-   GOTO (`g`). And (later on 25 Oct) region 8, the treasury: Advisors →
-   Finance, with the scribes' + and -, and a tablet's popup; the
-   Orders menu's Build a Road and Go To; the three new
-   wonders in CHANGE, Help → Buildings and their popups, and what they
-   do -- Knossos's corruption on the Finance screen, Karnak's temples'
-   upkeep, Ugarit's ships' moves. And the last of 25 Oct: the
-   difficulty levels, the peoples' starts and advantages, vassals (S on
-   Diplomacy, a submission letter, the score's column) and escorts (f on
-   a galley with a merchant ship). **With escorts the game is feature
-   complete against vision.md but for grain logistics and attrition**
-   (vision.md §3), left out unless play asks for it (TODO.txt); what is
-   left is art, the Civilopedia's pages and balance from play.
-3. **A 400-turn check** (25 Oct 2026, after roads and the wonders), in
-   autoplay on seeds 3, 7 and 5: everybody but seed 7's Egyptians, who
-   lost their capital at turn 262 and broke up (**The collapse**), stood
-   at turn 400, the human's side too. **The Crisis is mild now**: from
-   turn 250 to 300 the citizens grew on seeds 3 and 5, and fell by a
-   third on seed 7 only through the collapse; with cities of 7-8 a people
-   and builders out of the cap, the peoples are bigger than when it was
-   tuned. **Left as it is for now** (the user's call, 25 Oct 2026), to
-   be changed if play-testing finds it too mild: its knobs are
-   `SEA_CAP`, the raid rate in `crisis_turn()` and the fleets' size
-   (**The Crisis**); the first thing to try is the raids growing
-   stronger towards the end, then the shocks a turn in 8 rather than 16. **Gold piles up**:
-   treasuries of 2000-14000 by turn 400 with little to spend it on.
-   **Seed 1** is the Egyptians' with bronze and horses (11 spearmen, 8
-   chariots) at war with Mycenaeans who have neither: the human's side,
-   played by the AI, is down to one city by turn 256 or out by 167.
-4. **More culture**: more wonders (vision.md 5B names the Pyramids, the
-   Palace of Knossos) and the clay tablets of knowledge (Linear B,
-   law codes, the alphabet), which want a science of some kind;
-   building art for the map and the Civilopedia, which has none yet.
-5. Tune from play: the Crisis, the collapse, merchant ships, gold and the
-   new upkeep's allowances (`src/treasury.h`), the weight of legacy in
-   the score; the computer players' galleys hunting the Sea Peoples.
+   top of TODO.txt first. **The game is feature complete against
+   vision.md** but for grain logistics and attrition (vision.md §3), left
+   out unless play asks for it; **from now on the work is tuning and
+   polish** (the user's: "We'll do tuning and minor improvements later").
+2. **Try on a real MEGA65** what came on 25 Oct and has not been
+   confirmed there: escorts (`f` on a galley with a merchant ship,
+   Orders' "f: Escort"); vassals (a submission letter, S on Diplomacy,
+   the score's Vassals column -- rare: a war won by far, or a long game);
+   the difficulty levels; the peoples' starts and advantages; the scribes
+   and the tablets on Advisors → Finance; the Orders menu's Build a Road
+   and Go To; the three new wonders and what they do; GOTO's corners (a
+   galley with cargo, a unit blocked on the way, a save during one).
+   Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
+3. **Tuning**, from play, as TODO.txt's OPEN lists it: the Crisis, left
+   mild on purpose (its options are in TODO.txt and **The Crisis** above:
+   stronger raids towards the end first, then shocks one turn in 8), the
+   collapse, gold (treasuries of 2000-14000 by turn 400; the scribes now
+   spend some), the levels' percentages, the peoples' advantages, how
+   often vassals come (`SUBMIT_RATIO`), legacy's weight in the score.
+4. **Polish**: art for the placeholder resources, the temple, the wonders
+   and the Sea Peoples' ships; the Civilopedia's pages, and one on the
+   tablets; the player's manual (`documentation/player_manual.md`, a
+   first draft) kept in step with every rule changed.
+5. **Make room first** before anything grows in resident code (100
+   bytes) or region 1 (72 bytes): **The way to resident room is
+   `game.c`** (`click_hex()`, tile select and the panel are the next
+   candidates), and region 1's is more of `ai.c` moving to a region of
+   its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
 **Room is short in places** (25 Oct 2026, after the escorts):
 **resident 100 bytes**, region 0 1 KB, **region 1 72 bytes** (`road_site()` took
