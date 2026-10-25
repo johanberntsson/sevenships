@@ -174,6 +174,8 @@ TEXTS    = $(RES)/text/help.txt \
            $(RES)/text/letter_no.txt \
            $(RES)/text/letter_trade.txt \
            $(RES)/text/letter_tribute.txt \
+           $(RES)/text/letter_submit.txt \
+           $(RES)/text/letter_free.txt \
            $(RES)/text/list_terrains.txt \
            $(RES)/text/pedia_hills.txt \
            $(RES)/text/pedia_grassland.txt \

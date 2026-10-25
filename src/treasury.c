@@ -9,6 +9,7 @@
 #include "civ.h"
 #include "combat.h"
 #include "crisis.h"
+#include "diplomacy.h"
 #include "culture.h"
 #include "game.h"
 #include "gameint.h"
@@ -193,6 +194,14 @@ void treasury_turn(void)
             player_gold[p] = 0;
             disband(p);
         }
+    }
+    // A vassal's tribute to its lord (diplomacy.h), out of what is left.
+    for (p = 0; p < PLAYERS; ++p) {
+        u = diplomacy_lord[p];
+        if (u == LORD_NONE) continue;
+        cost = player_gold[p] / TRIBUTE_SHARE;
+        player_gold[p] -= cost;
+        add(u, cost);
     }
     // The scribes, out of what is left (tablets.h).
     tablets_turn();

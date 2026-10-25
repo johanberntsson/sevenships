@@ -95,6 +95,7 @@ static const struct block blocks[] = {
     { player_gold, sizeof player_gold },
     { city_culture, sizeof city_culture },
     { &wonders_built, sizeof wonders_built },
+    { diplomacy_lord, sizeof diplomacy_lord },
     { scribe_pay, sizeof scribe_pay },
     { knowledge, sizeof knowledge },
     { tablets, sizeof tablets },

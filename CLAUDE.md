@@ -917,11 +917,11 @@ stopped to play-test):
    the score; escorts for the merchant ships, and the computer players'
    galleys against the Sea Peoples.
 
-**Room is short in places** (25 Oct 2026, after the peoples): resident
-211 bytes, region 0 1 KB, **region 1 0.3 KB** (`road_site()` took
-460), region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8
-KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.3 KB (after the
-peoples' starts moved in), **highram 283 bytes** (the road list took 440), `LOW_FREE` 735
+**Room is short in places** (25 Oct 2026, after the vassals): resident
+209 bytes, region 0 1 KB, **region 1 0.3 KB** (`road_site()` took
+460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
+KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.0 KB, **highram 275
+bytes** (the road list took 440), `LOW_FREE` 735
 bytes. Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
@@ -1682,8 +1682,36 @@ and later Civilizations allow: up and down or a click picks a people,
 C proposes a ceasefire, P peace, W declares war (Y to confirm); the
 screen closes and the answer comes as a letter, LETTER_YES or LETTER_NO.
 `diplomacy_known`, `diplomacy_truce` and `diplomacy_mood` are saved
-(`SAVE_VERSION` 9, 10 with trade); the letters are not. Not in yet: the
-vassals' formula, alliances.
+(`SAVE_VERSION` 9, 10 with trade); the letters are not. Not in yet:
+alliances.
+
+**Vassals** (25 Oct 2026, vision.md §3's vassals' formula and §5's
+hegemony; `diplomacy_lord[]` in `src/diplomacy.h`, saved, `SAVE_VERSION`
+22): a people at war `WAR_TIRED` turns, weaker than its enemy and with
+`SUBMIT_RATIO` (2) times fewer cities (`SUBMITS()`, counted with the
+power in `count_power()`), offers to become its vassal in place of a
+ceasefire, to a lord that is nobody's vassal: a computer player takes
+it at once; the human is asked by letter in the vassals' formula
+(`letter_submit.txt`, "At the feet of my lord I fall, seven times and
+seven times", Yes or No), and can demand it on the Diplomacy screen,
+**S**, of a people at war with it that `SUBMITS()`. `submit()` makes
+peace and frees the new vassal's own vassals. A lord and its vassal never
+declare war on each other (`wants_war()`), and a war declared between
+them ends it; **the vassal pays an eighth of its gold a turn**
+(`TRIBUTE_SHARE`, in `treasury_turn()`), and **each vassal is 10 points
+of its lord's score** (`VASSAL_POINTS`, a Vassals column in
+`src/score.c`, whose columns moved closer). It goes free once stronger
+than its lord or the lord has fallen (`letter_free.txt` to the human).
+The human is never a vassal. **Power alone never told**: at three times,
+and at two, no people submitted in 255 turns on seeds 1, 3 and 7, since
+the armies stay alike while the cities go; with the cities in the test
+none did either, as nobody lost a war that badly in those games -- it is
+for the lopsided wars, such as seed 1's Egyptians and Mycenaeans before
+the peoples' starts. Checked headlessly with throwaways (war with the
+Hittites from the start, `SUBMITS()` always true): the letter, Yes, "your
+vassal" on the Diplomacy screen, and the score's +10. **Purple dye**
+gives legacy too (vision.md §2): a point every `DYE_TURNS` (16) turns to
+a people that has it, in `tablets_turn()`.
 
 **Trade** (`src/trade.c`, region 4, milestone 9's first part) is the
 Amarna gift exchange as Civilization IV's resource trades. **The goods**

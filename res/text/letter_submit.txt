@@ -1,0 +1,9 @@
+# A computer player losing its war with the player offers to become its
+# vassal (diplomacy.h), in the vassals' formula of the Amarna letters, which
+# the popup puts as a question (arguments as in letter_greet.txt).
+To {arg 0}, {arg 1}, my lord, say: thus says {arg 2}, your servant. At \
+the feet of my lord I fall, seven times and seven times. Let the anger of \
+my lord cease. My land is my lord's land, and its tribute shall come to \
+my lord every year.
+
+Take the {arg 4} as your vassals?

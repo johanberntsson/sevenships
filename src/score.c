@@ -29,11 +29,12 @@
 // The table: a row a people, a column a figure, right-aligned at these.
 #define TABLE_TOP 6
 #define PEOPLE_LEFT 8
-#define FIGURES 7
+#define FIGURES 8
 static const char *const heading[FIGURES] = {
-    "Cities", "Citizens", "Goods", "Deals", "Gold", "Legacy", "Score"
+    "Cities", "Citizens", "Goods", "Deals", "Vassals", "Gold", "Legacy",
+    "Score"
 };
-static const byte column_right[FIGURES] = { 27, 37, 44, 51, 58, 66, 74 };
+static const byte column_right[FIGURES] = { 25, 34, 40, 46, 54, 60, 67, 74 };
 #define OUTCOME_ROW (TABLE_TOP + 2 * PLAYERS + 3)
 
 // The goods that count, as trade.h has them.
@@ -84,12 +85,16 @@ static void figures(byte p)
         if (deal_from[i] != DEAL_FREE
             && (deal_from[i] == p || deal_to[i] == p))
             ++figure[3];
-    figure[4] = player_gold[p];
-    figure[5] = player_legacy[p];
+    // vision.md's hegemony counts the vassals (diplomacy.h).
+    for (i = 0; i < PLAYERS; ++i)
+        if (diplomacy_lord[i] == p) ++figure[4];
+    figure[5] = player_gold[p];
+    figure[6] = player_legacy[p];
     // vision.md's wealth: a point for every GOLD_POINT in the treasury;
-    // and its legacy, the temples and the wonders (culture.h).
-    figure[6] = figure[1] + 2 * figure[0] + 2 * figure[2] + 3 * figure[3]
-                + figure[4] / GOLD_POINT + figure[5];
+    // and its legacy, the temples, the wonders and the tablets.
+    figure[7] = figure[1] + 2 * figure[0] + 2 * figure[2] + 3 * figure[3]
+                + VASSAL_POINTS * figure[4] + figure[5] / GOLD_POINT
+                + figure[6];
 }
 
 static void put_year(byte x, byte y)
@@ -210,7 +215,7 @@ void score_screen(byte how)
     y = OUTCOME_ROW;
     if (how == SCORE_NOW) {
         screen_putsxy(PEOPLE_LEFT, y, "A point a citizen, two a city, two"
-                      " a good, three a trade deal,", COLOR_LIGHTGREY);
+                      " a good, three a deal, ten a vassal,", COLOR_LIGHTGREY);
         screen_putsxy(PEOPLE_LEFT, y + 1, "one for every 200 gold, and the"
                       " legacy: temples, wonders, tablets.", COLOR_LIGHTGREY);
     } else if (how == SCORE_RETIRED) {

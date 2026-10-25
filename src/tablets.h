@@ -21,6 +21,10 @@
 // in the world to record it (tablets_first), which the human hears of in a
 // popup; the human hears of its own too.
 //
+// **Purple dye** (vision.md section 2) gives legacy here too: a point
+// every DYE_TURNS turns to a people that has it, owned or traded for --
+// 25 over a whole game.
+//
 // **In region 8** (src/region.h), with the treasury, which calls
 // tablets_turn() at the end of a turn and shows them on Advisors ->
 // Finance.
@@ -40,6 +44,7 @@
 #define SCRIBES_AI_MAX 10
 #define SCRIBES_START 1                 // the human's, at a new game
 #define LAW_FREE 5
+#define DYE_TURNS 16                    // purple dye: a legacy point this often
 
 // HIGH_BSS, saved; game_init() resets them.
 extern byte scribe_pay[PLAYERS];

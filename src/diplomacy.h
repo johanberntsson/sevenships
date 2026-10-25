@@ -95,6 +95,26 @@ extern byte diplomacy_letter[PLAYERS];
 #define LETTER_NO 6
 #define LETTER_TRADE 7          // a trade asked for, Yes or No
 #define LETTER_TRIBUTE 8        // a good demanded for nothing, Yes or No
+#define LETTER_SUBMIT 9         // an offer to be the human's vassal, Yes or No
+#define LETTER_FREE 10          // a vassal of the human's breaks free
+
+// **Vassals** (25 Oct 2026, vision.md sections 3 and 5): diplomacy_lord[p]
+// is the people p serves, or LORD_NONE. A people at war, WAR_TIRED turns
+// on, weaker than its enemy and with SUBMIT_RATIO times fewer cities,
+// offers to become its vassal rather than fight on: a computer player takes it at
+// once, the human is asked by letter in the vassals' formula; and the
+// human can demand it on the Diplomacy screen, S, of a people at war with
+// it that weak. A vassal is at peace with its lord, neither declares war
+// on the other, it pays its lord a TRIBUTE_SHARE of its gold a turn
+// (treasury.c), and each vassal is VASSAL_POINTS to its lord's score
+// (score.c). It is free again when it is stronger than its lord or its
+// lord has fallen -- the human hears it by letter -- and its own vassals
+// are freed when it submits. The human is never anybody's vassal.
+#define LORD_NONE 0xff
+#define SUBMIT_RATIO 2
+#define TRIBUTE_SHARE 8
+#define VASSAL_POINTS 10
+extern byte diplomacy_lord[PLAYERS];    // saved
 
 // Attitudes, round MOOD_NEUTRAL: diplomacy.c has the rules.
 #define MOOD_NEUTRAL 100

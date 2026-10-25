@@ -1,0 +1,7 @@
+# A vassal of the player's breaks free: stronger than its lord now, or its
+# lord has fallen (diplomacy.h). Arguments as in letter_greet.txt.
+Say to {arg 0}, {arg 1}: thus says {arg 2}, {arg 3}. My land is my own, \
+and its tribute is my own. Let there be peace between us as between \
+brothers, if my brother wishes it.
+
+The {arg 4} are your vassals no more.

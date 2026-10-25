@@ -2,6 +2,9 @@
 // directly.
 #include "tablets.h"
 #include "civ.h"
+#include "game.h"
+#include "growth.h"
+#include "map.h"
 #include "culture.h"
 #include "diplomacy.h"
 #include "popup.h"
@@ -55,6 +58,10 @@ void tablets_turn(void)
     word pay;
 
     for (p = 0; p < PLAYERS; ++p) {
+        // **Purple dye** (vision.md section 2): the palace's robes, a
+        // legacy point every DYE_TURNS to a people that has it.
+        if (!(game_turn % DYE_TURNS) && player_has(p, RES_DYE))
+            ++player_legacy[p];
         // Nobody pays scribes with nothing left to set down.
         t = tablet_next(p);
         if (t == TABLET_NONE) continue;

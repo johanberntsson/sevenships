@@ -36,6 +36,8 @@ byte diplomacy_auto;
 // up, LETTER_* (diplomacy.h). Not saved: a game is saved from the map,
 // after they have been read.
 HIGH_BSS byte diplomacy_letter[PLAYERS];
+HIGH_BSS byte diplomacy_lord[PLAYERS];
+#define lord diplomacy_lord
 #define letter diplomacy_letter
 // The texts are TEXT_LETTER_GREET and the ones after it, in this order.
 #define LETTER_TEXT(K) (TEXT_LETTER_GREET + (K))
@@ -101,6 +103,7 @@ void diplomacy_reset(void)
     for (p = 0; p < PLAYERS; ++p) {
         diplomacy_known[p] = 0;
         letter[p] = LETTER_NONE;
+        lord[p] = LORD_NONE;
         for (q = 0; q < PLAYERS; ++q) {
             diplomacy_truce[p][q] = 0;
             diplomacy_mood[p][q] = base(p, q);
@@ -142,6 +145,9 @@ void declare_war(byte a, byte b)
 {
     byte r;
 
+    // A lord who turns on its vassal, or the other way round, ends it.
+    if (lord[a] == b) lord[a] = LORD_NONE;
+    if (lord[b] == a) lord[b] = LORD_NONE;
     combat_war[a] |= (byte)(1 << b);
     combat_war[b] |= (byte)(1 << a);
     set_truce(a, b, 0);
@@ -158,12 +164,15 @@ void declare_war(byte a, byte b)
 // defence of all its units. Worked out once a turn by diplomacy_turn().
 HIGH_BSS word diplomacy_power[PLAYERS];
 #define power diplomacy_power
+HIGH_BSS static byte cities[PLAYERS];   // and their cities, for SUBMITS()
 
 static void count_power(void)
 {
     byte i, p, k;
 
-    for (p = 0; p < PLAYERS; ++p) power[p] = 0;
+    for (p = 0; p < PLAYERS; ++p) power[p] = cities[p] = 0;
+    for (i = 0; i < city_count; ++i)
+        if (city_owner[i] < PLAYERS) ++cities[city_owner[i]];
     for (i = 0; i < MAX_UNITS; ++i) {
         k = unit_kind[i];
         p = unit_owner[i];
@@ -177,7 +186,25 @@ static void count_power(void)
 // continents).
 static byte wants_war(byte p, byte q)
 {
-    return diplomacy_mood[p][q] < MOOD_WAR && power[p] >= power[q];
+    return diplomacy_mood[p][q] < MOOD_WAR && power[p] >= power[q]
+           && lord[p] != q && lord[q] != p;
+}
+
+// Whether p, at war with q, is losing badly enough to submit to it: the
+// weaker, and with SUBMIT_RATIO times fewer cities. Power alone hardly
+// ever told: the armies stay alike while the cities go.
+#define SUBMITS(P, Q)                                                       \
+    (power[P] < power[Q] && cities[P] * SUBMIT_RATIO <= cities[Q])
+
+// p becomes q's vassal (diplomacy.h): at peace, its own vassals free.
+static void submit(byte p, byte q)
+{
+    byte r;
+    for (r = 0; r < PLAYERS; ++r)
+        if (lord[r] == p) lord[r] = LORD_NONE;
+    lord[p] = q;
+    make_peace(p, q, 0);
+    if (diplomacy_mood[p][q] < MOOD_ACCEPT) diplomacy_mood[p][q] = MOOD_ACCEPT;
 }
 
 // Hexagons between two cells, round the east-west wrap; ai.c's.
@@ -329,6 +356,15 @@ void diplomacy_turn(void)
     border = 0;
     rivals();
 
+    // A vassal stronger than its lord, or whose lord has fallen, is free.
+    for (p = 0; p < PLAYERS; ++p) {
+        q = lord[p];
+        if (q == LORD_NONE || (player_alive(q) && power[p] <= power[q]))
+            continue;
+        lord[p] = LORD_NONE;
+        if (HUMAN_ASKED(q)) say(p, LETTER_FREE);
+    }
+
     for (p = 0; p < PLAYERS; ++p) {
         if (!player_alive(p)) continue;
         for (q = 0; q < PLAYERS; ++q) {
@@ -367,8 +403,15 @@ void diplomacy_turn(void)
             if (p == PLAYER_HUMAN || ((game_turn + p + q) & 3)) continue;
             t = diplomacy_truce[p][q];
             if (rel == RELATION_WAR) {
-                if (t >= WAR_WEARY || (t >= WAR_TIRED && power[p] < power[q]))
+                // Losing badly: submission rather than a ceasefire, to a
+                // lord that is nobody's vassal.
+                if (t >= WAR_TIRED && SUBMITS(p, q) && lord[q] == LORD_NONE) {
+                    if (HUMAN_ASKED(q)) say(p, LETTER_SUBMIT);
+                    else submit(p, q);
+                } else if (t >= WAR_WEARY
+                           || (t >= WAR_TIRED && power[p] < power[q])) {
                     offer(p, q, LETTER_CEASEFIRE);
+                }
             } else if (rel == RELATION_CEASEFIRE) {
                 if (diplomacy_mood[p][q] >= MOOD_PEACE)
                     offer(p, q, LETTER_PEACE);
@@ -434,9 +477,17 @@ void diplomacy_greet(byte met)
         if (kind == LETTER_NONE || !player_alive(p)) continue;
         rel = diplomacy_relation(PLAYER_HUMAN, p);
         // An offer that things have overtaken is not made.
-        if ((kind == LETTER_CEASEFIRE && rel != RELATION_WAR)
+        if (((kind == LETTER_CEASEFIRE || kind == LETTER_SUBMIT)
+             && rel != RELATION_WAR)
             || (kind == LETTER_PEACE && rel != RELATION_CEASEFIRE))
             continue;
+        if (kind == LETTER_SUBMIT) {
+            if (write_letter(p, LETTER_TEXT(kind), 1))
+                submit(p, PLAYER_HUMAN);
+            else
+                mood_down(p, PLAYER_HUMAN, MOOD_REFUSED);
+            continue;
+        }
         if (kind == LETTER_TRADE || kind == LETTER_TRIBUTE) {
             // Not if the peace or the good has gone since, or a trade has
             // been made.
@@ -583,6 +634,8 @@ static void draw_player(byte p, byte y, byte selected)
         x = STATE_LEFT;
         if (rel == RELATION_WAR) {
             put(&x, y, "at war", COLOR_RED);
+        } else if (lord[p] == PLAYER_HUMAN) {
+            put(&x, y, "your vassal", COLOR_LIGHTGREEN);
         } else if (rel == RELATION_PEACE) {
             put(&x, y, "at peace", COLOR_LIGHTGREEN);
         } else {
@@ -599,6 +652,13 @@ static void draw_player(byte p, byte y, byte selected)
     x = LIST_LEFT + 2;
     put(&x, y + 3, "Attitude ", COLOR_LIGHTGREY);
     put(&x, y + 3, attitude(p), COLOR_LIGHTGREEN);
+    q = lord[p];
+    if (q != LORD_NONE && q != PLAYER_HUMAN
+        && ((diplomacy_known[PLAYER_HUMAN] >> q) & 1)) {
+        x += 3;
+        put(&x, y + 3, "vassal: ", COLOR_LIGHTGREY);
+        put(&x, y + 3, player_people(q), COLOR_YELLOW);
+    }
     for (q = PLAYER_FIRST_AI; q < PLAYERS; ++q) {
         if (q == p || !at_war(p, q) || !player_alive(q)
             || !((diplomacy_known[PLAYER_HUMAN] >> q) & 1))
@@ -631,7 +691,8 @@ static void draw_actions(byte p)
     }
     rel = diplomacy_relation(PLAYER_HUMAN, p);
     if (rel == RELATION_WAR)
-        put(&x, ACTION_ROW, "C propose a ceasefire   ", COLOR_WHITE);
+        put(&x, ACTION_ROW, "C propose a ceasefire   S demand submission   ",
+            COLOR_WHITE);
     if (rel == RELATION_CEASEFIRE)
         put(&x, ACTION_ROW, "P propose peace   ", COLOR_WHITE);
     if (rel != RELATION_WAR)
@@ -717,6 +778,17 @@ void diplomacy_screen(void)
         rel = diplomacy_relation(PLAYER_HUMAN, sel);
         if (key == 'c' && rel == RELATION_WAR) {
             propose(sel, LETTER_CEASEFIRE);
+            return;
+        }
+        // Submission, of a people at war that is weak enough (diplomacy.h).
+        if (key == 's' && rel == RELATION_WAR) {
+            if (SUBMITS(sel, PLAYER_HUMAN) && lord[PLAYER_HUMAN] == LORD_NONE) {
+                submit(sel, PLAYER_HUMAN);
+                say(sel, LETTER_YES);
+            } else {
+                mood_down(sel, PLAYER_HUMAN, MOOD_REFUSED);
+                say(sel, LETTER_NO);
+            }
             return;
         }
         if (key == 'p' && rel == RELATION_CEASEFIRE) {
