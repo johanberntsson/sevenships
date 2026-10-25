@@ -40,10 +40,12 @@ void culture_built(byte c, byte kind)
     city_build[c] = KIND_WARRIOR;           // what next is the player's
     if (p >= PLAYERS) return;               // the rebels' (crisis.c)
     city_culture[c] |= CULTURE_BIT(kind);
-    if (kind == KIND_TEMPLE) {
-        // Twice as much with the Temple of Karnak.
-        player_legacy[p] += culture_holder(CITY_KARNAK) == p
-                            ? 2 * LEGACY_TEMPLE : LEGACY_TEMPLE;
+    if (!KIND_IS_WONDER(kind)) {
+        // A temple's legacy when built, twice as much with the Temple of
+        // Karnak; the rest is over time (treasury.c).
+        if (kind == KIND_TEMPLE)
+            player_legacy[p] += culture_holder(CITY_KARNAK) == p
+                                ? 2 * LEGACY_TEMPLE : LEGACY_TEMPLE;
         return;
     }
     wonders_built |= WONDER_BIT(kind);

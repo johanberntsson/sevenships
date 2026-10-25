@@ -34,7 +34,7 @@ static const char *const heading[FIGURES] = {
 };
 static const byte column_right[FIGURES] = { 32, 43, 51, 59, 68, 75 };
 
-static char digits[6];
+LOW_FREE static char digits[6];
 
 static const char *number(word v)
 {

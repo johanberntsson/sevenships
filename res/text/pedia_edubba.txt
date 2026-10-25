@@ -1,0 +1,15 @@
+# The Civilopedia's page on the Edubba: Help/City Buildings. A placeholder.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}EDUBBA
+{at 42 6}{grey}City Building
+{at 6 9}{head}Edubba
+{text}  Cost: 60 shields
+  Upkeep: 1 gold a turn
+  Legacy: 1 every 32 turns
+  Knowledge: 1 a turn, and
+  a fifth of the scribes' pay
+  One a city
+{at 6 17}{text}The "house of tablets", the scribal school, where boys copied the old
+texts until they could write the new. Each edubba adds a point of
+knowledge a turn towards the next tablet, and a fifth more of what the
+scribes are paid (Advisors, Finance), and adds to its people's legacy.

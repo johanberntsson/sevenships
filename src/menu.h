@@ -27,15 +27,16 @@
 #define MENU_EMPORIUM 17
 #define MENU_UNITS 18           // opens Military Units; never returned
 #define MENU_FINANCE 19
-#define MENU_BUILDINGS 20       // opens Buildings; never returned
+#define MENU_BUILDINGS 20       // opens City Buildings; never returned
 #define MENU_CITIES 21
 #define MENU_PASTURE 22
 #define MENU_MILITARY 23
 #define MENU_ROAD 24
 #define MENU_GOTO 25
 #define MENU_ESCORT 26          // f for a galley (unit.h)
-#define MENU_TERRAIN 27         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
-#define MENU_UNIT 37            // + a KIND_*, buildings too, after the terrains; last
+#define MENU_WONDERS 27         // opens Wonders; never returned
+#define MENU_TERRAIN 28         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
+#define MENU_UNIT 38            // + a KIND_*, buildings too, after the terrains; last
 
 // What the Orders menu offers, for the unit that has the orders: up to four
 // of MENU_FOUND_CITY, MENU_FORTIFY, MENU_IRRIGATE, MENU_PASTURE, MENU_MINE,

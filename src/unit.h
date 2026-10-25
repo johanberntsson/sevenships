@@ -38,9 +38,15 @@
 #define KIND_KNOSSOS 12         // the wonders from here on (src/culture.h)
 #define KIND_KARNAK 13
 #define KIND_UGARIT 14
-#define BUILD_KINDS 15
+// The city buildings again after the wonders (25 Oct 2026), so that the
+// bits and the kinds of the temple and the wonders kept their values.
+#define KIND_STELE 15
+#define KIND_EDUBBA 16          // a scribal school
+#define KIND_HALL 17            // a feasting hall
+#define BUILD_KINDS 18
 #define KIND_IS_BUILDING(K) ((K) >= KIND_TEMPLE)
-#define KIND_IS_WONDER(K) ((K) >= KIND_LION_GATE)
+#define KIND_IS_WONDER(K) ((K) >= KIND_LION_GATE && (K) <= KIND_UGARIT)
+#define WONDERS (KIND_UGARIT + 1 - KIND_LION_GATE)
 
 // **The ships are the kinds from KIND_GALLEY on**: they sail the shallows
 // and their own cities, and everything else is a land unit, which on the

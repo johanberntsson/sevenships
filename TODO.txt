@@ -1,5 +1,13 @@
 --- OPEN ---
 
+DONE (25 Oct): city buildings besides the temple -- the stele (30, no upkeep, legacy
+twice at war), the edubba (60, 1 gold, knowledge) and the feasting hall (60, 2 gold, twice
+the legacy); every city building gives a legacy point every 32 turns; Help has City
+Buildings and Wonders. Checked headlessly. In 255 turns on seed 3 legacy went from 53-104
+a people to 88-190: TUNE from play (LEGACY_TURNS in culture.h, the AI's sizes in
+building_for() in aibuild.c). Not tried: Advisors/Finance's "Buildings' upkeep", a
+building sold for want of gold, and a real MEGA65
+
 STATUS (25 Oct 2026): feature complete against vision.md but for one thing, grain
 logistics and attrition (below). What is left is tuning, polish, and what vision.md does not
 ask for.
@@ -15,7 +23,7 @@ NEXT (CLAUDE.md "Where to start next time"):
    Road and Go To; the three new wonders in CHANGE, Help/Buildings and their popups, and
    what they do; GOTO with a galley and its cargo, a unit blocked on the way, a save and
    load during one
-Room (25 Oct, after the escorts): resident 100 bytes, region 0 1 KB, region 1 72 bytes,
+Room (25 Oct, after the city buildings): resident 48 bytes, region 0 1 KB, region 1 72 bytes,
 region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7 KB, region 6 2.9 KB,
 region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.0 KB, highram 275
 bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
@@ -63,6 +71,8 @@ NOT IN VISION.MD, for later if wanted
 - Per-continent AI policy (attack/defend/transport), as Civ 1's
 - Open-sea ships: seed 7 has a landmass the shallows do not reach, whose people (the
   Hittites) met nobody in 300 turns, even with fishing boats; or a map change
+
+We need to have more than one save position - surely the disk has space for more
 
 --- IDEAS, not yet decided implement or not --
 

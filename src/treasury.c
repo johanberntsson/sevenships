@@ -157,9 +157,16 @@ static void disband(byte p)
     unit_remove(pick);
 }
 
+// What city building k costs p a turn (culture.h): a temple nothing with
+// the Temple of Karnak.
+static byte upkeep(byte p, byte k)
+{
+    return k == KIND_TEMPLE && p == karnak ? 0 : CULTURE_UPKEEP(k);
+}
+
 void treasury_turn(void)
 {
-    byte c, p, u, n;
+    byte c, p, u, n, k, bit, legacy = !(game_turn % LEGACY_TURNS);
     word buy, left, cost;
 
     wonders();
@@ -169,16 +176,26 @@ void treasury_turn(void)
         if (p >= PLAYERS) continue;             // the rebels' (crisis.c)
         income(c);
         add(p, trade - corruption);
-        // A temple's upkeep, Civilization's 1 a turn; with nothing in the
-        // treasury it is sold, as Civilization sells a building. None
-        // with the Temple of Karnak.
-        if ((city_culture[c] & CITY_TEMPLE) && p != karnak) {
-            if (player_gold[p]) {
-                --player_gold[p];
-            } else {
-                city_culture[c] &= (byte)~CITY_TEMPLE;
-                if (p == PLAYER_HUMAN) message("No gold: a temple", "was sold");
+        // The city buildings' upkeep, Civilization's 1 a turn for a
+        // temple; with too little in the treasury one is sold, as
+        // Civilization sells a building. And their legacy over time, a
+        // stele's twice while its people is at war with another.
+        for (k = KIND_TEMPLE; k < BUILD_KINDS; ++k) {
+            bit = CULTURE_BIT(k);
+            if (KIND_IS_WONDER(k) || !(city_culture[c] & bit)) continue;
+            n = upkeep(p, k);
+            if (player_gold[p] < n) {
+                city_culture[c] &= (byte)~bit;
+                if (p == PLAYER_HUMAN)
+                    message(unit_kind_name[k], "sold: no gold");
+                continue;
             }
+            player_gold[p] -= n;
+            if (!legacy) continue;
+            n = CULTURE_LEGACY(k);
+            if (k == KIND_STELE && (combat_war[p] & ((1 << PLAYERS) - 1)))
+                n *= 2;
+            player_legacy[p] += n;
         }
     }
     // The realm's cost, and the army's, once the turn's gold is in; one
@@ -246,7 +263,7 @@ void treasury_turn(void)
 static const char *const heading[FIGURES] = { "Trade", "Corruption", "Gold" };
 static const byte column_right[FIGURES] = { 35, 48, 56 };
 
-static char digits[6];
+LOW_FREE static char digits[6];
 
 static const char *number(word v)
 {
@@ -307,8 +324,8 @@ static void draw_scribes(byte y)
 
 void finance_screen(void)
 {
-    byte c, i, y = TABLE_TOP + 2, key, n, temples = 0, mine = 0;
-    word total = 0;
+    byte c, i, y = TABLE_TOP + 2, key, n, k, buildings = 0, mine = 0;
+    word total = 0, kept = 0;
 
     sprite_hide(2);             // the minimap's outline, which is gone
     sprite_hide(3);
@@ -328,8 +345,12 @@ void finance_screen(void)
         income(c);
         ++mine;
         total += trade - corruption;
-        if ((city_culture[c] & CITY_TEMPLE) && karnak != PLAYER_HUMAN)
-            ++temples;
+        for (k = KIND_TEMPLE; k < BUILD_KINDS; ++k)
+            if (!KIND_IS_WONDER(k) && (city_culture[c] & CULTURE_BIT(k))
+                && (n = upkeep(PLAYER_HUMAN, k)) != 0) {
+                ++buildings;
+                kept += n;
+            }
         if (y >= TABLE_TOP + 2 + TABLE_ROWS) continue;  // counted, not listed
         screen_putsxy(LEFT, y, city_name_of(c), COLOR_LIGHTGREEN);
         put_right(column_right[0], y, number(trade), COLOR_LIGHTGREEN);
@@ -347,7 +368,7 @@ void finance_screen(void)
     y += 2;
     screen_putsxy(LEFT, y, "Income a turn", COLOR_WHITE);
     put_right(column_right[2], y, number(total), COLOR_YELLOW);
-    expense(y + 1, "Temples' upkeep", temples, temples);
+    expense(y + 1, "Buildings' upkeep", buildings, kept);
     n = over_army(PLAYER_HUMAN, mine);
     expense(y + 2, "Units beyond the free", n, ARMY_UPKEEP * n);
     n = realm_free(PLAYER_HUMAN);

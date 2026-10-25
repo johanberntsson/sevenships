@@ -1,6 +1,7 @@
 // In region 8 (src/region.h), with the treasury, which calls these
 // directly.
 #include "tablets.h"
+#include "city.h"
 #include "civ.h"
 #include "game.h"
 #include "growth.h"
@@ -52,6 +53,15 @@ const char *tablet_name(byte t)
     return name[t];
 }
 
+// p's edubbas, the scribal schools (culture.h).
+static byte edubbas(byte p)
+{
+    byte c, n = 0;
+    for (c = 0; c < city_count; ++c)
+        if (city_owner[c] == p && (city_culture[c] & CITY_EDUBBA)) ++n;
+    return n;
+}
+
 void tablets_turn(void)
 {
     byte p, t, bit, first;
@@ -72,7 +82,8 @@ void tablets_turn(void)
         pay = scribe_pay[p];
         if (pay > player_gold[p]) pay = player_gold[p];
         player_gold[p] -= pay;
-        knowledge[p] += pay;
+        // Each edubba a point and a fifth of the pay more.
+        knowledge[p] += pay + edubbas(p) * (1 + pay / 5);
         if (knowledge[p] < cost[t]) continue;
         knowledge[p] -= cost[t];
         bit = (byte)(1 << t);

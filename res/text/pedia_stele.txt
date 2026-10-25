@@ -1,0 +1,14 @@
+# The Civilopedia's page on the Stele: Help/City Buildings. A placeholder.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}STELE
+{at 42 6}{grey}City Building
+{at 6 9}{head}Stele
+{text}  Cost: 30 shields
+  Upkeep: none
+  Legacy: 1 every 32 turns,
+  2 at war with a people
+  One a city
+{at 6 16}{text}A standing stone on which a king had his victories cut, for the gods
+and for whoever came after: Naram-Sin's, Merneptah's. A stele adds to
+its people's legacy as long as the city stands, twice as fast while
+the people is at war with another.

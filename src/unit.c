@@ -33,14 +33,15 @@ byte unit_hidden;
 const char *const unit_kind_name[] = {
     "", "Settler", "Warrior", "Builder", "Spearman", "Raider", "Chariot",
     "Galley", "Fishing Boat", "Merchant", "Temple", "Lion Gate", "Knossos",
-    "Karnak", "Ugarit"
+    "Karnak", "Ugarit", "Stele", "Edubba", "Feast Hall"
 };
 // In thirds (MOVE_FULL): 1, 1, 1, 1, 1, 2, 3, 2 and 3 moves.
 const byte unit_kind_moves[] = { 0, 3, 3, 3, 3, 3, 6, 9, 6, 9 };
 // The temple's is Civilization's; the wonders' are for cities that make a
-// few shields a turn (Civilization's take 200-600), and a byte.
+// few shields a turn (Civilization's take 200-600), and a byte. The stele,
+// the edubba and the feasting hall are Civilization's 30-80 for buildings.
 const byte unit_kind_cost[] = {
-    0, 30, 10, 20, 20, 30, 40, 40, 20, 30, 40, 160, 200, 200, 160
+    0, 30, 10, 20, 20, 30, 40, 40, 20, 30, 40, 160, 200, 200, 160, 30, 60, 60
 };
 const byte unit_kind_attack[] = { 0, 0, 1, 0, 1, 3, 4, 1, 0, 0 };
 const byte unit_kind_defence[] = { 0, 1, 1, 1, 2, 1, 1, 1, 1, 1 };

@@ -146,9 +146,10 @@ Click one of your cities (or Return on it in tile select) to open it:
 - **Middle**: the city and its reach. A yellow ring marks a worked
   hexagon. Click a hexagon (or move to it with the cursor keys and press
   space) to take a citizen off it or put an idle one on it.
-- **Below**: size, food, shields, trade, how soon it grows, its buildings.
+- **Below**: size, food, shields, trade, how soon it grows, its wonders.
 - **Right**: what it is producing. **CHANGE** (c) lists what it can build;
-  **BUY** (b) finishes it at the end of the turn for gold.
+  **BUY** (b) finishes it at the end of the turn for gold. Under them, the
+  city's buildings.
 
 **Advisors → Cities** (F1) lists all your cities; pick one to open it.
 
@@ -347,8 +348,9 @@ trade is lost.
 
 What you pay:
 
-- **1 gold a turn for each temple** (with nothing in the treasury, a
-  temple is sold);
+- **the upkeep of your city buildings**: 1 gold a turn for a temple or an
+  edubba, 2 for a feasting hall, nothing for a stele (short of gold, a
+  building is sold);
 - **1 gold a turn for each unit** beyond the free ones: 4, and 3 more for
   each city (short of gold, a unit is disbanded);
 - **a growing cost for a realm of more than 10 cities**;
@@ -363,8 +365,9 @@ nothing has been built towards it yet.
 ### Scribes and the clay tablets
 
 On the Finance screen, **+ and −** set what you pay your **scribes** each
-turn. Each gold paid is a point of **knowledge**, and at 100, 300 and 600
-points your scribes set down, in turn:
+turn. Each gold paid is a point of **knowledge** — and each edubba
+(section 12) adds a point a turn and a fifth of the pay more — and at
+100, 300 and 600 points your scribes set down, in turn:
 
 | Tablet | Knowledge | Effect |
 |---|---|---|
@@ -383,10 +386,27 @@ decide the **legacy victory**.
 
 | Source | Legacy |
 |---|---|
-| A temple (40 shields; 1 gold a turn) | 3 |
+| A temple | 3 when built |
+| A city building (a temple too) | 1 every 32 turns, while you hold its city (see below) |
 | A wonder | 20 |
 | A clay tablet | 10 (20 if the first in the world) |
 | Purple dye, owned or traded for | 1 every 16 turns |
+
+### City buildings
+
+Each city can have one of each. **They add to the legacy of whoever holds
+the city, every 32 turns, for as long as they stand**, so the earlier they
+are built the more they leave — the way to a hegemony as well as to a
+legacy victory. Short of gold for the upkeep, one is sold.
+
+| Building | Cost | Upkeep | Legacy every 32 turns | Also |
+|---|---|---|---|---|
+| **Temple** | 40 | 1 | 1 | 3 legacy when built |
+| **Stele** | 30 | none | 1, 2 while at war with a people | |
+| **Edubba** (scribal school) | 60 | 1 | 1 | a point of knowledge a turn, and a fifth of the scribes' pay more |
+| **Feasting Hall** | 60 | 2 | 2 | |
+
+Help → City Buildings describes them.
 
 ### The wonders
 
@@ -401,7 +421,7 @@ everybody hears of it, and nobody else can build it. Its effect is for
 | **The Temple of Karnak** | 200 | Its holder's temples cost nothing and give twice the legacy |
 | **The Great Harbour of Ugarit** | 160 | Its holder's ships have a move more (a coastal city only) |
 
-Help → Buildings describes them.
+Help → Wonders describes them.
 
 ## 13. Barbarians
 
@@ -492,5 +512,7 @@ save replaces). **Load Saved Game** on the title screen picks it up again.
 - Trade with your neighbours, and keep the deals alive with merchant
   ships — escorted ones after 1200 BC.
 - Pay your scribes a little every turn: the tablets add up.
+- Build steles and temples early, and halls and edubbas in the larger
+  cities: their legacy grows with every turn they stand.
 - Before the Crisis, put more guards in your coastal cities, and keep
   some gold.

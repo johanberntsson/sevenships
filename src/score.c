@@ -217,7 +217,7 @@ void score_screen(byte how)
         screen_putsxy(PEOPLE_LEFT, y, "A point a citizen, two a city, two"
                       " a good, three a deal, ten a vassal,", COLOR_LIGHTGREY);
         screen_putsxy(PEOPLE_LEFT, y + 1, "one for every 200 gold, and the"
-                      " legacy: temples, wonders, tablets.", COLOR_LIGHTGREY);
+                      " legacy: buildings, wonders, tablets.", COLOR_LIGHTGREY);
     } else if (how == SCORE_RETIRED) {
         screen_putsxy(PEOPLE_LEFT, y, "You left before the end of the age.",
                       COLOR_WHITE);

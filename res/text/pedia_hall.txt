@@ -1,0 +1,13 @@
+# The Civilopedia's page on the Feasting Hall: Help/City Buildings. A
+# placeholder. The markup is described in tools/mktext.py.
+{at 42 4}{head}FEASTING HALL
+{at 42 6}{grey}City Building
+{at 6 9}{head}Feast Hall
+{text}  Cost: 60 shields
+  Upkeep: 2 gold a turn
+  Legacy: 2 every 32 turns
+  One a city
+{at 6 16}{text}The great hall round the hearth, the megaron of Pylos and Mycenae,
+where the ruler feasted his people and the gods on festival days. It
+costs the most to keep, and adds twice as much to its people's legacy
+as any other city building.

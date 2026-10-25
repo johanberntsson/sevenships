@@ -35,7 +35,7 @@ static const byte column_right[FIGURES] = { 20, 27, 35, 42 };
 static byte listed[ROWS];       // the city on each row
 static byte count;
 
-static char digits[6];
+LOW_FREE static char digits[6];
 
 static const char *number(word v)
 {

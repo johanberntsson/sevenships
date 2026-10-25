@@ -114,11 +114,11 @@ static const int step_y[6] = { 0, 3, 3, 0, -3, -3 };
 // with horses, and the galley, only with cedar in a coastal city; without
 // them CHANGE says what is missing. The fishing boat and the merchant
 // ship, in a coastal city. change() fills it.
-static byte buildable[BUILD_KINDS];
+LOW_FREE static byte buildable[BUILD_KINDS];
 static byte buildable_n;
 #define BUILDABLE buildable_n
 
-static char digits[6];
+LOW_FREE static char digits[6];
 
 static const char *number(word v)
 {
@@ -316,7 +316,7 @@ static byte key_step(byte key)
 // This is the way to a unit fortified in a city, which the map does not
 // draw.
 #define UNITS_LISTED 9
-static byte listed[UNITS_LISTED];
+LOW_FREE static byte listed[UNITS_LISTED];
 static byte listed_n;
 
 static void draw_units(byte c)
@@ -439,15 +439,32 @@ static void draw_info(byte c)
             work_food == eaten ? TEXT_COLOUR : COLOR_YELLOW);
     }
 
-    // Its buildings (src/culture.h): all five come to 38 columns, which
-    // is the box's width.
+    // Its wonders (src/culture.h): all four come to 31 columns, in the
+    // box's 38. The city buildings are in the production box.
     x = x0;
     ++y;
-    for (k = KIND_TEMPLE; k < BUILD_KINDS; ++k)
+    for (k = KIND_LION_GATE; k <= KIND_UGARIT; ++k)
         if (city_culture[c] & CULTURE_BIT(k)) {
             put(&x, y, unit_kind_name[k], COLOR_YELLOW);
             ++x;
         }
+}
+
+// The city buildings, a row each under BUY.
+#define BUILDINGS_ROW (BUY_ROW + 2)
+
+static void draw_buildings(byte c)
+{
+    byte k, y = BUILDINGS_ROW + 1;
+
+    screen_putsxy(TEXT_LEFT(BUILD_LEFT), BUILDINGS_ROW, "Buildings",
+                  COLOR_WHITE);
+    for (k = KIND_TEMPLE; k < BUILD_KINDS; ++k)
+        if (!KIND_IS_WONDER(k) && (city_culture[c] & CULTURE_BIT(k)))
+            screen_putsxy(TEXT_LEFT(BUILD_LEFT), y++, unit_kind_name[k],
+                          COLOR_YELLOW);
+    if (y == BUILDINGS_ROW + 1)
+        screen_putsxy(TEXT_LEFT(BUILD_LEFT), y, "None", COLOR_LIGHTGREY);
 }
 
 // ------------------------------------------------------------ production
@@ -465,7 +482,7 @@ static word buy_cost(byte c)
     if (city_build[c] == KIND_NONE || city_shields[c] >= cost) return 0;
     r = cost - city_shields[c];
     cost = KIND_IS_WONDER(city_build[c]) ? 4 * r
-           : city_build[c] == KIND_TEMPLE ? 2 * r : 2 * r + r * r / 20;
+           : KIND_IS_BUILDING(city_build[c]) ? 2 * r : 2 * r + r * r / 20;
     if (!city_shields[c]) cost *= 2;
     // The Canaanites' mercenaries: a third off (civ.h).
     if (player_civ[city_owner[c]] == CIV_CANAANITES) cost -= cost / 3;
@@ -506,6 +523,7 @@ static void draw_build(byte c)
     x = TEXT_LEFT(BUILD_LEFT);
     put(&x, LIST_ROW + 6, "Gold ", COLOR_WHITE);
     put(&x, LIST_ROW + 6, number(player_gold[PLAYER_HUMAN]), TEXT_COLOUR);
+    draw_buildings(c);
     buy_width = 0;
     if (!buy_cost(c)) return;
     s = number(buy_cost(c));
@@ -574,7 +592,11 @@ static void change(byte c)
         buildable[buildable_n++] = KIND_BOAT;
         buildable[buildable_n++] = KIND_MERCHANT;
     }
+    // The city buildings, then the wonders.
     for (i = KIND_TEMPLE; i < BUILD_KINDS; ++i)
+        if (!KIND_IS_WONDER(i) && CULTURE_CAN(c, i))
+            buildable[buildable_n++] = i;
+    for (i = KIND_LION_GATE; i <= KIND_UGARIT; ++i)
         if (CULTURE_CAN(c, i)) buildable[buildable_n++] = i;
 
     for (i = 0; i < BUILDABLE; ++i)

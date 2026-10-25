@@ -904,14 +904,14 @@ stopped to play-test, a lot, before the next session):
    and the Sea Peoples' ships; the Civilopedia's pages, and one on the
    tablets; the player's manual (`documentation/player_manual.md`, a
    first draft) kept in step with every rule changed.
-5. **Make room first** before anything grows in resident code (100
+5. **Make room first** before anything grows in resident code (48
    bytes) or region 1 (72 bytes): **The way to resident room is
    `game.c`** (`click_hex()`, tile select and the panel are the next
    candidates), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
 **Room is short in places** (25 Oct 2026, after the escorts):
-**resident 100 bytes**, region 0 1 KB, **region 1 72 bytes** (`road_site()` took
+**resident 48 bytes** (after the city buildings), region 0 1 KB, **region 1 72 bytes** (`road_site()` took
 460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
 KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.0 KB, **highram 275
 bytes** (the road list took 440), `LOW_FREE` 735
@@ -2168,6 +2168,36 @@ with 72-84 legacy; spread, in 400 turns on seeds 3, 7 and 5, they held
 after the temple's test made every city at the cap that could have a
 temple build one instead of the wonder it had just picked, so wonders
 were started only where there was a temple already.
+**Three more city buildings** (25 Oct 2026, the user's: the temple was
+the only one), kinds 15-17 after the wonders so that nothing saved moved
+(`KIND_IS_WONDER()` is a range since, and `WONDERS` in `unit.h` the
+count): **the stele** (30, no upkeep), **the edubba**, the scribal school
+(60, 1 gold: a knowledge point a turn and a fifth of the scribes' pay
+more, `edubbas()` in `src/tablets.c`) and **the feasting hall** (60, 2
+gold). **Every city building gives its city's holder legacy over time**,
+`CULTURE_LEGACY()` points every `LEGACY_TURNS` (32) turns, the temple
+too besides its 3 when built, the hall 2, a stele twice while its people
+is at war with a people (`treasury_turn()`, which takes every building's
+upkeep, `CULTURE_UPKEEP()`, and sells one it cannot pay for). They fill
+`city_culture[]`'s eight bits, so **a ninth building needs a second
+byte**. The city screen lists them under BUY, the wonders staying on the
+info line; CHANGE lists the city buildings before the wonders. The
+computer players build them at the cap as they did the temple
+(`building_for()` in `src/aibuild.c`: temple at 3, stele 3, edubba 4,
+hall 6, with 20 turns of upkeep in hand). **Help has City Buildings and
+Wonders** in place of Buildings (`MENU_WONDERS` 27, so the terrains' and
+units' commands moved up one; `building_order[]` and `wonder_order[]` in
+`src/menu.c`, alphabetical, with a check that every building is in one),
+and a page each, `pedia_stele.txt`, `pedia_edubba.txt` and
+`pedia_hall.txt` after Ugarit's. **They overflowed resident room by 3
+bytes** (the names and costs fill `resHi`, and `buildable[]` is
+resident BSS though `cityscreen.c` is banked: **a banked file's statics
+are resident**), so the city screen's `buildable`, `listed` and `digits`
+and the Finance, Military and Cities screens' `digits` went to
+`LOW_FREE`; resident room is 48 bytes since. In 255 turns of autoplay on
+seed 3 every computer people built all three in most of its cities, and
+legacy went from 53-104 a people to 88-190. Checked headlessly: Help's
+two submenus and a page, the city screen's lists and CHANGE.
 
 **The clay tablets** (25 Oct 2026, vision.md 5B's other half of the
 legacy victory; `src/tablets.h`, region 8 with the treasury): **gold pays

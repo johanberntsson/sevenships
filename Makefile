@@ -205,7 +205,10 @@ TEXTS    = $(RES)/text/help.txt \
            $(RES)/text/pedia_lion_gate.txt \
            $(RES)/text/pedia_knossos.txt \
            $(RES)/text/pedia_karnak.txt \
-           $(RES)/text/pedia_ugarit.txt
+           $(RES)/text/pedia_ugarit.txt \
+           $(RES)/text/pedia_stele.txt \
+           $(RES)/text/pedia_edubba.txt \
+           $(RES)/text/pedia_hall.txt
 TEXT_PAK = $(BUILD)/text.pak
 TEXT_IDS = $(BUILD)/textid.h
 

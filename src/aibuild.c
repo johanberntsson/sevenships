@@ -83,14 +83,32 @@ static byte building(byte p, byte c)
 // next. When every computer player went for the first in KIND_* order
 // they raced for the same one, and the Hittites, who move first, built
 // three of the four on every seed (25 Oct 2026).
-#define WONDERS (BUILD_KINDS - KIND_LION_GATE)
-
 static byte wonder(byte c)
 {
     byte i, k;
     for (i = 0; i < WONDERS; ++i) {
         k = (byte)(KIND_LION_GATE + (player_civ[city_owner[c]] + i) % WONDERS);
         if (CULTURE_CAN(c, k)) return k;
+    }
+    return KIND_NONE;
+}
+
+// The city building city c is to build, or KIND_NONE: the first of these
+// it has not got, at its size, that its people has 20 turns of upkeep
+// for -- the temple first, as before the others came.
+static const byte city_building[] = {
+    KIND_TEMPLE, KIND_STELE, KIND_EDUBBA, KIND_HALL
+};
+static const byte city_building_size[] = { TEMPLE_SIZE, 3, 4, 6 };
+
+static byte building_for(byte p, byte c)
+{
+    byte i, k;
+    for (i = 0; i < sizeof city_building; ++i) {
+        k = city_building[i];
+        if (city_size[c] >= city_building_size[i] && CULTURE_CAN(c, k)
+            && player_gold[p] >= 20 * CULTURE_UPKEEP(k))
+            return k;
     }
     return KIND_NONE;
 }
@@ -248,14 +266,12 @@ void ai_build(byte p)
         } else if (units >= cap) {
             // At the cap, culture (src/culture.h): a wonder in a city of
             // WONDER_SIZE, the first nobody has built, one city at a time;
-            // a temple in a city of TEMPLE_SIZE that can pay for it; else
+            // a city building that it can pay for (building_for()); else
             // nothing.
             kind = KIND_NONE;
             if (city_size[c] >= WONDER_SIZE && !building(p, c))
                 kind = wonder(c);
-            if (kind == KIND_NONE && city_size[c] >= TEMPLE_SIZE
-                && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
-                kind = KIND_TEMPLE;
+            if (kind == KIND_NONE) kind = building_for(p, c);
         } else {
             // 4. Attackers: chariots, with horses (unit.h).
             kind = horses ? KIND_CHARIOT : KIND_WARRIOR;
