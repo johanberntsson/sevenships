@@ -5,7 +5,9 @@
 #include "mega65.h"
 #include "unit.h"
 
-#define MAX_CITIES 32
+// 40, not 32, since the computer players' cap went to 8 (aiint.h): three
+// of them at it would have left the human 8.
+#define MAX_CITIES 40
 #define CITY_NONE 0xff
 
 extern byte city_count;

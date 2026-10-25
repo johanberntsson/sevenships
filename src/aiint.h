@@ -16,8 +16,14 @@
 #define AI_UNIT_MAX 12
 
 // No more than AI_CITY_CAP cities, settlers on their way counted;
-// MAX_CITIES is shared with the human.
-#define AI_CITY_CAP 6
+// MAX_CITIES is shared with the human. 8 since 25 Oct 2026, when the
+// reach of two rings came in: at 6 every people was at the cap by turn
+// 64-96 and only grew inward after it, and in 255 turns of autoplay on
+// seeds 1, 3 and 7 the citizens before the Crisis went from 120 (seed 1,
+// at turn 128, when the Mycenaeans fell), 172 and 147 to 194, 183 and 175,
+// with all four peoples standing at the end on every seed. CITY_SPACING 5
+// instead (aisite.c) was no better, and worse where land is short.
+#define AI_CITY_CAP 8
 
 // A player builds a galley once it has this many cities, and cedar.
 #define GALLEY_CITIES 3

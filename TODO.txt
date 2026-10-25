@@ -1,9 +1,5 @@
 --- OPEN ---
 
-Two rings, to tune: CITY_SPACING (4) for the AI now that outer rings overlap, and whether
-settlers should weigh the outer ring's resources less. The Egyptians fell by turn 300 on
-seed 7 in the first autoplay with them
-
 NEXT (24 Oct 2026, end of the day; CLAUDE.md "Where to start next time"):
 1. The user's play-testing: new items go at the top of this file
 2. Try on a real MEGA65: fight popups (own attacks, attacks in the other turns, several a
@@ -11,7 +7,8 @@ NEXT (24 Oct 2026, end of the day; CLAUDE.md "Where to start next time"):
    keys are gone; Finance's upkeep rows; F1-F4 (F2/F4 shifted), Advisors/Military, HELP.
    From 23 Oct: the two rings' city screen, the chariot, c, Advisors/Cities, the temple and
    Lion Gate, the legacy victory
-3. Tune the AI to the two rings (above)
+3. Done 25 Oct: the AI's city cap 6 -> 8, MAX_CITIES 32 -> 40 (CITY_SPACING 5 was no
+   better). Open: the human's side conquered on seed 1 at cap 6; the Crisis after turn 255
 4. More culture: more wonders (Pyramids, Palace of Knossos), clay tablets of knowledge
    (Linear B, law codes, the alphabet: a science of sorts), building art
 5. Tune from play: the Crisis, the collapse, merchant ships, gold and the upkeep allowances
@@ -32,8 +29,8 @@ res_wine are recoloured orange trees)
 
 Diplomacy not yet: the vassals' formula, alliances, news of wars between the others
 
-The AI ferries settlers now, but rarely: most peoples reach AI_CITY_CAP (6) on their own land
-before they have a galley. Raise the cap (7-8, MAX_CITIES is 32 shared) if overseas cities
+The AI ferries settlers now, but rarely: most peoples reach AI_CITY_CAP (8 since 25 Oct) on
+their own land before they have a galley. Raise the cap further (MAX_CITIES 40) if overseas cities
 are wanted sooner.
 
 Seed 7 has a landmass the shallows do not reach: its people (the Hittites) meets nobody in

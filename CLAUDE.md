@@ -140,7 +140,7 @@ through the city screen, CHANGE, help, the menus, Save Game, Play 50 Turns,
 Top Five, Retire, Load Saved Game and 50 more turns), `-dumpmem` both,
 and compare `map_tile` and the unit and city arrays at the addresses each
 build's listing gives (`unit_kind = 0000a280` and so on, at their real
-lengths: 96 units, 32 cities). The game is deterministic, so they must be
+lengths: 96 units, 40 cities). The game is deterministic, so they must be
 byte-identical; the screenshots can differ only where a unit blinks.
 **A quit is tested with a `DIM` at READY** (see **Quitting**), and BASIC
 on its own with `-importbas FILE` (a BASIC 65 program as text, typed in
@@ -886,11 +886,11 @@ stopped to play-test):
    Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
    the temple and the Lion Gate, the legacy victory. And from 25 Oct:
    GOTO (`g`).
-3. **Tune the AI to the two rings**: `CITY_SPACING` (4) with overlapping
-   outer rings, and settlers perhaps weighing the outer ring's resources
-   less; the Egyptians fell by turn 300 on seed 7 in the first run with
-   them. (In a 136-turn autoplay on seed 1 the human's side, played by
-   the AI, was out by turn 136, in HEAD before 24 Oct's work as well.)
+3. **The AI with the two rings is tuned** (25 Oct 2026): the cap went
+   from 6 to 8 cities, `MAX_CITIES` from 32 to 40 (**The computer
+   players**). Left open: why the human's side, played by the AI, is
+   conquered on seed 1 at a cap of 6 (the computer players are colder
+   to the human by design, `game_level`), and the Crisis after turn 255.
 4. **More culture**: more wonders (vision.md 5B names the Pyramids, the
    Palace of Knossos) and the clay tablets of knowledge (Linear B,
    law codes, the alphabet), which want a science of some kind;
@@ -904,7 +904,7 @@ stopped to play-test):
 about 150 bytes** (it was nearer 300 than 0.5 KB before GOTO, which took
 140), region 0 0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region 3 2.1
 KB, region 4 0.6 KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 2.2
-KB, highram 0.9 KB, `LOW_FREE` 735 bytes. Resident room is the one to
+KB, highram 0.8 KB, `LOW_FREE` 735 bytes. Resident room is the one to
 watch: the next thing that needs it should first move something out of
 `game.c` (**The way to resident room is `game.c`**). Region 6 is the menus' and the treasury's (3 KB of it); a region 8
 for the treasury is the next room there (**A new region**, under
@@ -1108,7 +1108,7 @@ starting warrior explores —
 even over the unit cap if it has none; 2. a settler, from a city of size 2
 or more with more than 1 food a turn to spare, or from the first such city
 when the player has no settler, if there is a site in reach and its
-cities and settlers come to fewer than `AI_CITY_CAP` (6); 3. a builder,
+cities and settlers come to fewer than `AI_CITY_CAP` (8); 3. a builder,
 up to one per city, if it has hexagons to improve; 4. warriors, until
 the player has `AI_UNIT_BASE` + `AI_UNITS_A_CITY` per city units (3 + 2,
 at most `AI_UNIT_MAX`, 12), settlers apart, when it builds nothing
@@ -1125,7 +1125,23 @@ pair of barbarians. A site (`find_site()`) is grassland, plains, floodplain or h
 off the two edge rows, with at least `SITE_LAND` (3) land neighbours and
 at least `CITY_SPACING` (4) hexagons from every city; the settler makes
 for the nearest one from where it stands and founds there, and explores
-if there is none in reach. `MAX_CITIES` (32) is shared with the human.
+if there is none in reach. `MAX_CITIES` (40) is shared with the human.
+**The cap was 6 until 25 Oct 2026** (and the list 32): with the reach of
+two rings every people was at it by turn 64-96 and grew only inward
+after. Measured with a throwaway log of each people's
+cities and citizens every 16 turns and of every city lost, in 255 turns
+of autoplay on seeds 1, 3 and 7: at a cap of 8 the citizens before the
+Crisis went from 120 (seed 1 at turn 128, its last snapshot, the
+Mycenaeans being conquered by turn 136), 172 and 147 to 194, 183 and
+175, and all four peoples stood at turn 255 on every seed.
+`CITY_SPACING` 5 was tried and was no better — fewer cities where land
+is short (the Canaanites stuck at 3 on seed 7) — and the cities, at
+size 5-7, work only a third of their 18 hexagons, so the overlapping
+outer rings do not hold them back. **To measure the AI**: a `NO_TITLE`
+build with `AUTOPLAY_TURNS=255` and only MEGA+D, down, Return in
+`FAKE_KEYS` (no keys after: the human's side may fall, which is game
+over, and a key then starts a new game), one git worktree a seed so
+that three run at once, and the arrays read out of `-dumpmem`.
 Its random numbers are a xorshift with a fixed seed, so a
 headless run is deterministic (`rnd()`, in `src/combat.c` since milestone
 4). Since milestone 4 a warrior first attacks an enemy next to it if the
@@ -1661,8 +1677,8 @@ so that at first 50 soldiers asked and none boarded in 400 turns on seed
 2 on seed 7, none on seed 3. Counted with throwaway
 counters in 300 turns on seed 3: two settlers asked, boarded and went
 ashore; on seeds 1 and 7 none asked, since most peoples reach
-`AI_CITY_CAP` (6) on their own land first — raising the cap is the lever
-if overseas cities are wanted sooner. **Cedar** went from 12% to 25% of forests
+`AI_CITY_CAP` (6 then, 8 since 25 Oct 2026) on their own land first —
+raising the cap is the lever if overseas cities are wanted sooner. **Cedar** went from 12% to 25% of forests
 in `mapgen.py`, since 4 cedar a map gave no galleys at all: now 14-23.
 In 300 turns of autoplay galleys were built on seeds 3 and 7 (on seed 7
 the human's side traded cedar for tin and built one too); on seed 3 they
