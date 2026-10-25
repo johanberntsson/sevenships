@@ -1,12 +1,18 @@
 // The orders keys of the unit with the orders, and the Orders menu that
 // offers them, out of game.c (25 Oct 2026, to make resident room for
-// roads): in region 2, beside the improvements they start, called through
-// the stubs of game_order() and game_orders_menu() (gameint.h).
+// roads), and a step of the unit, or an attack (for the wonders): in
+// region 2, beside the improvements they start, called through the stubs
+// of game_order(), game_orders_menu() and game_move() (gameint.h).
 #define game_order game_order_r2
 #define game_orders_menu game_orders_menu_r2
+#define game_move game_move_r2
 
 #include "gameint.h"
 #include "boat.h"
+#include "civ.h"
+#include "combat.h"
+#include "diplomacy.h"
+#include "popup.h"
 #include "city.h"
 #include "emporium.h"
 #include "improve.h"
@@ -15,6 +21,70 @@
 #include "unit.h"
 
 #pragma clang section text="r2text" rodata="r2rodata"
+
+// The active unit u attacks (nx, ny) -- after a declaration of war, if it
+// takes one. How it went is a popup, as for every fight of the human's
+// (fight.h), shown by game_run().
+static void attack(byte u, byte nx, byte ny)
+{
+    byte kind = unit_kind[u];
+    byte o = combat_holder(nx, ny);
+
+    if (!unit_kind_attack[kind]) {
+        message(unit_kind_name[kind], "cannot attack");
+        return;
+    }
+    if (!at_war(PLAYER_HUMAN, o)) {
+        popup_begin();
+        popup_add("Declare war on the ");
+        popup_add(player_people(o));
+        popup_add("?");
+        if (!popup_ask_shown()) return;
+        declare_war(PLAYER_HUMAN, o);
+    }
+    message("", "");
+    combat_attack(u, nx, ny);
+    dirty = 1;
+    hover_dirty = 1;
+    select_unit(u);
+}
+
+void game_move(byte dir)
+{
+    byte u = unit_active;
+    byte nx, ny, t;
+
+    if (!map_neighbour(unit_ax[u], unit_ay[u], dir, &nx, &ny)) return;
+    t = unit_can_enter(PLAYER_HUMAN, unit_kind[u], nx, ny);
+    if (t == ENTER_WATER) {
+        message("Cannot swim", "");
+        return;
+    }
+    if (t == ENTER_LAND) {
+        message("Ships keep", "to the shallows");
+        return;
+    }
+    if (t == ENTER_MOUNTAIN) {
+        message("Chariots keep", "off mountains");
+        return;
+    }
+    if (t == ENTER_FOREIGN) {
+        attack(u, nx, ny);
+        return;
+    }
+    message("", "");
+    unit_move_to(u, nx, ny);
+    if (!unit_moves[u]) unit_wake_cargo(u);
+    dirty = 1;
+    contact = 1;
+    hover_on(nx, ny);
+    if (unit_moves[u]) {
+        if (!in_view(nx, ny)) centre_on(nx, ny);
+        draw_orders();
+    } else {
+        select_unit(u);
+    }
+}
 
 static void found_city(void)
 {
@@ -97,7 +167,7 @@ void game_order(byte key)
 
 void game_orders_menu(void)
 {
-    byte command = MENU_NONE, second = MENU_NONE;
+    byte command = MENU_NONE, second = MENU_NONE, road = MENU_NONE;
     if (unit_active != UNIT_NONE) {
         byte kind = unit_kind[unit_active];
         if (kind == KIND_SETTLER) command = MENU_FOUND_CITY;
@@ -110,11 +180,14 @@ void game_orders_menu(void)
             second = RES_PASTURE(map_resource_at(unit_ax[unit_active],
                                                  unit_ay[unit_active]))
                      ? MENU_PASTURE : MENU_MINE;
+            road = MENU_ROAD;
         } else if (kind == KIND_BOAT) {
             command = MENU_FISH;
         } else if (kind == KIND_MERCHANT) {
             command = MENU_EMPORIUM;
         }
     }
-    menu_orders(command, second);
+    // Every unit can be sent somewhere.
+    menu_orders(command, second, road,
+                unit_active != UNIT_NONE ? MENU_GOTO : MENU_NONE);
 }

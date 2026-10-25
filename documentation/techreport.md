@@ -107,7 +107,7 @@ most important routines included in each source file.
 | path.c | routes along the shallows for galleys, and over land for GOTO: a breadth-first search |
 | goto.c | GOTO: the human's units walking to a hexagon picked with `g`, a turn's moves at a time |
 | road.c, roadadd.c | roads: a list by hexagon row with each road's neighbours, looked up resident and added in region 2 |
-| orders.c | the orders keys of the unit with the orders, `b f i m p r`, and the Orders menu filled in for it |
+| orders.c | the orders keys of the unit with the orders, `b f i m p r`, the Orders menu filled in for it, and its steps and attacks |
 | aiplace.c | where the computer players start, out of ai.c into region 0 |
 | aibuild.c | what each computer player's city builds, out of ai.c into region 2 |
 | emporium.c | merchant ships and the emporia they found on foreign coasts |
@@ -175,8 +175,9 @@ to `release/`), holding these files:
 | SEVENSHIPS.R3 | code region 3, diplomacy, the same way |
 | SEVENSHIPS.R4 | code region 4, trade, the ships' routes, exploring and fishing, merchant ships and emporia, and GOTO, the same way |
 | SEVENSHIPS.R5 | code region 5, the Crisis and the peoples' collapse, the score and the end of the game, and the pictures, the same way |
-| SEVENSHIPS.R6 | code region 6, the menus and their commands, the treasury, and buildings and wonders, the same way |
+| SEVENSHIPS.R6 | code region 6, the menus and their commands, and buildings and wonders, the same way |
 | SEVENSHIPS.R7 | code region 7, the city screen, the same way |
+| SEVENSHIPS.R8 | code region 8, the treasury, the same way |
 | INTRO.PIC, DEFEAT.PIC, WIN_SURVIVAL.PIC, WIN_HEGEMONY.PIC, WIN_LEGACY.PIC | the pictures shown at boot and at the end: a palette and 60x23 full colour characters, 87 KB each |
 
 The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
@@ -243,11 +244,11 @@ window shows one region of code at a time. The figures below are from the linker
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
 | \$1638-\$1c20 | 1.5 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view and the minimap, and the route search of the galleys and of GOTO |
 | \$1c21-\$1eff | 0.7 | free |
-| \$2001-\$5c0e | 15.0 | BASIC stub, startup and resident code |
-| \$5c0f-\$5c9b | 0.1 | initialised data: the DMA lists |
-| \$5c9c-\$5d9b | 0.25 | C stack |
-| \$5d9c-\$5f77 | 0.5 | BSS: small state |
-| \$5f78-\$5fff | 0.13 | free |
+| \$2001-\$5ad3 | 14.7 | BASIC stub, startup and resident code |
+| \$5ad4-\$5b32 | 0.1 | initialised data: the DMA lists |
+| \$5b33-\$5c32 | 0.25 | C stack |
+| \$5c33-\$5e19 | 0.5 | BSS: small state |
+| \$5e1a-\$5fff | 0.5 | free |
 | \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.6 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
 | \$a000-\$bed3 | 7.7 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, and the resources, a list by hexagon row |
@@ -310,8 +311,8 @@ the improvements for every city and so is beside them; region 3
 diplomacy; region 4 trade, the ships' routes, exploring and fishing,
 merchant ships and emporia, and GOTO; region 5 the Crisis and the peoples'
 collapse, the score and the end of the game, and the pictures; region 6
-the menus and their commands, the treasury, and buildings and wonders;
-region 7 the city screen.
+the menus and their commands, and buildings and wonders; region 7 the
+city screen; region 8 the treasury.
 
 Resident code calls a function in a region through a stub of the same
 name (`src/dispatch.s`), which maps the region in (copying it into its

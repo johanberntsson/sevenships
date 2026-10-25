@@ -136,7 +136,7 @@ PRG      = $(BUILD)/sevenships.prg
 REGION_FILES = $(BUILD)/sevenships.r1 $(BUILD)/sevenships.r2 \
                $(BUILD)/sevenships.r3 $(BUILD)/sevenships.r4 \
                $(BUILD)/sevenships.r5 $(BUILD)/sevenships.r6 \
-               $(BUILD)/sevenships.r7
+               $(BUILD)/sevenships.r7 $(BUILD)/sevenships.r8
 
 # The map, made by tools/mapgen.py and read off the disk at start-up. Same seed,
 # same map: `make MAP_SEED=7` is how to look at another one, and MAP_LAND is the
@@ -199,7 +199,10 @@ TEXTS    = $(RES)/text/help.txt \
            $(RES)/text/pedia_boat.txt \
            $(RES)/text/pedia_merchant.txt \
            $(RES)/text/pedia_temple.txt \
-           $(RES)/text/pedia_lion_gate.txt
+           $(RES)/text/pedia_lion_gate.txt \
+           $(RES)/text/pedia_knossos.txt \
+           $(RES)/text/pedia_karnak.txt \
+           $(RES)/text/pedia_ugarit.txt
 TEXT_PAK = $(BUILD)/text.pak
 TEXT_IDS = $(BUILD)/textid.h
 

@@ -35,8 +35,12 @@
 // nothing else of the units' tables, since nothing ever creates one.
 #define KIND_TEMPLE 10
 #define KIND_LION_GATE 11       // a wonder: one in the world
-#define BUILD_KINDS 12
+#define KIND_KNOSSOS 12         // the wonders from here on (src/culture.h)
+#define KIND_KARNAK 13
+#define KIND_UGARIT 14
+#define BUILD_KINDS 15
 #define KIND_IS_BUILDING(K) ((K) >= KIND_TEMPLE)
+#define KIND_IS_WONDER(K) ((K) >= KIND_LION_GATE)
 
 // **The ships are the kinds from KIND_GALLEY on**: they sail the shallows
 // and their own cities, and everything else is a land unit, which on the

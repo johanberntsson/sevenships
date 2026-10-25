@@ -209,7 +209,7 @@ buffers at the default `$FF80000` and corrupts the display.
 | `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 136 bytes free (25 Oct 2026, after roads), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the computer players' starts (`src/aiplace.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 0.4 KB free |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.9 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, the treasury, buildings and wonders, `src/menu.c`, `src/command.c`, `src/treasury.c`, `src/culture.c`, `src/cities.c`; 0.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury, `src/treasury.c`, its own since 25 Oct 2026; 4.9 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going; 300 bytes free (25 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -885,9 +885,11 @@ stopped to play-test):
    shifted F1 and F3 there), Advisors → Military, and HELP. And from 23
    Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
    the temple and the Lion Gate, the legacy victory. And from 25 Oct:
-   GOTO (`g`); roads -- `r`, moving along them, the redraw with many in
-   view (scrolling over a computer player's network), the city screen's
-   roads, a save and load with roads.
+   GOTO (`g`). And (later on 25 Oct) region 8, the treasury: Advisors →
+   Finance; the Orders menu's Build a Road and Go To; the three new
+   wonders in CHANGE, Help → Buildings and their popups, and what they
+   do -- Knossos's corruption on the Finance screen, Karnak's temples'
+   upkeep, Ugarit's ships' moves.
 3. **The AI with the two rings is tuned** (25 Oct 2026): the cap went
    from 6 to 8 cities, `MAX_CITIES` from 32 to 40 (**The computer
    players**). Left open: why the human's side, played by the AI, is
@@ -902,19 +904,24 @@ stopped to play-test):
    the score; escorts for the merchant ships, and the computer players'
    galleys against the Sea Peoples.
 
-**Room is short in places** (25 Oct 2026, after roads): **resident 136
-bytes** (the orders keys' move to `src/orders.c` gave back 670 just
-before roads, which took 690), region 0 0.3 KB, **region 1 0.3 KB**
-(`road_site()` took 460), region 2 1.9 KB, region 3 2.1 KB, region 4
-0.6 KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 1.9 KB, **highram
-300 bytes** (the road list took 440), `LOW_FREE` 735 bytes. Resident
-room is the one to watch: the next thing that needs it should first move
-something out of `game.c` (**The way to resident room is `game.c`**);
-**the orders keys `b f i m p r` and the Orders menu's filling went to
-`src/orders.c`, region 2** (25 Oct 2026), and `unit_key()` hands it what
-it does not know. Region 6 is the menus' and the treasury's (3 KB of it); a region 8
-for the treasury is the next room there (**A new region**, under
-**Growing past 32 KB**, is the recipe; attic holds eight).
+**Room is short in places** (25 Oct 2026, after the wonders): resident
+486 bytes, region 0 0.3 KB, **region 1 0.3 KB** (`road_site()` took
+460), region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8
+KB, region 6 2.9 KB, region 7 1.9 KB, region 8 4.9 KB, **highram 300
+bytes** (the road list took 440), `LOW_FREE` 735 bytes. Resident room is
+the one to watch: the next thing that needs it should first move
+something out of `game.c` (**The way to resident room is `game.c`**).
+**The orders keys `b f i m p r`, the Orders menu's filling, and a step
+of the active unit or its attack (`game_move()`, which was
+`move_active()` and `attack()`) went to `src/orders.c`, region 2** (25
+Oct 2026, 670 bytes for roads and 480 for the wonders, which took 130),
+`unit_key()` handing it what it does not know; `game.c`'s
+`draw_orders()`, `in_view()`, `centre_on()` and `hover_on()` are
+exported for it (`gameint.h`). **The treasury is region 8** (25 Oct
+2026, for room in region 6, by **A new region** under **Growing past 32
+KB**, which held): **attic's bank 1 is full with eight**, so a ninth
+region needs attic bank 2 in `dispatch.s`'s tables. Checked as
+byte-identical through 226 turns of autoplay.
 
 The tile sheet is packed and has 6 KB, about four units', room left
 (**When bank 5 fills up**, step 1c).
@@ -973,10 +980,13 @@ orders to give still waits. A preference, neither saved nor reset by a new
 game. **Retire** asks "Do you want to quit this game?" with
 `popup_ask()` (Yes/No buttons, `y`/`n`, Esc for No, or the cursor keys to move the highlight — No to begin with — and Return) and on Yes shows the
 score (**The end**) and goes back to the title screen. **Orders is filled in for the active unit** just
-before a menu opens (`set_orders_menu()` in `src/game.c`, through
-`menu_orders()`): Found City for a settler, Fortify for a warrior, and
-for anything else, or no unit wanting orders, it is empty and does not
-open; its items do what `b` and `f` do. World has **Top Five Cities**
+before a menu opens (`game_orders_menu()` in `src/orders.c`, through
+`menu_orders()`, four items at most): Found City for a settler, Fortify
+for a soldier, Irrigate, Build a Mine or Pasture and Build a Road for a
+builder, Fish, Found Emporium, and **Go To for every unit** (25 Oct
+2026); with no unit wanting orders it is empty and does not open; its
+items do what their keys do. `MENU_ROAD` and `MENU_GOTO` are 24 and 25,
+before the terrains' and units' commands, which open help pages. World has **Top Five Cities**
 (`src/topcities.c`, region 2): the five largest cities the player has
 seen, whoever's, with their people and size; and **Score** (**The end**). Advisors has **Diplomacy**
 (see **Contact** below) and **Finance** (**The treasury**); **F1 to F4
@@ -1998,8 +2008,10 @@ nothing, 50), buying, the Finance screen, the score, save and load, and
 300-turn autoplays.
 
 **Buildings and wonders** (23 Oct 2026, the user's request: a cultural
-building and a wonder; `src/culture.c`, region 6; vision.md 5B). **They
-are kinds after the units'** (`KIND_TEMPLE` 10, `KIND_LION_GATE` 11,
+building and a wonder; `src/culture.c`, region 6; vision.md 5B; and three
+more wonders on 25 Oct 2026, below). **They
+are kinds after the units'** (`KIND_TEMPLE` 10, `KIND_LION_GATE` 11 and
+the wonders after it, `KIND_IS_WONDER()`,
 `BUILD_KINDS` in `src/unit.h`; `KINDS` is still the units' count), with
 a name and a cost in `unit_kind_name[]` and `unit_kind_cost[]`, so
 `city_build[]`, CHANGE, BUY and the panel's "built Temple" take them as
@@ -2034,6 +2046,32 @@ autoplay on seeds 1, 3 and 7 the Lion Gate was built in every game (by
 the human's side, the Egyptians and the Canaanites) and legacy reached
 9-41 a people. Checked headlessly: CHANGE, Help → Buildings, the score
 and a legacy victory with its picture (a throwaway build).
+**Three more wonders** (25 Oct 2026, the user's choice of what next;
+vision.md 5B names the Palace of Knossos and the Pyramids, which are a
+thousand years before 1600 BC, so Karnak stands for Egypt): **the Palace
+of Knossos** (200 shields) halves the corruption of all its holder's
+cities (`income()` in `src/treasury.c`), Civilization's courthouse
+everywhere; **the Temple of Karnak** (200) makes its holder's temples
+cost no upkeep and give twice the legacy when built, as Civilization's
+Oracle doubles temples; **the Great Harbour of Ugarit** (160), in a
+coastal city only (`CULTURE_CAN()`), gives its holder's ships a move more
+(`unit_begin_turn()`), as the Lighthouse does. **Each does good to the
+people that holds its city now** (`culture_holder()` in `src/city.c`,
+resident, a walk of the city list), as Civilization's wonders do, while
+the legacy stays the builder's. The bits are generic:
+`CULTURE_BIT(kind)` in `city_culture[]` and `WONDER_BIT(kind)` in
+`wonders_built`, which keep the temple's and the Lion Gate's old values,
+so no new `SAVE_VERSION`. The names are short for CHANGE's 11 columns
+("Knossos", "Karnak", "Ugarit"); `culture.c` has them in full for the
+popup, which says what each does. Help → Buildings has a page each
+(`pedia_knossos.txt` and the rest, after the Lion Gate's in `TEXTS`).
+**The computer players** build the first wonder nobody has built, in
+`KIND_*` order, in a city of `WONDER_SIZE` (5) at their cap, one city
+at a time (`wonder()` and `building()` in `src/aibuild.c`). In 255
+turns of autoplay all four were built on seeds 1, 3 and 7; the Hittites,
+the first computer player, held three of them on two seeds and led on
+legacy (55-84 points). On seed 1 the human's side, played by the AI, was
+conquered by turn 167 (226 before the wonders).
 
 **Pictures** (22 Oct 2026; `src/picture.c`, region 5): the title's at
 boot (`title_splash()`, **The title's picture**) and the outcome's at

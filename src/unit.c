@@ -4,6 +4,7 @@
 #include "minimap.h"
 #include "sheet.h"
 #include "road.h"
+#include "culture.h"
 
 // In HIGH_BSS, out of the 32 KB -- and so not cleared by the startup:
 // unit_reset() empties the list for every game.
@@ -27,16 +28,19 @@ byte unit_hidden;
 // which founds emporia, as Civilization's caravan founds trade routes. The
 // chariot is Civilization's, 4/1/2 for 40 shields, with horses for its
 // advance.
+// The wonders' names are short, for the CHANGE list's 11 columns;
+// culture.c has them in full.
 const char *const unit_kind_name[] = {
     "", "Settler", "Warrior", "Builder", "Spearman", "Raider", "Chariot",
-    "Galley", "Fishing Boat", "Merchant", "Temple", "Lion Gate"
+    "Galley", "Fishing Boat", "Merchant", "Temple", "Lion Gate", "Knossos",
+    "Karnak", "Ugarit"
 };
 // In thirds (MOVE_FULL): 1, 1, 1, 1, 1, 2, 3, 2 and 3 moves.
 const byte unit_kind_moves[] = { 0, 3, 3, 3, 3, 3, 6, 9, 6, 9 };
-// The temple's is Civilization's; the Lion Gate's a wonder's for cities
-// that make a few shields a turn (Civilization's take 200-600).
+// The temple's is Civilization's; the wonders' are for cities that make a
+// few shields a turn (Civilization's take 200-600), and a byte.
 const byte unit_kind_cost[] = {
-    0, 30, 10, 20, 20, 30, 40, 40, 20, 30, 40, 160
+    0, 30, 10, 20, 20, 30, 40, 40, 20, 30, 40, 160, 200, 200, 160
 };
 const byte unit_kind_attack[] = { 0, 0, 1, 0, 1, 3, 4, 1, 0, 0 };
 const byte unit_kind_defence[] = { 0, 1, 1, 1, 2, 1, 1, 1, 1, 1 };
@@ -121,10 +125,14 @@ void unit_move_to(byte u, byte ax, byte ay)
 
 void unit_begin_turn(byte owner)
 {
-    byte u;
+    byte u, k;
+    // The Great Harbour of Ugarit: a move more for its holder's ships.
+    byte harbour = culture_holder(CITY_UGARIT) == owner ? MOVE_FULL : 0;
     for (u = 0; u < MAX_UNITS; ++u) {
-        if (unit_kind[u] != KIND_NONE && unit_owner[u] == owner)
-            unit_moves[u] = unit_kind_moves[unit_kind[u]];
+        k = unit_kind[u];
+        if (k != KIND_NONE && unit_owner[u] == owner)
+            unit_moves[u] = unit_kind_moves[k]
+                            + (KIND_IS_SHIP(k) ? harbour : 0);
     }
 }
 

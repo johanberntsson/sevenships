@@ -31,15 +31,17 @@
 #define MENU_CITIES 21
 #define MENU_PASTURE 22
 #define MENU_MILITARY 23
-#define MENU_TERRAIN 24         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
-#define MENU_UNIT 34            // + a KIND_*, buildings too, after the terrains; last
+#define MENU_ROAD 24
+#define MENU_GOTO 25
+#define MENU_TERRAIN 26         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
+#define MENU_UNIT 36            // + a KIND_*, buildings too, after the terrains; last
 
-// What the Orders menu offers, for the unit that has the orders: up to two
+// What the Orders menu offers, for the unit that has the orders: up to four
 // of MENU_FOUND_CITY, MENU_FORTIFY, MENU_IRRIGATE, MENU_PASTURE, MENU_MINE,
-// MENU_FISH and MENU_EMPORIUM, MENU_NONE
-// for none -- with none at all, Orders does not open. Set it before
+// MENU_FISH, MENU_EMPORIUM, MENU_ROAD and MENU_GOTO, in that order, each
+// MENU_NONE for none -- with none at all, Orders does not open. Set it before
 // menu_click() or menu_key().
-void menu_orders(byte command, byte second);
+void menu_orders(byte command, byte second, byte third, byte fourth);
 
 // Write the bar into row 0.
 void menu_draw(void);

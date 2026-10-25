@@ -392,7 +392,7 @@ static void draw_info(byte c)
     byte box = GROWTH_BOX(size);
     byte eaten = 2 * size;
     byte x0 = PATCH_LEFT + 1;
-    byte x, y, more;
+    byte x, y, more, k;
 
     for (y = INFO_TOP + 1; y < INFO_BOTTOM; ++y)
         screen_fill(PATCH_LEFT, y, PATCH_COLUMNS, TEXT_COLOUR);
@@ -438,11 +438,15 @@ static void draw_info(byte c)
             work_food == eaten ? TEXT_COLOUR : COLOR_YELLOW);
     }
 
-    // Its buildings (src/culture.h).
+    // Its buildings (src/culture.h): all five come to 38 columns, which
+    // is the box's width.
     x = x0;
     ++y;
-    if (city_culture[c] & CITY_TEMPLE) put(&x, y, "Temple ", COLOR_YELLOW);
-    if (city_culture[c] & CITY_LION_GATE) put(&x, y, "Lion Gate", COLOR_YELLOW);
+    for (k = KIND_TEMPLE; k < BUILD_KINDS; ++k)
+        if (city_culture[c] & CULTURE_BIT(k)) {
+            put(&x, y, unit_kind_name[k], COLOR_YELLOW);
+            ++x;
+        }
 }
 
 // ------------------------------------------------------------ production
@@ -459,7 +463,7 @@ static word buy_cost(byte c)
 
     if (city_build[c] == KIND_NONE || city_shields[c] >= cost) return 0;
     r = cost - city_shields[c];
-    cost = city_build[c] == KIND_LION_GATE ? 4 * r
+    cost = KIND_IS_WONDER(city_build[c]) ? 4 * r
            : city_build[c] == KIND_TEMPLE ? 2 * r : 2 * r + r * r / 20;
     return city_shields[c] ? cost : 2 * cost;
 }

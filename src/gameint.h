@@ -37,6 +37,10 @@
 #define draw_screen game_draw_screen
 #define open_help game_open_help
 #define open_top_cities game_open_top_cities
+#define draw_orders game_draw_orders
+#define in_view game_in_view
+#define centre_on game_centre_on
+#define hover_on game_hover_on
 
 extern word off_x, off_y;       // the view, in map characters
 extern byte dirty;              // the view wants redrawing
@@ -88,10 +92,20 @@ void game_menu_command(byte command);
 // map screen put back at the end. Called from command.c, no stub.
 void cities_screen(void);
 
+// For orders.c: the unit with the orders, or the end-of-turn prompt, in
+// the panel; whether all of (ax, ay)'s tile is in the window; the view
+// centred on it; and the readout on it until the arrow moves.
+void draw_orders(void);
+byte in_view(byte ax, byte ay);
+void centre_on(byte ax, byte ay);
+void hover_on(byte ax, byte ay);
+
 // In orders.c, region 2: the keys b, f, i, m, p and r for the unit with the
-// orders; and the Orders menu filled in for it, just before a menu opens.
+// orders; the Orders menu filled in for it, just before a menu opens; and
+// a step of it in direction `dir`, or an attack.
 void game_order(byte key);
 void game_orders_menu(void);
+void game_move(byte dir);
 
 // In hover.c, region 0: the readout of what is under the arrow, or the
 // ring, or hover_ax/ay, at the end of the top row.

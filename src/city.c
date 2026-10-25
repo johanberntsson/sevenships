@@ -53,6 +53,14 @@ byte city_coastal(byte c)
     return 0;
 }
 
+byte culture_holder(byte bit)
+{
+    byte c;
+    for (c = 0; c < city_count; ++c)
+        if (city_culture[c] & bit) return city_owner[c];
+    return CULTURE_NONE;
+}
+
 byte city_found(byte owner, byte ax, byte ay)
 {
     byte c = city_count;

@@ -57,11 +57,13 @@
 // The regions from 1, and where each is kept. **slot_of, attic_bank and
 // attic_hi in src/dispatch.s are per region and have to agree**, as do
 // REGION_FILES in the Makefile and the winN memories in sevenships.scm.
-#define REGIONS 7
+#define REGIONS 8
 #define REGION_ATTIC(R) (0x8010000UL + ((dword)(R) - 1) * REGION_SIZE)
-#if REGIONS > 7
+#if REGIONS > 8
 #error "add the new region to the tables in src/dispatch.s"
 #endif
+// Attic's bank 1, $8010000-$801FFFF, holds eight: a ninth needs attic_bank
+// 2 in src/dispatch.s.
 
 // The slots in bank 1. Six 8 KB ones would fit below $1F600, where BASIC 65
 // keeps something of its own, but **$17000 up is the tile sheet's**

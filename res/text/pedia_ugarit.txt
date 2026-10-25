@@ -1,0 +1,13 @@
+# The Civilopedia's page on the Great Harbour of Ugarit: Help/Buildings.
+# A placeholder. The markup is described in tools/mktext.py.
+{at 42 4}{head}GREAT HARBOUR OF UGARIT
+{at 42 6}{grey}Wonder
+{at 6 9}{head}Harbour of Ugarit
+{text}  Cost: 160 shields
+  Upkeep: none
+  Legacy: 20 points
+  A coastal city
+{at 6 16}{text}The port of Ugarit, where the ships of Cyprus, Egypt and the Hittites
+met, and from where its last king wrote of seven ships of the enemy.
+The ships of the people that holds it have a move more. When it is
+built, everybody hears of it, and nobody else can build it.

@@ -48,6 +48,12 @@ byte city_at(byte ax, byte ay);
 // Whether city c is next to the shallows, where a galley it builds sails.
 byte city_coastal(byte c);
 
+// The owner of the city with building `bit` (CITY_KNOSSOS and the rest,
+// culture.h) -- whoever holds the wonder now, whose it does good to -- or
+// CULTURE_NONE. Resident, for every region and unit_begin_turn().
+#define CULTURE_NONE 0xff
+byte culture_holder(byte bit);
+
 // Found a city for `owner` on (ax, ay). CITY_NONE if there is one there
 // already or the list is full.
 byte city_found(byte owner, byte ax, byte ay);

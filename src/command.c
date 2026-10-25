@@ -85,6 +85,12 @@ void game_menu_command(byte command)
     case MENU_FISH:
         unit_key('i');
         break;
+    case MENU_ROAD:
+        unit_key('r');
+        break;
+    case MENU_GOTO:
+        unit_key('g');
+        break;
     case MENU_TOP_CITIES:
         open_top_cities();
         break;

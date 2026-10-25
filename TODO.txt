@@ -9,20 +9,20 @@ NEXT (24 Oct 2026, end of the day; CLAUDE.md "Where to start next time"):
    Lion Gate, the legacy victory
 3. Done 25 Oct: the AI's city cap 6 -> 8, MAX_CITIES 32 -> 40 (CITY_SPACING 5 was no
    better). Open: the human's side conquered on seed 1 at cap 6; the Crisis after turn 255
-4. More culture: more wonders (Pyramids, Palace of Knossos), clay tablets of knowledge
-   (Linear B, law codes, the alphabet: a science of sorts), building art
+4. More culture: three more wonders are in (25 Oct, Knossos, Karnak, Ugarit); next the clay
+   tablets of knowledge (Linear B, law codes, the alphabet: a science of sorts), building
+   art
 5. Tune from play: the Crisis, the collapse, merchant ships, gold and the upkeep allowances
    (treasury.h), legacy's weight in the score; escorts for merchant ships; AI galleys
    against the Sea Peoples
-Room: resident 0.5 KB, region 0 0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region 3 2.1 KB,
-region 4 1.5 KB, region 5 0.8 KB, region 6 0.3 KB (a region 8 for the treasury is the next
-room there), region 7 2.2 KB, highram 1.1 KB; the tile sheet 7.6 KB, about five units
+Room (25 Oct, after the wonders): resident 486 bytes, region 0 0.3 KB, region 1 0.3 KB,
+region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8 KB, region 6 2.9 KB,
+region 7 1.9 KB, region 8 (the treasury) 4.9 KB, highram 300 bytes; the tile sheet 6 KB;
+attic's bank 1 is full with eight regions
 
-Roads are in (25 Oct 2026; CLAUDE.md "Roads"): r, a third of a move along them, a trade on
-open land, the AI joining its cities. To try on a real MEGA65: the redraw over a network
-(about 2 ms for fifteen joins in xemu), r, and save/load. Not in: an Orders menu item
-(region 6 full); the AI's approach() preferring roads; seed 1's Mycenaeans were conquered
-by the Egyptians by turn 226 in the first autoplay with roads
+Roads are in (25 Oct 2026; CLAUDE.md "Roads"), confirmed on a real MEGA65. Not in: the AI's
+approach() preferring roads; seed 1's Mycenaeans (the AI-played human side) are conquered
+by the Egyptians, by turn 167-226 in the autoplays since roads
 
 Per-continent AI policy (attack/defend/transport), as Civ 1's, now there are boats and wars
 
@@ -46,9 +46,11 @@ peoples within 7 hexagons), and in 300 turns of autoplay on seed 1 only the Egyp
 and Canaanites fought. A computer player accepts a ceasefire the turn the human declares
 war on it if it is the weaker.
 
-More wonders and monuments for the legacy win (the temple and the Lion Gate are in): the
-Pyramids etc if they fit the time period (the oldest pyramids are probably too old), and
-Help/Wonders with descriptions
+Wonders (25 Oct 2026): the Palace of Knossos, the Temple of Karnak and the Great Harbour of
+Ugarit are in with the Lion Gate (CLAUDE.md "Buildings and wonders"). To try on a real
+MEGA65. Next for the legacy win: the clay tablets of knowledge (Linear B, law codes, the
+alphabet), which want a science of some kind; wonder art for the map and the Civilopedia.
+The Hittites, first in the AI's order, build most of the wonders: maybe spread them
 
 Evenually need to adjust game/AI for the difficulty levels (probably need to cheat
 on highter levels to make the game challenging)

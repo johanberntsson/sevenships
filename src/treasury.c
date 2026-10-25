@@ -1,7 +1,8 @@
-// In region 6 (src/region.h): called through the stubs in src/dispatch.s,
-// under these names here.
-#define treasury_turn treasury_turn_r6
-#define finance_screen finance_screen_r6
+// In region 8 (src/region.h), its own since 25 Oct 2026, to make room in
+// region 6 for wonders: called through the stubs in src/dispatch.s, under
+// these names here.
+#define treasury_turn treasury_turn_r8
+#define finance_screen finance_screen_r8
 
 #include "treasury.h"
 #include "city.h"
@@ -17,7 +18,7 @@
 #include "sheet.h"
 #include "trade.h"
 
-#pragma clang section text="r6text" rodata="r6rodata"
+#pragma clang section text="r8text" rodata="r8rodata"
 
 HIGH_BSS word player_gold[PLAYERS];
 
@@ -45,8 +46,17 @@ static byte capital(byte p)
     return CITY_NONE;
 }
 
-// City c's trade and its corruption, into these.
-static byte trade, corruption;
+// City c's trade and its corruption, into these. The holders of the
+// Palace of Knossos and the Temple of Karnak (culture.h), which the caller
+// sets first: the one loses half as much to corruption, the other pays
+// nothing for its temples.
+static byte trade, corruption, knossos, karnak;
+
+static void wonders(void)
+{
+    knossos = culture_holder(CITY_KNOSSOS);
+    karnak = culture_holder(CITY_KARNAK);
+}
 
 static void income(byte c)
 {
@@ -58,6 +68,7 @@ static void income(byte c)
     city_work(c);
     trade = work_trade;
     lost = (word)trade * d * 3 / 100;
+    if (city_owner[c] == knossos) lost >>= 1;
     corruption = lost > trade ? trade : (byte)lost;
 }
 
@@ -130,6 +141,7 @@ void treasury_turn(void)
     byte c, p, u, n;
     word buy, left, cost;
 
+    wonders();
     for (p = 0; p < PLAYERS; ++p) add(p, TREASURY_DEAL * deals(p));
     for (c = 0; c < city_count; ++c) {
         p = city_owner[c];
@@ -137,8 +149,9 @@ void treasury_turn(void)
         income(c);
         add(p, trade - corruption);
         // A temple's upkeep, Civilization's 1 a turn; with nothing in the
-        // treasury it is sold, as Civilization sells a building.
-        if (city_culture[c] & CITY_TEMPLE) {
+        // treasury it is sold, as Civilization sells a building. None
+        // with the Temple of Karnak.
+        if ((city_culture[c] & CITY_TEMPLE) && p != karnak) {
             if (player_gold[p]) {
                 --player_gold[p];
             } else {
@@ -239,6 +252,7 @@ void finance_screen(void)
 
     sprite_hide(2);             // the minimap's outline, which is gone
     sprite_hide(3);
+    wonders();
     screen_clear();
     screen_putsxy(LEFT, 2, "Treasury:", COLOR_WHITE);
     screen_putsxy(LEFT + 10, 2, number(player_gold[PLAYER_HUMAN]),
@@ -254,7 +268,8 @@ void finance_screen(void)
         income(c);
         ++mine;
         total += trade - corruption;
-        if (city_culture[c] & CITY_TEMPLE) ++temples;
+        if ((city_culture[c] & CITY_TEMPLE) && karnak != PLAYER_HUMAN)
+            ++temples;
         if (y >= TABLE_TOP + 2 + TABLE_ROWS) continue;  // counted, not listed
         screen_putsxy(LEFT, y, city_name_of(c), COLOR_LIGHTGREEN);
         put_right(column_right[0], y, number(trade), COLOR_LIGHTGREEN);

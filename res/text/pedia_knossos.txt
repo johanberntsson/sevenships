@@ -1,0 +1,13 @@
+# The Civilopedia's page on the Palace of Knossos: Help/Buildings. A
+# placeholder. The markup is described in tools/mktext.py.
+{at 42 4}{head}PALACE OF KNOSSOS
+{at 42 6}{grey}Wonder
+{at 6 9}{head}Palace of Knossos
+{text}  Cost: 200 shields
+  Upkeep: none
+  Legacy: 20 points
+  One in the world
+{at 6 16}{text}The palace of Crete, of a thousand rooms, whose tablets in Linear B
+record the wool, oil and bronze of a whole island. Every city of the
+people that holds it loses half as much of its trade to corruption.
+When it is built, everybody hears of it, and nobody else can build it.

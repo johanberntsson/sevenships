@@ -20,22 +20,22 @@ cur_region: .byte   0
 ; Region r's slot (src/region.h has the scheme), and
 ; the region each slot holds, 0 for none yet: region_load() leaves them all
 ; empty, so a region is first copied in when it is first called.
-slot_of:    .byte   0, 1, 2, 2, 2, 2, 2, 2
+slot_of:    .byte   0, 1, 2, 2, 2, 2, 2, 2, 2
 slot_held:  .byte   0, 0, 0
 
 ; Where each region is in attic RAM, REGION_ATTIC(r): bank bits 16-19 and
 ; bits 8-15, for r from 0 (unused) up. And where each slot is in bank 1,
 ; bits 8-15.
-attic_bank: .byte   0, 1, 1, 1, 1, 1, 1, 1
-attic_hi:   .byte   0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xa0, 0xc0
+attic_bank: .byte   0, 1, 1, 1, 1, 1, 1, 1, 1
+attic_hi:   .byte   0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xa0, 0xc0, 0xe0
 slot_hi:    .byte   0, 0x30, 0x50
 
 ; Each region's length, set by region_load() from its file.
             .public region_length_lo, region_length_hi
 region_length_lo:
-            .byte   0, 0, 0, 0, 0, 0, 0, 0
+            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0
 region_length_hi:
-            .byte   0, 0, 0, 0, 0, 0, 0, 0
+            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0
 
 ; The copy from attic RAM into a slot: an enhanced job with the source in
 ; megabyte $80, the destination in $00, then F018B as in src/mega65.c.
@@ -210,6 +210,7 @@ stub:       .macro  name, target, region
             stub    ai_build, ai_build_r2, 2
             stub    game_order, game_order_r2, 2
             stub    game_orders_menu, game_orders_menu_r2, 2
+            stub    game_move, game_move_r2, 2
             stub    road_add, road_add_r2, 2
 
 ; Region 3, slot 2: diplomacy.
@@ -242,12 +243,14 @@ stub:       .macro  name, target, region
             stub    picture_show, picture_show_r5, 5
             stub    picture_end, picture_end_r5, 5
 
-; Region 6, slot 2: the menus, the treasury, and buildings and wonders.
+; Region 6, slot 2: the menus, and buildings and wonders.
             stub    menu_orders, menu_orders_r6, 6
             stub    menu_draw, menu_draw_r6, 6
             stub    menu_click, menu_click_r6, 6
             stub    menu_key, menu_key_r6, 6
-            stub    treasury_turn, treasury_turn_r6, 6
-            stub    finance_screen, finance_screen_r6, 6
             stub    culture_built, culture_built_r6, 6
             stub    game_menu_command, game_menu_command_r6, 6
+
+; Region 8, slot 2: the treasury.
+            stub    treasury_turn, treasury_turn_r8, 8
+            stub    finance_screen, finance_screen_r8, 8

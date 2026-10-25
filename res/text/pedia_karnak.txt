@@ -1,0 +1,13 @@
+# The Civilopedia's page on the Temple of Karnak: Help/Buildings. A
+# placeholder. The markup is described in tools/mktext.py.
+{at 42 4}{head}TEMPLE OF KARNAK
+{at 42 6}{grey}Wonder
+{at 6 9}{head}Temple of Karnak
+{text}  Cost: 200 shields
+  Upkeep: none
+  Legacy: 20 points
+  One in the world
+{at 6 16}{text}The house of Amun at Thebes, which every pharaoh of the New Kingdom
+made greater. The people that holds it pays no upkeep for its temples,
+and every temple it builds adds twice the legacy. When it is built,
+everybody hears of it, and nobody else can build it.

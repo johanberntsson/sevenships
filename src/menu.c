@@ -78,8 +78,8 @@ static const char *const sub_heading[] = {
 };
 
 // Orders depends on the unit that has them, and menu_orders() fills it in.
-static const char *orders_items[2];
-static byte orders_commands[2];
+static const char *orders_items[4];
+static byte orders_commands[4];
 
 #ifdef DEBUG_MENU
 // Show Map lifts the fog of war, and again puts it back. Play 50 Turns
@@ -169,21 +169,24 @@ static const char *order_name(byte command)
     case MENU_MINE: return "m: Build a Mine";
     case MENU_FISH: return "i: Fish";
     case MENU_EMPORIUM: return "b: Found Emporium";
+    case MENU_ROAD: return "r: Build a Road";
+    case MENU_GOTO: return "g: Go To";
     }
     return "f: Fortify";
 }
 
-void menu_orders(byte command, byte second)
+void menu_orders(byte command, byte second, byte third, byte fourth)
 {
-    byte n = 0;
-    if (command != MENU_NONE) {
-        orders_commands[n] = command;
-        orders_items[n++] = order_name(command);
-    }
-    if (second != MENU_NONE) {
-        orders_commands[n] = second;
-        orders_items[n++] = order_name(second);
-    }
+    byte k[4], i, n = 0;
+    k[0] = command;
+    k[1] = second;
+    k[2] = third;
+    k[3] = fourth;
+    for (i = 0; i < 4; ++i)
+        if (k[i] != MENU_NONE) {
+            orders_commands[n] = k[i];
+            orders_items[n++] = order_name(k[i]);
+        }
     menu_count[ORDERS] = n;
 }
 

@@ -63,17 +63,26 @@ static void retire(byte p, byte c)
             unit_remove(v);
 }
 
-// Whether another of p's cities than c is building the Lion Gate.
-#define LION_GATE_SIZE 5
+// Whether another of p's cities than c is building a wonder.
+#define WONDER_SIZE 5
 #define TEMPLE_SIZE 3
 
 static byte building(byte p, byte c)
 {
     byte i;
     for (i = 0; i < city_count; ++i)
-        if (i != c && city_owner[i] == p && city_build[i] == KIND_LION_GATE)
+        if (i != c && city_owner[i] == p && KIND_IS_WONDER(city_build[i]))
             return 1;
     return 0;
+}
+
+// The first wonder city c may build, in KIND_* order, or KIND_NONE.
+static byte wonder(byte c)
+{
+    byte k;
+    for (k = KIND_LION_GATE; k < BUILD_KINDS; ++k)
+        if (CULTURE_CAN(c, k)) return k;
+    return KIND_NONE;
 }
 
 // **Chariots at war**: a player with horses at war with another people
@@ -227,13 +236,16 @@ void ai_build(byte p)
             kind = KIND_BUILDER;
             ++builders;
         } else if (units >= cap) {
-            // At the cap, culture (src/culture.h): the Lion Gate in a city
-            // of LION_GATE_SIZE, one city at a time; a temple in a city of
-            // TEMPLE_SIZE that can pay for it; else nothing.
+            // At the cap, culture (src/culture.h): a wonder in a city of
+            // WONDER_SIZE, the first nobody has built, one city at a time;
+            // a temple in a city of TEMPLE_SIZE that can pay for it; else
+            // nothing.
             kind = KIND_NONE;
-            if (city_size[c] >= LION_GATE_SIZE
-                && CULTURE_CAN(c, KIND_LION_GATE) && !building(p, c))
-                kind = KIND_LION_GATE;
+            if (city_size[c] >= WONDER_SIZE && !building(p, c))
+                kind = wonder(c);
+            if (kind == KIND_NONE && city_size[c] >= TEMPLE_SIZE
+                && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
+                kind = KIND_TEMPLE;
             else if (city_size[c] >= TEMPLE_SIZE
                      && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
                 kind = KIND_TEMPLE;

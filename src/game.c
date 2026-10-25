@@ -170,7 +170,7 @@ void draw_status(void)
 }
 
 // The unit waiting for orders, or the end-of-turn prompt if there is none.
-static void draw_orders(void)
+void draw_orders(void)
 {
     byte u = unit_active;
     byte r, v;
@@ -223,7 +223,7 @@ byte pointer_hex(byte *ax, byte *ay)
 }
 
 // Whether all of (ax, ay)'s tile is inside the window.
-static byte in_view(byte ax, byte ay)
+byte in_view(byte ax, byte ay)
 {
     word x = MAP_CELL_X(ax) + MAP_WIDTH_CHARS - off_x;
     int y = (int)MAP_CELL_Y(ax, ay) - (int)off_y;
@@ -232,7 +232,7 @@ static byte in_view(byte ax, byte ay)
            && y >= 0 && y <= VIEW_ROWS - TILE_ROWS;
 }
 
-static void centre_on(byte ax, byte ay)
+void centre_on(byte ax, byte ay)
 {
     int x = (int)MAP_CELL_X(ax) + TILE_EXPANDED_COLUMNS / 2 - VIEW_COLUMNS / 2;
     int y = (int)MAP_CELL_Y(ax, ay) + TILE_ROWS / 2 - VIEW_ROWS / 2;
@@ -270,7 +270,7 @@ void show_met(void)
 // ------------------------------------------------------------------- turns
 
 // The readout on (ax, ay) until the arrow moves.
-static void hover_on(byte ax, byte ay)
+void hover_on(byte ax, byte ay)
 {
     hover_ax = ax;
     hover_ay = ay;
@@ -304,70 +304,6 @@ void select_unit(byte after)
 
 // --------------------------------------------------------------- orders
 
-// The active unit u attacks (nx, ny) -- after a declaration of war, if it
-// takes one. How it went is a popup, as for every fight of the human's
-// (fight.h), shown by game_run().
-static void attack(byte u, byte nx, byte ny)
-{
-    byte kind = unit_kind[u];
-    byte o = combat_holder(nx, ny);
-
-    if (!unit_kind_attack[kind]) {
-        message(unit_kind_name[kind], "cannot attack");
-        return;
-    }
-    if (!at_war(PLAYER_HUMAN, o)) {
-        popup_begin();
-        popup_add("Declare war on the ");
-        popup_add(player_people(o));
-        popup_add("?");
-        if (!popup_ask_shown()) return;
-        declare_war(PLAYER_HUMAN, o);
-    }
-    message("", "");
-    combat_attack(u, nx, ny);
-    dirty = 1;
-    hover_dirty = 1;
-    select_unit(u);
-}
-
-static void move_active(byte dir)
-{
-    byte u = unit_active;
-    byte nx, ny, t;
-
-    if (!map_neighbour(unit_ax[u], unit_ay[u], dir, &nx, &ny)) return;
-    t = unit_can_enter(PLAYER_HUMAN, unit_kind[u], nx, ny);
-    if (t == ENTER_WATER) {
-        message("Cannot swim", "");
-        return;
-    }
-    if (t == ENTER_LAND) {
-        message("Ships keep", "to the shallows");
-        return;
-    }
-    if (t == ENTER_MOUNTAIN) {
-        message("Chariots keep", "off mountains");
-        return;
-    }
-    if (t == ENTER_FOREIGN) {
-        attack(u, nx, ny);
-        return;
-    }
-    message("", "");
-    unit_move_to(u, nx, ny);
-    if (!unit_moves[u]) unit_wake_cargo(u);
-    dirty = 1;
-    contact = 1;
-    hover_on(nx, ny);
-    if (unit_moves[u]) {
-        if (!in_view(nx, ny)) centre_on(nx, ny);
-        draw_orders();
-    } else {
-        select_unit(u);
-    }
-}
-
 // The keypad in xemu, as res/xemu-keymap.cfg delivers it: 7 9 4 6 1 3.
 static const byte pad_dir[] = { DIR_NW, DIR_NE, DIR_W, DIR_E, DIR_SW, DIR_SE };
 
@@ -391,7 +327,7 @@ void unit_key(byte key)
     byte dir = key_dir(key);
 
     if (dir != DIR_NONE) {
-        move_active(dir);
+        game_move(dir);
         return;
     }
 
@@ -485,7 +421,7 @@ static void click_hex(byte ax, byte ay)
         if (dir != DIR_NONE
             && (c == CITY_NONE
                 || popup_choose(city_name_of(c), POPUP_MOVE_VIEW))) {
-            move_active(dir);
+            game_move(dir);
             return;
         }
     }
