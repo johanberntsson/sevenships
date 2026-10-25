@@ -251,6 +251,7 @@ stub:       .macro  name, target, region
             stub    culture_built, culture_built_r6, 6
             stub    game_menu_command, game_menu_command_r6, 6
 
-; Region 8, slot 2: the treasury.
+; Region 8, slot 2: the treasury, and where the peoples start.
             stub    treasury_turn, treasury_turn_r8, 8
+            stub    ai_place, ai_place_r8, 8
             stub    finance_screen, finance_screen_r8, 8

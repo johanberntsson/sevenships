@@ -132,9 +132,46 @@ byte city_production(byte c)
     return work_shields;
 }
 
+// Tenths, by game_level (civ.h).
+static const byte level_tenths[LEVELS] = { 15, 12, 10, 8, 7 };
+
+word level_scale(byte owner, word v)
+{
+    if (owner < PLAYER_FIRST_AI || owner >= PLAYERS) return v;
+    return v * level_tenths[game_level] / 10;
+}
+
+// The people of owner, or CIVS for the barbarians.
+static byte people(byte owner)
+{
+    return owner < PLAYERS ? player_civ[owner] : CIVS;
+}
+
+word kind_cost(byte owner, byte kind)
+{
+    word cost = level_scale(owner, unit_kind_cost[kind]);
+    byte civ = people(owner);
+    if ((civ == CIV_HITTITES && kind == KIND_CHARIOT)
+        || (civ == CIV_MYCENAEANS && KIND_IS_SHIP(kind) && kind < KINDS))
+        cost -= cost >> 2;
+    return cost;
+}
+
+word city_cost(byte c)
+{
+    return kind_cost(city_owner[c], city_build[c]);
+}
+
+word city_box(byte c)
+{
+    word box = level_scale(city_owner[c], GROWTH_BOX(city_size[c]));
+    if (people(city_owner[c]) == CIV_EGYPTIANS) box -= box >> 2;
+    return box > CITY_BOX_MOST ? CITY_BOX_MOST : box;
+}
+
 byte city_turns_left(byte c)
 {
-    word cost = unit_kind_cost[city_build[c]];
+    word cost = city_cost(c);
     word have = city_shields[c];
     byte rate = city_production(c);
 
@@ -145,7 +182,7 @@ byte city_turns_left(byte c)
 byte city_produce(byte c)
 {
     byte kind = city_build[c];
-    word cost = unit_kind_cost[kind];
+    word cost = city_cost(c);
 
     if (kind == KIND_NONE) return KIND_NONE;    // told to build nothing
     city_shields[c] += city_production(c);
@@ -164,8 +201,8 @@ byte city_produce(byte c)
     city_shields[c] -= cost;
     if (kind == KIND_SETTLER) {
         // The citizen goes with it, and the food box is the smaller one.
-        if (city_food[c] >= GROWTH_BOX(--city_size[c]))
-            city_food[c] = GROWTH_BOX(city_size[c]) - 1;
+        --city_size[c];
+        if (city_food[c] >= city_box(c)) city_food[c] = (byte)(city_box(c) - 1);
     }
     return kind;
 }

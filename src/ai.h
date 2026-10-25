@@ -21,8 +21,10 @@
 #include "unit.h"
 
 // Put each computer player's settler on grassland with land round it, as
-// far from every other settler as a few hundred tries can find. After the
-// human's settler is placed.
+// far from every other settler as a few hundred tries can find, by one of
+// its people's own resources if it can (src/aiplace.c, region 8); and
+// move the human's there too if one is near. After the human's settler is
+// placed.
 void ai_place(void);
 
 // Which way each exploring warrior is heading, DIR_* modulo 6; for save.c.

@@ -73,6 +73,24 @@ const char *city_name_of(byte c);
 // src/growth.h).
 byte city_production(byte c);
 
+// Figure v -- a cost in shields, a food box -- for a city of `owner`'s:
+// as it is for the human and the barbarians, and for a computer player
+// 150, 120, 100, 80 or 70 per cent of it by game_level (civ.h), as
+// Civilization's levels make its computer players pay 160 to 80 per cent.
+word level_scale(byte owner, word v);
+
+// What `kind` costs `owner`, in shields: unit_kind_cost[] level_scale()d,
+// and a quarter less for a people's own (civ.h): the Hittites' chariots,
+// the Mycenaeans' ships. city_cost() is what city c's production costs.
+word kind_cost(byte owner, byte kind);
+word city_cost(byte c);
+
+// City c's food box: GROWTH_BOX(size) level_scale()d, a quarter less for
+// the Egyptians (civ.h), and at most CITY_BOX_MOST, so that city_food[], a
+// byte, has room for a turn's surplus on top.
+#define CITY_BOX_MOST 240
+word city_box(byte c);
+
 // Turns until city `c` finishes what it is building, at least 1.
 byte city_turns_left(byte c);
 

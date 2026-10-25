@@ -10,6 +10,7 @@
 #include "ai.h"
 #include "aiint.h"
 #include "city.h"
+#include "civ.h"
 #include "combat.h"
 #include "game.h"
 #include "growth.h"
@@ -33,13 +34,15 @@
 #define BARB_ODDS 1
 #define BARB_RANGE 24
 
-// Barbarians appear from this turn on, one turn in BARB_CHANCE + 1 on
+// Barbarians appear from this turn on, one turn in barb_chance + 1 on
 // average, no nearer anybody than BARB_SPACING, and never more than
-// BARB_CAP of them at once.
+// barb_cap of them at once -- both by game_level (civ.h): one turn in 16
+// and 6 at the easiest, one in 8 and 8 at Prince as before, one in 4 and
+// 12 at the hardest.
 #define BARB_FIRST_TURN 30
-#define BARB_CHANCE 7
 #define BARB_SPACING 6
-#define BARB_CAP 8
+static const byte barb_chance[LEVELS] = { 15, 7, 7, 3, 3 };
+static const byte barb_cap[LEVELS] = { 6, 8, 8, 10, 12 };
 #define BARB_TRIES 50
 
 // Which way each exploring warrior is heading, DIR_*. Kept between turns so
@@ -844,8 +847,8 @@ void ai_barbarians(word turn)
     byte u, c, ax, ay, tries, dir, nx, ny;
 
     unit_begin_turn(PLAYER_BARBARIAN);
-    if (turn >= BARB_FIRST_TURN && !(rnd() & BARB_CHANCE)
-        && unit_count_kind(PLAYER_BARBARIAN, KIND_NONE) < BARB_CAP) {
+    if (turn >= BARB_FIRST_TURN && !(rnd() & barb_chance[game_level])
+        && unit_count_kind(PLAYER_BARBARIAN, KIND_NONE) < barb_cap[game_level]) {
         for (tries = 0; tries < BARB_TRIES; ++tries) {
             ax = rnd() & (MAP_COLUMNS - 1);
             ay = 2 + rnd() % (MAP_ROWS - 4);

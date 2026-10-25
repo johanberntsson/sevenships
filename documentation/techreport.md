@@ -109,7 +109,7 @@ most important routines included in each source file.
 | road.c, roadadd.c | roads: a list by hexagon row with each road's neighbours, looked up resident and added in region 2 |
 | tablets.c | the scribes, paid in gold, and the clay tablets they set down: Linear B, a law code, the alphabet |
 | orders.c | the orders keys of the unit with the orders, `b f i m p r`, the Orders menu filled in for it, and its steps and attacks |
-| aiplace.c | where the computer players start, out of ai.c into region 0 |
+| aiplace.c | where the peoples start, each by a resource of its own, in region 8 |
 | aibuild.c | what each computer player's city builds, out of ai.c into region 2 |
 | emporium.c | merchant ships and the emporia they found on foreign coasts |
 | picture.c | full pictures in the map window, with their own palette: the title's and the end's |

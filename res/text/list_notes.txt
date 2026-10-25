@@ -1,5 +1,6 @@
-# A line about each people, under the menu on "Choose your people".
-Sea traders of the Aegean: wine, oil and fish, but little grain land
-Chariots and Anatolian copper: strong on land, far from the sea
-The grain and manpower of the Nile, but short of cedar and tin
-Rich coastal cities with cedar and purple dye, but weak armies
+# A line about each people, under the menu on "Choose your people": what
+# vision.md says of them, and their advantage (civ.h).
+Sea traders of the Aegean, by wine and olives: ships cost a quarter less
+Chariots and Anatolian copper: their chariots cost a quarter less
+The grain of the Nile: cities need a quarter less food to grow
+Cedar, dye and mercenaries: buying a third cheaper, deals pay more

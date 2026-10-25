@@ -301,11 +301,12 @@ byte city_grow(byte c)
 {
     byte size = city_size[c];
     byte eaten = 2 * size;
+    word box = city_box(c);     // by level and people (city.h)
 
     city_work(c);
     if (work_food >= eaten) {
         city_food[c] += work_food - eaten;
-        if (city_food[c] < GROWTH_BOX(size)) return GROWTH_NONE;
+        if (city_food[c] < box) return GROWTH_NONE;
         city_food[c] = 0;
         if (size == GROWTH_MAX_SIZE) return GROWTH_NONE;
         city_size[c] = size + 1;

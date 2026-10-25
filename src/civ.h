@@ -28,7 +28,12 @@
 #define civ_leader(C) text_line(TEXT_LIST_LEADERS, (C))
 #define civ_title(C) text_line(TEXT_LIST_TITLES, (C))
 
-// Easiest first. game_level is an index into these, and does nothing yet.
+// Easiest first. game_level is an index into these: **the computer
+// players' cities pay level_scale() of the shields and the food**
+// (city.h), Civilization's way of making a level harder; the barbarians
+// come more often and in greater numbers (ai.c); the computer players are
+// colder to the human (diplomacy.c); and the human starts with gold at
+// the easiest only (turn.c).
 #define LEVELS 5
 #define level_name(L) text_line(TEXT_LIST_LEVELS, (L))
 #define level_note(L) text_line(TEXT_LIST_LEVEL_NOTES, (L))

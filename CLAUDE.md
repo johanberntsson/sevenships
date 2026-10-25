@@ -207,9 +207,9 @@ buffers at the default `$FF80000` and corrupts the display.
 | Address | Size | Contents |
 |---|---|---|
 | `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 136 bytes free (25 Oct 2026, after roads), at the top of `$2001-$5FFF` |
-| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the computer players' starts (`src/aiplace.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 0.4 KB free |
+| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1 KB free |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026; 3.6 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 2.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going; 300 bytes free (25 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -560,7 +560,8 @@ enough to copy. Checked as byte-identical through 300 turns of autoplay.
 `src/menu.c` moved from region 0 to region 4 the same day, when region 0
 was down to 188 bytes, and on to region 6 the next. **Region 1 fills up too**: its room
 comes from more of `ai.c` moving out (as `ai_place()` went to `src/aiplace.c`
-in region 0, called directly from `game_init()` there, no stub, and
+in region 0, called directly from `game_init()` there, no stub -- and on
+to region 8 through a stub on 25 Oct 2026, when it grew -- and
 **the city-site search went to `src/aisite.c` in region 2** on 24 Oct
 2026, `ai_find_site()` and `ai_find_far_site()`, beside `ai_build()`,
 which calls the second directly now, and the builders' `improve_best()`,
@@ -916,11 +917,11 @@ stopped to play-test):
    the score; escorts for the merchant ships, and the computer players'
    galleys against the Sea Peoples.
 
-**Room is short in places** (25 Oct 2026, after the wonders): resident
-486 bytes, region 0 0.3 KB, **region 1 0.3 KB** (`road_site()` took
+**Room is short in places** (25 Oct 2026, after the peoples): resident
+211 bytes, region 0 1 KB, **region 1 0.3 KB** (`road_site()` took
 460), region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8
-KB, region 6 2.9 KB, region 7 1.9 KB, region 8 3.6 KB (after the
-tablets), **highram 283 bytes** (the road list took 440), `LOW_FREE` 735
+KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.3 KB (after the
+peoples' starts moved in), **highram 283 bytes** (the road list took 440), `LOW_FREE` 735
 bytes. Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
@@ -1109,10 +1110,42 @@ are texts** (`res/text/list_*.txt`, a name a line, by `CIV_*`), and
 adjective lists. `player_civ[]` says which
 people each player is — **every people plays**, `PLAYERS` = `CIVS` = 4,
 the human first and the computer players the others in list order — and
-`city_name_of()` goes through it. The five difficulty levels (Scribe to
-Great King) are there too, in `game_level`, which only diplomacy reads
-yet: each level makes the computer players 5 points colder to the human.
-`NO_TITLE` builds play the Mycenaeans.
+`city_name_of()` goes through it. **The peoples differ** (25 Oct 2026,
+vision.md §3's asymmetric civilizations; the people screen's notes,
+`list_notes.txt`, say how): **each starts by a resource of its own** --
+the Mycenaeans' wine or olives, the Hittites' copper, the Egyptians'
+grain, the Canaanites' cedar or dye (`own_res[]` in `src/aiplace.c`):
+the computer players try for such a start at every spacing down to
+`OWN_SPACING` (8) before any other, and the human's settler and warrior
+move to the nearest grassland within `NUDGE` (8) that has one, the first
+spot made unseen again (`nudge()`, **not in `NO_TITLE` builds**, whose
+settler the scrolling check and every test script expect at (16,7)) --
+and **each has an advantage**: the Hittites' chariots and the
+Mycenaeans' ships cost a quarter less (`kind_cost()` in `src/city.c`),
+the Egyptians' cities need a quarter less food to grow (`city_box()`),
+and the Canaanites buy a third cheaper, their mercenaries (`buy_cost()`
+in `src/cityscreen.c`, and their AI's buying in `src/treasury.c`), and
+have a gold more a turn from each trade deal (`deal_gold()`). On seeds 1,
+3 and 7 every computer people started with its resource in reach, and
+the human's Mycenaeans on seeds 1 and 3; in 255 turns of autoplay at
+Scribe all four stood on every seed (seed 1's Mycenaeans had been
+conquered before), and legacy was 42-97 a people. The five difficulty levels (Scribe to
+Great King) are there too, in `game_level`. **Since 25 Oct 2026 a level
+is what the computer players pay**, Civilization's way (its Chieftain to
+Emperor make them pay 160 to 80 per cent): `level_scale()` in
+`src/city.c` gives them 150, 120, 100, 80 or 70 per cent of every cost
+in shields (`city_cost()`, which `city_produce()`, `city_turns_left()`
+and their buying use) and of their food box (`city_grow()`, at most 240
+for the byte); the barbarians come one turn in 16, 8, 8, 4 and 4 and up
+to 6, 8, 8, 10 and 12 of them (`barb_chance[]`, `barb_cap[]` in
+`src/ai.c`); each level makes the computer players 5 points colder to
+the human (diplomacy); and the human starts with 50 gold at Scribe only.
+Prince is the game as it was tuned. In 255 turns of autoplay on seed 3
+the three computer peoples had 153, 158 and 194 citizens at Scribe,
+Prince and Great King, and the human's side, played by the AI, 85, 45
+and 16 legacy points. `NO_TITLE` builds play the Mycenaeans at Scribe,
+so **an autoplay test at another level** wants a throwaway
+`game_level = N;` in `game_init()`.
 
 **The computer players are `src/ai.c`** (milestone 3). `ai_place()`, from
 `game_init()`, puts each one's settler — and, since 20 Oct 2026, a warrior

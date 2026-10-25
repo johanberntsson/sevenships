@@ -2,7 +2,9 @@
 
 NEXT (25 Oct 2026; CLAUDE.md "Where to start next time"):
 1. The user's play-testing: new items go at the top of this file
-2. Try on a real MEGA65: Advisors/Finance (the treasury is region 8 now) with the scribes'
+2. Try on a real MEGA65: the difficulty levels (the AI pays 150-70%), the peoples' starts
+   and advantages (the people screen, chariots/ships' costs in CHANGE, Egypt's food box,
+   Canaanite BUY); Advisors/Finance (the treasury is region 8 now) with the scribes'
    + and -, and a tablet's popup; the Orders menu's Build a Road and Go To; the three new
    wonders in CHANGE, Help/Buildings and their popups, and what they do (Knossos's
    corruption on Finance, Karnak's temples' upkeep, Ugarit's ships' moves); GOTO with a
@@ -10,10 +12,10 @@ NEXT (25 Oct 2026; CLAUDE.md "Where to start next time"):
 3. Tune from play: the collapse, merchant ships, gold and the upkeep allowances
    (treasury.h), the scribes' costs and the AI's pay (tablets.h), legacy's weight in the
    score; escorts for merchant ships; AI galleys against the Sea Peoples
-Room (25 Oct, after the tablets): resident 486 bytes, region 0 0.3 KB, region 1 0.3 KB,
+Room (25 Oct, after the peoples): resident 211 bytes, region 0 1 KB, region 1 0.3 KB,
 region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8 KB, region 6 2.9 KB,
-region 7 1.9 KB, region 8 (the treasury, the scribes) 3.6 KB, highram 283 bytes; the tile
-sheet 6 KB, about four units; attic's bank 1 is full with eight regions
+region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.3 KB, highram 283
+bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions
 
 THE CRISIS, left as it is (25 Oct, the user's): it is mild now that the peoples are bigger
 (in 400-turn autoplays from turn 250 to 300 citizens grew on seeds 3 and 5). If
@@ -21,9 +23,8 @@ play-testing says so, the options are: the raids growing stronger towards the en
 ships a fleet, or more often), a higher SEA_CAP, shocks one turn in 8 rather than 16, or
 the computer players' coastal guards (guards_wanted()) fewer
 
-Seed 1: the Egyptians have bronze and horses (11 spearmen, 8 chariots) and fight the
-Mycenaeans, who have neither; the human's side, played by the AI, is down to one city by
-turn 256 or out by 167. A human would trade or make peace; maybe the AI's defence too
+Seed 1: before the peoples' starts the Egyptians had bronze and horses and conquered the
+Mycenaeans; with them all four stand at turn 255. Watch it in play
 
 The AI's units do not seek out roads in approach() (moving along one is cheaper anyway)
 
@@ -53,9 +54,6 @@ peoples within 7 hexagons), and in 300 turns of autoplay on seed 1 only the Egyp
 and Canaanites fought. A computer player accepts a ceasefire the turn the human declares
 war on it if it is the weaker.
 
-Eventually need to adjust game/AI for the difficulty levels (probably need to cheat
-on higher levels to make the game challenging)
-
 --- IDEAS, not yet decided implement or not --
 
 You can irrigate and mine etc outside the city area
@@ -80,6 +78,17 @@ A game is 400 turns, as Civ 1's: growth and rivalry first, then the Crisis, then
 - The collapse: half a people's cities lost as a second trigger, besides the capital
 
 --- DONE ---
+
+DONE (25 Oct 2026): the peoples differ (vision.md 3): each starts by a resource of its own
+(Mycenaeans wine/olives, Hittites copper, Egyptians grain, Canaanites cedar/dye) and has an
+advantage: Hittite chariots and Mycenaean ships a quarter cheaper, Egyptian cities a quarter
+less food to grow, Canaanite buying a third cheaper and a gold more a deal. The people
+screen says so. ai_place moved to region 8. Seeds 1, 3, 7, 255 turns: all four stand
+
+DONE (25 Oct 2026): difficulty levels that do something, Civilization's way: the computer
+players pay 150/120/100/80/70% of shields and food by level (level_scale() in city.c), and
+barbarians come one turn in 16/8/8/4/4, up to 6/8/8/10/12. Prince is the game as tuned.
+Seed 3, 255 turns: the AI's citizens 153/158/194 at Scribe/Prince/Great King
 
 DONE (25 Oct 2026): the clay tablets (src/tablets.c, region 8). Gold pays scribes, a point
 of knowledge a gold; at 100, 300 and 600 a people sets down Linear B (a quarter less

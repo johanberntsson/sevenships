@@ -14,6 +14,7 @@
 
 #include "cityscreen.h"
 #include "city.h"
+#include "civ.h"
 #include "culture.h"
 #include "game.h"
 #include "growth.h"
@@ -389,7 +390,7 @@ static byte unit_under_pointer(void)
 static void draw_info(byte c)
 {
     byte size = city_size[c];
-    byte box = GROWTH_BOX(size);
+    byte box = (byte)city_box(c);
     byte eaten = 2 * size;
     byte x0 = PATCH_LEFT + 1;
     byte x, y, more, k;
@@ -459,13 +460,16 @@ static byte buy_width;          // the BUY button's, for the click
 
 static word buy_cost(byte c)
 {
-    word r, cost = unit_kind_cost[city_build[c]];
+    word r, cost = city_cost(c);
 
     if (city_build[c] == KIND_NONE || city_shields[c] >= cost) return 0;
     r = cost - city_shields[c];
     cost = KIND_IS_WONDER(city_build[c]) ? 4 * r
            : city_build[c] == KIND_TEMPLE ? 2 * r : 2 * r + r * r / 20;
-    return city_shields[c] ? cost : 2 * cost;
+    if (!city_shields[c]) cost *= 2;
+    // The Canaanites' mercenaries: a third off (civ.h).
+    if (player_civ[city_owner[c]] == CIV_CANAANITES) cost -= cost / 3;
+    return cost;
 }
 
 static void draw_build(byte c)
@@ -481,7 +485,7 @@ static void draw_build(byte c)
     // "12/40 shields"
     put(&x, LIST_ROW + 1, number(city_shields[c]), TEXT_COLOUR);
     put(&x, LIST_ROW + 1, "/", TEXT_COLOUR);
-    put(&x, LIST_ROW + 1, number(unit_kind_cost[kind]), TEXT_COLOUR);
+    put(&x, LIST_ROW + 1, number(city_cost(c)), TEXT_COLOUR);
     put(&x, LIST_ROW + 1, " shields", TEXT_COLOUR);
 
     // "3 a turn", "4 turns"
@@ -521,7 +525,7 @@ static void buy(byte c)
     word cost = buy_cost(c);
     if (!cost || player_gold[PLAYER_HUMAN] < cost) return;
     player_gold[PLAYER_HUMAN] -= cost;
-    city_shields[c] = unit_kind_cost[city_build[c]];
+    city_shields[c] = city_cost(c);
     draw_build(c);
 }
 
@@ -534,7 +538,7 @@ static void draw_choice(byte i, byte selected)
 
     screen_fill(x, CHOICE_ROW + i, BUILD_RIGHT - x, colour);
     screen_putsxy(x + 1, CHOICE_ROW + i, unit_kind_name[kind], colour);
-    screen_putsxy(x + 13, CHOICE_ROW + i, number(unit_kind_cost[kind]),
+    screen_putsxy(x + 13, CHOICE_ROW + i, number(kind_cost(PLAYER_HUMAN, kind)),
                   colour);
 }
 

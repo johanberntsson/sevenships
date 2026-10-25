@@ -6,6 +6,7 @@
 
 #include "treasury.h"
 #include "city.h"
+#include "civ.h"
 #include "combat.h"
 #include "crisis.h"
 #include "culture.h"
@@ -121,10 +122,13 @@ static word realm_cost(byte p, byte n)
     return (word)k * k;
 }
 
-// What p's trade deals bring a turn: twice as much with the alphabet.
+// What p's trade deals bring a turn: a gold more each for the Canaanites,
+// the middlemen (civ.h), and twice as much with the alphabet.
 static word deal_gold(byte p)
 {
-    word g = TREASURY_DEAL * deals(p);
+    byte n = deals(p);
+    word g = TREASURY_DEAL * n;
+    if (player_civ[p] == CIV_CANAANITES) g += n;
     return (tablets[p] & TABLET_ALPHABET) ? 2 * g : g;
 }
 
@@ -207,11 +211,13 @@ void treasury_turn(void)
             continue;
         u = unit_at(city_ax[c], city_ay[c]);
         buy = player_gold[p] / (u == UNIT_NONE ? 3 : 64);
-        left = unit_kind_cost[city_build[c]];
+        left = city_cost(c);
         left = left > city_shields[c] ? left - city_shields[c] : 0;
         if (buy > left) buy = left;
         city_shields[c] += buy;
-        player_gold[p] -= 2 * buy;
+        // A third off for the Canaanites' mercenaries, as the human's.
+        buy *= 2;
+        player_gold[p] -= player_civ[p] == CIV_CANAANITES ? buy - buy / 3 : buy;
     }
 }
 

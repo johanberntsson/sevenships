@@ -1,21 +1,27 @@
 // Where the computer players start, out of ai.c into region 0 (21 Oct
-// 2026, for room in region 1 for the ferrying): it runs once a game, from
-// game_init() in turn.c, which is region 0 too, so it is called directly
-// and needs no stub. distance() and land_neighbours() are ai.c's, copied.
+// 2026, for room in region 1 for the ferrying), and on to region 8 (25
+// Oct 2026, when the peoples started by their own resources and region 0
+// had no room): it runs once a game, from game_init() in turn.c, through
+// the stub. distance() and land_neighbours() are ai.c's, copied.
+#define ai_place ai_place_r8
+
 #include "ai.h"
 #include "city.h"
+#include "civ.h"
 #include "combat.h"
 #include "map.h"
+#include "minimap.h"
 #include "sheet.h"
 #include "unit.h"
 
-#pragma clang section text="r0text" rodata="r0rodata"
+#pragma clang section text="r8text" rodata="r8rodata"
 
 // How far apart the starting settlers should be, in hexagons, and how many
 // tries each spacing gets before the next, closer one is accepted.
 #define START_SPACING 16
 #define START_SPACING_STEP 4
 #define START_TRIES 200
+#define OWN_SPACING 8           // the closest a start by its own resources may be
 
 #define SEEN_COLUMNS 8          // as ai.c's blocks
 #define SEEN_ROWS 4
@@ -55,10 +61,88 @@ static word nearest_unit(byte ax, byte ay)
     return best;
 }
 
+// **Each people starts by a resource of its own** (25 Oct 2026, vision.md
+// section 3's peoples), two for some: the Mycenaeans' wine and olives, the
+// Hittites' copper, the Egyptians' grain, the Canaanites' cedar and dye --
+// in CIV_* order.
+static const byte own_res[CIVS][2] = {
+    { RES_WINE, RES_OLIVES }, { RES_COPPER, RES_COPPER },
+    { RES_GRAIN, RES_GRAIN }, { RES_CEDAR, RES_DYE }
+};
+
+// Whether a city on (ax, ay) would have one of player p's own resources in
+// its reach, the RING.
+static byte own(byte p, byte ax, byte ay)
+{
+    byte dir, nx, ny, r, civ = player_civ[p];
+    for (dir = 0; dir < RING; ++dir) {
+        if (!map_neighbour(ax, ay, dir, &nx, &ny)) continue;
+        r = map_resource_at(nx, ny);
+        if (r != RES_NONE && (r == own_res[civ][0] || r == own_res[civ][1]))
+            return 1;
+    }
+    return 0;
+}
+
+// **The human's settler and warrior** are where game_init() put them, on
+// the grassland nearest the middle of the first view; without one of its
+// people's resources in reach there, they go to the nearest grassland
+// within NUDGE hexagons that has one, if any. **Not in a NO_TITLE build**:
+// the headless scrolling check (CLAUDE.md, "Verifying a change") needs the
+// settler in the first view, at START_OFF_X's grassland, and every test
+// script in CLAUDE.md has it there.
+#define NUDGE 8
+
+#ifndef NO_TITLE
+static void nudge(void)
+{
+    byte ax = unit_ax[0], ay = unit_ay[0], x, y, u, bx = 0, by = 0;
+    int dy;
+    word d, best = NUDGE + 1;
+
+    if (own(PLAYER_HUMAN, ax, ay)) return;
+    for (dy = -NUDGE; dy <= NUDGE; ++dy) {
+        if ((int)ay + dy < 2 || (int)ay + dy > MAP_ROWS - 3) continue;
+        y = (byte)((int)ay + dy);
+        for (x = 0; x < MAP_COLUMNS; ++x) {
+            if (MAP_TERRAIN(x, y) != TILE_GRASS
+                || land_neighbours(x, y) < 4 || !own(PLAYER_HUMAN, x, y))
+                continue;
+            d = distance(ax, ay, x, y);
+            if (d >= best) continue;
+            best = d;
+            bx = x;
+            by = y;
+        }
+    }
+    if (best > NUDGE) return;
+    for (u = 0; u < 2; ++u) {              // the settler and the warrior
+        unit_ax[u] = bx;
+        unit_ay[u] = by;
+    }
+    unit_mark(ax, ay);
+    unit_mark(bx, by);
+    // Unseen again where they were put first, so that the minimap has no
+    // patch of it apart; then seen where they are.
+    for (u = 0; u <= RING_INNER; ++u) {
+        x = ax;
+        y = ay;
+        if (u < RING_INNER && !map_neighbour(ax, ay, u, &x, &y)) continue;
+        map_tile[y][x] &= (byte)~MAP_EXPLORED;
+        minimap_plot(x, y);
+    }
+    map_explore(bx, by);
+}
+#endif
+
 void ai_place(void)
 {
-    byte p, ax, ay, tries, t;
+    byte p, ax, ay, tries, t, pass;
     word spacing;
+
+#ifndef NO_TITLE
+    nudge();
+#endif
 
     // Nobody has been anywhere yet; and where the land is.
     for (ax = 0; ax < SEEN_X; ++ax) {
@@ -75,19 +159,24 @@ void ai_place(void)
                 ai_land[ax / SEEN_COLUMNS] |= (byte)(1 << (ay / SEEN_ROWS));
         }
 
+    // A start by its own resources first, at every spacing down to
+    // OWN_SPACING; only then anywhere, down to START_SPACING_STEP.
     for (p = PLAYER_FIRST_AI; p < PLAYERS; ++p) {
-        for (spacing = START_SPACING;; spacing -= START_SPACING_STEP) {
-            for (tries = 0; tries < START_TRIES; ++tries) {
-                ax = rnd() & (MAP_COLUMNS - 1);
-                ay = 2 + rnd() % (MAP_ROWS - 4);    // not on the edge rows
-                if (MAP_TERRAIN(ax, ay) == TILE_GRASS
-                    && !(map_tile[ay][ax] & MAP_OCCUPIED)
-                    && land_neighbours(ax, ay) >= 4
-                    && nearest_unit(ax, ay) >= spacing)
-                    goto found;
+        for (pass = 0; pass < 2; ++pass)
+            for (spacing = START_SPACING;; spacing -= START_SPACING_STEP) {
+                for (tries = 0; tries < START_TRIES; ++tries) {
+                    ax = rnd() & (MAP_COLUMNS - 1);
+                    ay = 2 + rnd() % (MAP_ROWS - 4);    // not the edge rows
+                    if (MAP_TERRAIN(ax, ay) == TILE_GRASS
+                        && !(map_tile[ay][ax] & MAP_OCCUPIED)
+                        && land_neighbours(ax, ay) >= 4
+                        && nearest_unit(ax, ay) >= spacing
+                        && (pass || own(p, ax, ay)))
+                        goto found;
+                }
+                if (spacing <= (pass ? START_SPACING_STEP : OWN_SPACING))
+                    break;                          // no room: the next pass
             }
-            if (spacing <= START_SPACING_STEP) break;   // no room: none
-        }
         continue;
 found:
         unit_create(KIND_SETTLER, p, ax, ay);
