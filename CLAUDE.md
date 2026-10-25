@@ -209,7 +209,7 @@ buffers at the default `$FF80000` and corrupts the display.
 | `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 136 bytes free (25 Oct 2026, after roads), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the computer players' starts (`src/aiplace.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 0.4 KB free |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury, `src/treasury.c`, its own since 25 Oct 2026; 4.9 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`; 2.9 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026; 3.6 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going; 300 bytes free (25 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -886,15 +886,27 @@ stopped to play-test):
    Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
    the temple and the Lion Gate, the legacy victory. And from 25 Oct:
    GOTO (`g`). And (later on 25 Oct) region 8, the treasury: Advisors →
-   Finance; the Orders menu's Build a Road and Go To; the three new
+   Finance, with the scribes' + and -, and a tablet's popup; the
+   Orders menu's Build a Road and Go To; the three new
    wonders in CHANGE, Help → Buildings and their popups, and what they
    do -- Knossos's corruption on the Finance screen, Karnak's temples'
    upkeep, Ugarit's ships' moves.
-3. **The AI with the two rings is tuned** (25 Oct 2026): the cap went
-   from 6 to 8 cities, `MAX_CITIES` from 32 to 40 (**The computer
-   players**). Left open: why the human's side, played by the AI, is
-   conquered on seed 1 at a cap of 6 (the computer players are colder
-   to the human by design, `game_level`), and the Crisis after turn 255.
+3. **A 400-turn check** (25 Oct 2026, after roads and the wonders), in
+   autoplay on seeds 3, 7 and 5: everybody but seed 7's Egyptians, who
+   lost their capital at turn 262 and broke up (**The collapse**), stood
+   at turn 400, the human's side too. **The Crisis is mild now**: from
+   turn 250 to 300 the citizens grew on seeds 3 and 5, and fell by a
+   third on seed 7 only through the collapse; with cities of 7-8 a people
+   and builders out of the cap, the peoples are bigger than when it was
+   tuned. **Left as it is for now** (the user's call, 25 Oct 2026), to
+   be changed if play-testing finds it too mild: its knobs are
+   `SEA_CAP`, the raid rate in `crisis_turn()` and the fleets' size
+   (**The Crisis**); the first thing to try is the raids growing
+   stronger towards the end, then the shocks a turn in 8 rather than 16. **Gold piles up**:
+   treasuries of 2000-14000 by turn 400 with little to spend it on.
+   **Seed 1** is the Egyptians' with bronze and horses (11 spearmen, 8
+   chariots) at war with Mycenaeans who have neither: the human's side,
+   played by the AI, is down to one city by turn 256 or out by 167.
 4. **More culture**: more wonders (vision.md 5B names the Pyramids, the
    Palace of Knossos) and the clay tablets of knowledge (Linear B,
    law codes, the alphabet), which want a science of some kind;
@@ -907,8 +919,9 @@ stopped to play-test):
 **Room is short in places** (25 Oct 2026, after the wonders): resident
 486 bytes, region 0 0.3 KB, **region 1 0.3 KB** (`road_site()` took
 460), region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8
-KB, region 6 2.9 KB, region 7 1.9 KB, region 8 4.9 KB, **highram 300
-bytes** (the road list took 440), `LOW_FREE` 735 bytes. Resident room is
+KB, region 6 2.9 KB, region 7 1.9 KB, region 8 3.6 KB (after the
+tablets), **highram 283 bytes** (the road list took 440), `LOW_FREE` 735
+bytes. Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
 **The orders keys `b f i m p r`, the Orders menu's filling, and a step
@@ -1157,7 +1170,15 @@ outer rings do not hold them back. **To measure the AI**: a `NO_TITLE`
 build with `AUTOPLAY_TURNS=255` and only MEGA+D, down, Return in
 `FAKE_KEYS` (no keys after: the human's side may fall, which is game
 over, and a key then starts a new game), one git worktree a seed so
-that three run at once, and the arrays read out of `-dumpmem`.
+that three run at once, and the arrays read out of `-dumpmem`. **400 turns** is two rounds,
+`AUTOPLAY_TURNS=255` and MEGA+D, down, Return again at frame 350 or so
+with spaces before it for the popups; but **if the human's side falls in
+the first round, the keys after it play a new game** -- the first key
+shows the final score, and a `NO_TITLE` build goes straight on into
+another game, whose screen it does not clear -- so read `game_turn` and
+the cities before believing a long run. A throwaway log of each people's
+cities and citizens every 50 turns and of every city lost, called from
+the top of `ai_build()`, has to fit `highram` (300 bytes since roads).
 Its random numbers are a xorshift with a fixed seed, so a
 headless run is deterministic (`rnd()`, in `src/combat.c` since milestone
 4). Since milestone 4 a warrior first attacks an enemy next to it if the
@@ -2065,13 +2086,42 @@ so no new `SAVE_VERSION`. The names are short for CHANGE's 11 columns
 ("Knossos", "Karnak", "Ugarit"); `culture.c` has them in full for the
 popup, which says what each does. Help → Buildings has a page each
 (`pedia_knossos.txt` and the rest, after the Lion Gate's in `TEXTS`).
-**The computer players** build the first wonder nobody has built, in
-`KIND_*` order, in a city of `WONDER_SIZE` (5) at their cap, one city
-at a time (`wonder()` and `building()` in `src/aibuild.c`). In 255
-turns of autoplay all four were built on seeds 1, 3 and 7; the Hittites,
-the first computer player, held three of them on two seeds and led on
-legacy (55-84 points). On seed 1 the human's side, played by the AI, was
-conquered by turn 167 (226 before the wonders).
+**The computer players** build a wonder in a city of `WONDER_SIZE` (5)
+at their cap, one city at a time (`wonder()` and `building()` in
+`src/aibuild.c`): **their people's own first** -- the Lion Gate for the
+Mycenaeans, Knossos for the Hittites, Karnak for the Egyptians, Ugarit
+for the Canaanites -- then the next nobody has built. At first every one
+went for the first in `KIND_*` order, so they raced for the same wonder
+and the Hittites, who move first, held three of the four on every seed
+with 72-84 legacy; spread, in 400 turns on seeds 3, 7 and 5, they held
+1, 3 and 2 (seed 7's Egyptians collapsed before building theirs).
+**And a bug of the first version, fixed the next day**: a leftover `else`
+after the temple's test made every city at the cap that could have a
+temple build one instead of the wonder it had just picked, so wonders
+were started only where there was a temple already.
+
+**The clay tablets** (25 Oct 2026, vision.md 5B's other half of the
+legacy victory; `src/tablets.h`, region 8 with the treasury): **gold pays
+scribes, and scribes set down tablets** -- the user's choice over a share
+of trade as Civilization's science, since gold piled up with little to
+spend it on. Each player pays `scribe_pay[]` gold a turn, or what it has,
+and each gold is a point of `knowledge[]`; at 100, 300 and 600 points a
+people sets down, in turn, **Linear B** (its cities lose a quarter less
+to corruption), **a law code** (`LAW_FREE`, 5, more cities before the
+realm costs gold) and **the alphabet** (its trade deals bring twice the
+gold), all three effects in `src/treasury.c`. Each gives
+`LEGACY_TABLET` (10) legacy points, twice that to the first people in
+the world (`tablets_first`), which the human hears of in a popup, as of
+its own. **The human sets the pay on Advisors → Finance with + and -**
+(a "Scribes" row with the expenses, and "Knowledge 45 of 100 for Linear
+B" under them; the city list there is five rows since); it starts at
+`SCRIBES_START` (1). The computer players pay a 50th of their treasury,
+at most `SCRIBES_AI_MAX` (10), and nobody pays with all three set down.
+`tablets_turn()` runs at the end of `treasury_turn()`, after the costs.
+Saved (`SAVE_VERSION` 21), reset by `game_init()`. In 255 turns of
+autoplay on seed 3 every computer player set down all three (legacy
+59-91 with the wonders), and the human's side, paying 1 a turn, Linear
+B. Checked headlessly: the Finance screen with + and -, and the popup.
 
 **Pictures** (22 Oct 2026; `src/picture.c`, region 5): the title's at
 boot (`title_splash()`, **The title's picture**) and the outcome's at

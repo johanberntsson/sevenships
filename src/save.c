@@ -22,6 +22,7 @@
 #include "map.h"
 #include "unit.h"
 #include "road.h"
+#include "tablets.h"
 
 #pragma clang section text="r0text" rodata="r0rodata"
 
@@ -94,6 +95,10 @@ static const struct block blocks[] = {
     { player_gold, sizeof player_gold },
     { city_culture, sizeof city_culture },
     { &wonders_built, sizeof wonders_built },
+    { scribe_pay, sizeof scribe_pay },
+    { knowledge, sizeof knowledge },
+    { tablets, sizeof tablets },
+    { &tablets_first, sizeof tablets_first },
     { player_legacy, sizeof player_legacy },
 };
 #define BLOCKS (sizeof blocks / sizeof blocks[0])

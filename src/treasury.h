@@ -30,8 +30,13 @@
 // their cities' turns -- up to a third of the treasury in a city nobody
 // is in, otherwise a 64th.
 //
-// **In region 6** (src/region.h), with the menus: once a turn from
-// game_end_turn(), and Advisors -> Finance. (Region 5 until 23 Oct 2026.)
+// **The scribes** are paid out of it too, and set down the clay tablets
+// (src/tablets.h): their row and the knowledge are on Advisors -> Finance,
+// where + and - set the pay.
+//
+// **In region 8** (src/region.h), its own: once a turn from
+// game_end_turn(), and Advisors -> Finance. (Region 5 until 23 Oct 2026,
+// region 6 until 25 Oct.)
 #ifndef SEVENSHIPS_TREASURY_H
 #define SEVENSHIPS_TREASURY_H
 

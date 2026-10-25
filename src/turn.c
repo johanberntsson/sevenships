@@ -15,6 +15,7 @@
 #include "crisis.h"
 #include "treasury.h"
 #include "culture.h"
+#include "tablets.h"
 #include "emporium.h"
 #include "goto.h"
 #include "diplomacy.h"
@@ -184,11 +185,16 @@ void game_init(void)
     crisis_capitals = 0;
     emporium_count = 0;
     wonders_built = 0;
+    tablets_first = 0;
     for (ax = 0; ax < PLAYERS; ++ax) {
         crisis_cities[ax] = 0;
         player_gold[ax] = 0;
         player_legacy[ax] = 0;
+        scribe_pay[ax] = 0;
+        knowledge[ax] = 0;
+        tablets[ax] = 0;
     }
+    scribe_pay[PLAYER_HUMAN] = SCRIBES_START;
     // Civilization's 50 at the easiest level.
     if (!game_level) player_gold[PLAYER_HUMAN] = TREASURY_START;
     dirty = 1;

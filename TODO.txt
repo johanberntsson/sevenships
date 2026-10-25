@@ -1,38 +1,45 @@
 --- OPEN ---
 
-NEXT (24 Oct 2026, end of the day; CLAUDE.md "Where to start next time"):
+NEXT (25 Oct 2026; CLAUDE.md "Where to start next time"):
 1. The user's play-testing: new items go at the top of this file
-2. Try on a real MEGA65: fight popups (own attacks, attacks in the other turns, several a
-   turn); p for pastures, chariots only with pastured horses, moving by Tab now the moving
-   keys are gone; Finance's upkeep rows; F1-F4 (F2/F4 shifted), Advisors/Military, HELP.
-   From 23 Oct: the two rings' city screen, the chariot, c, Advisors/Cities, the temple and
-   Lion Gate, the legacy victory
-3. Done 25 Oct: the AI's city cap 6 -> 8, MAX_CITIES 32 -> 40 (CITY_SPACING 5 was no
-   better). Open: the human's side conquered on seed 1 at cap 6; the Crisis after turn 255
-4. More culture: three more wonders are in (25 Oct, Knossos, Karnak, Ugarit); next the clay
-   tablets of knowledge (Linear B, law codes, the alphabet: a science of sorts), building
-   art
-5. Tune from play: the Crisis, the collapse, merchant ships, gold and the upkeep allowances
-   (treasury.h), legacy's weight in the score; escorts for merchant ships; AI galleys
-   against the Sea Peoples
-Room (25 Oct, after the wonders): resident 486 bytes, region 0 0.3 KB, region 1 0.3 KB,
+2. Try on a real MEGA65: Advisors/Finance (the treasury is region 8 now) with the scribes'
+   + and -, and a tablet's popup; the Orders menu's Build a Road and Go To; the three new
+   wonders in CHANGE, Help/Buildings and their popups, and what they do (Knossos's
+   corruption on Finance, Karnak's temples' upkeep, Ugarit's ships' moves); GOTO with a
+   galley and its cargo, a unit blocked on the way, a save and load during one
+3. Tune from play: the collapse, merchant ships, gold and the upkeep allowances
+   (treasury.h), the scribes' costs and the AI's pay (tablets.h), legacy's weight in the
+   score; escorts for merchant ships; AI galleys against the Sea Peoples
+Room (25 Oct, after the tablets): resident 486 bytes, region 0 0.3 KB, region 1 0.3 KB,
 region 2 1.2 KB, region 3 2.1 KB, region 4 0.6 KB, region 5 0.8 KB, region 6 2.9 KB,
-region 7 1.9 KB, region 8 (the treasury) 4.9 KB, highram 300 bytes; the tile sheet 6 KB;
-attic's bank 1 is full with eight regions
+region 7 1.9 KB, region 8 (the treasury, the scribes) 3.6 KB, highram 283 bytes; the tile
+sheet 6 KB, about four units; attic's bank 1 is full with eight regions
 
-Roads are in (25 Oct 2026; CLAUDE.md "Roads"), confirmed on a real MEGA65. Not in: the AI's
-approach() preferring roads; seed 1's Mycenaeans (the AI-played human side) are conquered
-by the Egyptians, by turn 167-226 in the autoplays since roads
+THE CRISIS, left as it is (25 Oct, the user's): it is mild now that the peoples are bigger
+(in 400-turn autoplays from turn 250 to 300 citizens grew on seeds 3 and 5). If
+play-testing says so, the options are: the raids growing stronger towards the end (more
+ships a fleet, or more often), a higher SEA_CAP, shocks one turn in 8 rather than 16, or
+the computer players' coastal guards (guards_wanted()) fewer
+
+Seed 1: the Egyptians have bronze and horses (11 spearmen, 8 chariots) and fight the
+Mycenaeans, who have neither; the human's side, played by the AI, is down to one city by
+turn 256 or out by 167. A human would trade or make peace; maybe the AI's defence too
+
+The AI's units do not seek out roads in approach() (moving along one is cheaper anyway)
 
 Per-continent AI policy (attack/defend/transport), as Civ 1's, now there are boats and wars
 
 Placeholder art to replace: res_grain, res_fish, res_cedar, res_dye (and res_olives and
-res_wine are recoloured orange trees)
+res_wine are recoloured orange trees). No art of their own for the temple and the wonders
+(drawn as a city in the Civilopedia)
+
+The Civilopedia's pages (Help/Terrain Types, Military Units, Buildings) are placeholders,
+and there is none on the tablets
 
 Diplomacy not yet: the vassals' formula, alliances, news of wars between the others
 
-The AI ferries settlers now, but rarely: most peoples reach AI_CITY_CAP (8 since 25 Oct) on
-their own land before they have a galley. Raise the cap further (MAX_CITIES 40) if overseas cities
+The AI ferries settlers now, but rarely: most peoples reach AI_CITY_CAP (8) on their own
+land before they have a galley. Raise the cap further (MAX_CITIES 40) if overseas cities
 are wanted sooner.
 
 Seed 7 has a landmass the shallows do not reach: its people (the Hittites) meets nobody in
@@ -46,20 +53,8 @@ peoples within 7 hexagons), and in 300 turns of autoplay on seed 1 only the Egyp
 and Canaanites fought. A computer player accepts a ceasefire the turn the human declares
 war on it if it is the weaker.
 
-Wonders (25 Oct 2026): the Palace of Knossos, the Temple of Karnak and the Great Harbour of
-Ugarit are in with the Lion Gate (CLAUDE.md "Buildings and wonders"). To try on a real
-MEGA65. Next for the legacy win: the clay tablets of knowledge (Linear B, law codes, the
-alphabet), which want a science of some kind; wonder art for the map and the Civilopedia.
-The Hittites, first in the AI's order, build most of the wonders: maybe spread them
-
-Evenually need to adjust game/AI for the difficulty levels (probably need to cheat
-on highter levels to make the game challenging)
-
-The Civilopedia's pages (Help/Terrain Types, Help/Military Units) are placeholders
-
-GOTO is in (25 Oct 2026; CLAUDE.md "GOTO"): g, then Return or a click on a hexagon.
-To try: a galley's GOTO with a cargo, a unit blocked on the way, a save and load during
-one, and all of it on a real MEGA65. Not in: an Orders menu item (region 6 is full)
+Eventually need to adjust game/AI for the difficulty levels (probably need to cheat
+on higher levels to make the game challenging)
 
 --- IDEAS, not yet decided implement or not --
 
@@ -85,6 +80,38 @@ A game is 400 turns, as Civ 1's: growth and rivalry first, then the Crisis, then
 - The collapse: half a people's cities lost as a second trigger, besides the capital
 
 --- DONE ---
+
+DONE (25 Oct 2026): the clay tablets (src/tablets.c, region 8). Gold pays scribes, a point
+of knowledge a gold; at 100, 300 and 600 a people sets down Linear B (a quarter less
+corruption), a law code (5 more cities before the realm costs gold) and the alphabet (trade
+deals bring twice the gold), 10 legacy each, 20 to the first in the world. The human sets
+the pay on Advisors/Finance with + and -; the AI pays a 50th of its treasury, at most 10.
+SAVE_VERSION 21
+
+DONE (25 Oct 2026): a 400-turn check on seeds 3, 7 and 5 (CLAUDE.md "Where to start" 3).
+Fixed: a leftover else that made a temple replace any wonder an AI city had picked; the AI
+now goes for its own people's wonder first (the Hittites had taken three of four on every
+seed). Found: the Crisis is mild now (left as it is, see OPEN)
+
+DONE (25 Oct 2026): three more wonders: the Palace of Knossos (half the corruption), the
+Temple of Karnak (temples free and double legacy), the Great Harbour of Ugarit (coastal; a
+move more for ships), each for whoever holds its city; Help/Buildings pages; the AI builds
+them at its cap. The treasury moved to a region 8 of its own; the Orders menu has Build a
+Road and Go To; moving and attacking moved out of game.c into src/orders.c for resident room
+
+DONE (25 Oct 2026): roads, milestone 6's last item (src/road.c, roadadd.c). r for a
+builder (2/4/6 turns), every city on one, a third of a move from road to road (moves in
+thirds), a trade on grassland, plains and desert. A list by hexagon row, drawn as joins
+between junctions (tools/mkroads.py), only between explored hexagons; the city screen too.
+The AI joins its cities with roads, and builds builders over its unit cap. About 2 ms of
+the redraw in a busy view. Confirmed on a real MEGA65. SAVE_VERSION 20
+
+DONE (25 Oct 2026): the AI's city cap 6 -> 8, MAX_CITIES 32 -> 40, tuned to the two rings
+(CITY_SPACING 5 was no better). SAVE_VERSION 19
+
+DONE (25 Oct 2026): GOTO: g, then Return or a click on a hexagon; the unit walks there by
+itself over explored land (or the shallows), a turn's moves at a time (src/goto.c, a
+breadth-first search in path.c). SAVE_VERSION 18
 
 DONE (24 Oct 2026): Advisors/Military (src/military.c, region 5): units of each kind, fortified,
 aboard, their figures, the upkeep and the wars. F1-F4 open Cities, Military, Diplomacy and
@@ -153,8 +180,8 @@ a city screen by selecting on city from this advisor screen.
 Need cultural building and monument/wonders for the lasting legacy win. This also means
 wonders and Help/Wonders screen with descriptions. The Lion Gate, Pyramids etc
 (if it fits the time period - the oldest pyramids are probably too old anyway)
-- DONE in part (23 Oct 2026): the temple and the Lion Gate, Help/Buildings, the legacy victory.
-  More wonders to come
+- DONE (23 Oct 2026): the temple and the Lion Gate, Help/Buildings, the legacy victory
+- DONE (25 Oct 2026): Knossos, Karnak and Ugarit, and the clay tablets (see above)
 
 Milestone 10: the end game -- the Bronze Age Collapse (vision.md sections 4 and 5): done parts
 - DONE (22 Oct 2026): calendar, 2 years a turn to turn 176 (1250 BC), then 1; the Crisis
@@ -255,7 +282,7 @@ Milestone 7: resources -- DONE (20 Oct 2026)
   sheet's): irrigated cattle (pasture), olives and wine (orchard recoloured). One tile
   left. Fish's improved tile is fishing boats, made by a fishing boat (milestone 9)
 
-Milestone 6: yields and city growth -- DONE but for roads (20 Oct 2026)
+Milestone 6: yields and city growth -- DONE (20 Oct 2026; roads 25 Oct 2026)
 - DONE: food, shields and trade per terrain (src/growth.c, Civ 1's numbers); city size,
   food box, growth and famine; a city works its centre and its size's best neighbours
   (radius 1, picked automatically); settlers need size 2 and cost a citizen
@@ -263,8 +290,8 @@ Milestone 6: yields and city growth -- DONE but for roads (20 Oct 2026)
 - Builder improvements: DONE irrigation and mine (src/improve.c, overlays from bank 1,
   AI rule 5 improves the hexagons round its city; overlays are in bank 5 again since the
   map shrank). Irrigation does nothing until food.
-  Road still to do (see below): needs a map bit (none left in map_tile) and road art for
-  six directions (alltiles' road_*.png are corner pieces, check whether they fit)
+  Roads DONE 25 Oct 2026 (see above): a list by hexagon row, not a map bit, and art of
+  their own (alltiles' road_*.png join two edges each)
   DONE: builders on one hexagon with the same orders add up their turns
 - DONE: city screen shows size, food box, food/shields/trade and rings on the worked
   hexagons; Top Five Cities lists the largest cities seen. Both moved to code region 2
@@ -275,8 +302,6 @@ Milestone 6: yields and city growth -- DONE but for roads (20 Oct 2026)
   a builder per city, unit cap 3 + 2 a city (max 12), 6 cities. Barbarians from turn 30
 - DONE: Civ 1's grassland shield pattern (half the grassland and floodplain, not drawn);
   the hover readout shows food/shields/trade. All four peoples now survive seed 1
-- Roads: still to do. They need tiles (there is room now) and a map bit
-  (a 320-byte bitmap would do at 128x20)
 - Per-continent policy (attack/defend/transport) when there are boats and wars
 
 The tile sheet is packed (22 Oct 2026): a tile row keeps only its characters with pixels,

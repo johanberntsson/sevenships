@@ -17,6 +17,7 @@
 #include "screen.h"
 #include "sheet.h"
 #include "trade.h"
+#include "tablets.h"
 
 #pragma clang section text="r8text" rodata="r8rodata"
 
@@ -69,6 +70,7 @@ static void income(byte c)
     trade = work_trade;
     lost = (word)trade * d * 3 / 100;
     if (city_owner[c] == knossos) lost >>= 1;
+    if (tablets[city_owner[c]] & TABLET_LINEAR_B) lost -= lost >> 2;
     corruption = lost > trade ? trade : (byte)lost;
 }
 
@@ -106,10 +108,24 @@ static byte over_army(byte p, byte n)
     return units > free ? units - free : 0;
 }
 
-static word realm_cost(byte n)
+// With a law code (tablets.h), LAW_FREE more are free.
+static byte realm_free(byte p)
 {
-    byte k = n > REALM_FREE ? n - REALM_FREE : 0;
+    return (tablets[p] & TABLET_LAW_CODE) ? REALM_FREE + LAW_FREE : REALM_FREE;
+}
+
+static word realm_cost(byte p, byte n)
+{
+    byte free = realm_free(p);
+    byte k = n > free ? n - free : 0;
     return (word)k * k;
+}
+
+// What p's trade deals bring a turn: twice as much with the alphabet.
+static word deal_gold(byte p)
+{
+    word g = TREASURY_DEAL * deals(p);
+    return (tablets[p] & TABLET_ALPHABET) ? 2 * g : g;
 }
 
 // One of p's units disbanded for want of gold: a land unit on land, not a
@@ -142,7 +158,7 @@ void treasury_turn(void)
     word buy, left, cost;
 
     wonders();
-    for (p = 0; p < PLAYERS; ++p) add(p, TREASURY_DEAL * deals(p));
+    for (p = 0; p < PLAYERS; ++p) add(p, deal_gold(p));
     for (c = 0; c < city_count; ++c) {
         p = city_owner[c];
         if (p >= PLAYERS) continue;             // the rebels' (crisis.c)
@@ -164,7 +180,7 @@ void treasury_turn(void)
     // unit goes for want of it.
     for (p = 0; p < PLAYERS; ++p) {
         n = cities(p);
-        cost = realm_cost(n);
+        cost = realm_cost(p, n);
         player_gold[p] = player_gold[p] > cost ? player_gold[p] - cost : 0;
         cost = ARMY_UPKEEP * over_army(p, n);
         if (player_gold[p] >= cost) {
@@ -174,6 +190,8 @@ void treasury_turn(void)
             disband(p);
         }
     }
+    // The scribes, out of what is left (tablets.h).
+    tablets_turn();
     for (c = 0; c < city_count; ++c) {
         p = city_owner[c];
         if (p >= PLAYERS) continue;
@@ -206,8 +224,9 @@ void treasury_turn(void)
 #define LEFT 8
 #define TABLE_TOP 5
 // Cities listed; the rest are counted, not listed. **Everything has to end
-// above EXIT_ROW**: a row past the screen is code slot 1 at $13000.
-#define TABLE_ROWS 6
+// above EXIT_ROW**: a row past the screen is code slot 1 at $13000. Five
+// since the scribes took a row and the knowledge another.
+#define TABLE_ROWS 5
 #define FIGURES 3
 static const char *const heading[FIGURES] = { "Trade", "Corruption", "Gold" };
 static const byte column_right[FIGURES] = { 35, 48, 56 };
@@ -245,6 +264,32 @@ static void expense(byte y, const char *what, byte count, word gold)
     put_right(column_right[2], y, number(gold), COLOR_RED);
 }
 
+// The scribes' row and the knowledge line under the expenses, on rows y
+// and y + 2, afresh for each + and -.
+static void draw_scribes(byte y)
+{
+    byte t = tablet_next(PLAYER_HUMAN), x;
+
+    screen_fill(LEFT, y, SCREEN_COLUMNS - LEFT, COLOR_WHITE);
+    screen_fill(LEFT, y + 2, SCREEN_COLUMNS - LEFT, COLOR_WHITE);
+    expense(y, "Scribes (+ and -)", scribe_pay[PLAYER_HUMAN],
+            t == TABLET_NONE ? 0 : scribe_pay[PLAYER_HUMAN]);
+    screen_putsxy(LEFT, y + 2, "Knowledge", COLOR_WHITE);
+    x = LEFT + 10;
+    screen_putsxy(x, y + 2, number(knowledge[PLAYER_HUMAN]), COLOR_LIGHTGREEN);
+    x += length(number(knowledge[PLAYER_HUMAN])) + 1;
+    if (t == TABLET_NONE) {
+        screen_putsxy(x, y + 2, "-- every tablet set down", COLOR_LIGHTGREY);
+        return;
+    }
+    screen_putsxy(x, y + 2, "of", COLOR_LIGHTGREY);
+    x += 3;
+    screen_putsxy(x, y + 2, number(tablet_cost(t)), COLOR_LIGHTGREEN);
+    x += length(number(tablet_cost(t))) + 1;
+    screen_putsxy(x, y + 2, "for", COLOR_LIGHTGREY);
+    screen_putsxy(x + 4, y + 2, tablet_name(t), COLOR_YELLOW);
+}
+
 void finance_screen(void)
 {
     byte c, i, y = TABLE_TOP + 2, key, n, temples = 0, mine = 0;
@@ -278,30 +323,39 @@ void finance_screen(void)
         ++y;
     }
     n = deals(PLAYER_HUMAN);
-    total += TREASURY_DEAL * n;
+    total += deal_gold(PLAYER_HUMAN);
     ++y;
     screen_putsxy(LEFT, y, "Trade deals", COLOR_LIGHTGREEN);
     put_right(column_right[0], y, number(n), COLOR_LIGHTGREEN);
-    put_right(column_right[2], y, number(TREASURY_DEAL * n), COLOR_YELLOW);
+    put_right(column_right[2], y, number(deal_gold(PLAYER_HUMAN)),
+              COLOR_YELLOW);
     y += 2;
     screen_putsxy(LEFT, y, "Income a turn", COLOR_WHITE);
     put_right(column_right[2], y, number(total), COLOR_YELLOW);
     expense(y + 1, "Temples' upkeep", temples, temples);
     n = over_army(PLAYER_HUMAN, mine);
     expense(y + 2, "Units beyond the free", n, ARMY_UPKEEP * n);
-    expense(y + 3, "Cities beyond the free", mine > REALM_FREE
-            ? mine - REALM_FREE : 0, realm_cost(mine));
-    screen_putsxy(LEFT, y + 5, "Corruption grows with the distance from the "
-                  "capital.", COLOR_LIGHTGREY);
-    screen_putsxy(LEFT, y + 6, "Free: 4 units and 3 a city, and 10 cities.",
+    n = realm_free(PLAYER_HUMAN);
+    expense(y + 3, "Cities beyond the free", mine > n ? mine - n : 0,
+            realm_cost(PLAYER_HUMAN, mine));
+    draw_scribes(y + 4);
+    screen_putsxy(LEFT, y + 7, "Free: 4 units and 3 a city, and 10 cities.",
                   COLOR_LIGHTGREY);
-    screen_putsxy(LEFT, y + 7, "Gold buys production: b on the city screen.",
+    screen_putsxy(LEFT, y + 8, "Scribes set down tablets: legacy, and more.",
                   COLOR_LIGHTGREY);
     screen_putsxy(0, EXIT_ROW, "Esc or Return to go on", COLOR_LIGHTGREY);
     screen_putsxy(EXIT_LEFT, EXIT_ROW, EXIT_TEXT, BUTTON_EXIT);
 
-    do {
+    // + and - set the scribes' pay; anything else goes back.
+    for (;;) {
         screen_wait_raster(SCREEN_ROW_LINE(SCREEN_ROWS - 1));
         key = input_poll();
-    } while (!key);
+        if (key == '+' && scribe_pay[PLAYER_HUMAN] < SCRIBES_MAX)
+            ++scribe_pay[PLAYER_HUMAN];
+        else if (key == '-' && scribe_pay[PLAYER_HUMAN])
+            --scribe_pay[PLAYER_HUMAN];
+        else if (key)
+            break;
+        if (key) draw_scribes(y + 4);
+    }
 }

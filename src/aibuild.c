@@ -11,6 +11,7 @@
 #include "ai.h"
 #include "aiint.h"
 #include "city.h"
+#include "civ.h"
 #include "combat.h"
 #include "culture.h"
 #include "emporium.h"
@@ -76,12 +77,21 @@ static byte building(byte p, byte c)
     return 0;
 }
 
-// The first wonder city c may build, in KIND_* order, or KIND_NONE.
+// The wonder city c is to build, or KIND_NONE: its people's own first --
+// the Lion Gate for the Mycenaeans, Knossos for the Hittites, Karnak for
+// the Egyptians, Ugarit for the Canaanites, in CIV_* order -- then the
+// next. When every computer player went for the first in KIND_* order
+// they raced for the same one, and the Hittites, who move first, built
+// three of the four on every seed (25 Oct 2026).
+#define WONDERS (BUILD_KINDS - KIND_LION_GATE)
+
 static byte wonder(byte c)
 {
-    byte k;
-    for (k = KIND_LION_GATE; k < BUILD_KINDS; ++k)
+    byte i, k;
+    for (i = 0; i < WONDERS; ++i) {
+        k = (byte)(KIND_LION_GATE + (player_civ[city_owner[c]] + i) % WONDERS);
         if (CULTURE_CAN(c, k)) return k;
+    }
     return KIND_NONE;
 }
 
@@ -245,9 +255,6 @@ void ai_build(byte p)
                 kind = wonder(c);
             if (kind == KIND_NONE && city_size[c] >= TEMPLE_SIZE
                 && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
-                kind = KIND_TEMPLE;
-            else if (city_size[c] >= TEMPLE_SIZE
-                     && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
                 kind = KIND_TEMPLE;
         } else {
             // 4. Attackers: chariots, with horses (unit.h).
