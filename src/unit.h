@@ -53,6 +53,14 @@
 // It boards by stepping onto the galley, is sentried (ORDERS_FORTIFY) as
 // it does, goes wherever the galley goes from the water, and is woken by
 // unit_wake_cargo() when the galley stops next to land.
+//
+// **An escort** (25 Oct 2026, vision.md section 3) is a galley fortified
+// on the hexagon of a merchant ship of its people: the merchant ship takes
+// it along when it moves from the water (unit_move_to()), with whoever is
+// aboard, and it defends twice as well at sea (defence() in combat.c), so
+// that it is the stack's defender and a raider's attack an even fight.
+// The human makes one with f (Orders: "f: Escort"); the computer players'
+// galleys escort when they have nobody to ferry (escort() in ai.c).
 #define GALLEY_HOLD 2
 
 // **A fishing boat** (milestone 9; Civilization IV's work boat) sails as a

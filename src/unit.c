@@ -102,7 +102,9 @@ void unit_move_to(byte u, byte ax, byte ay)
     unit_moves[u] = unit_moves[u] > cost ? unit_moves[u] - cost : 0;
 
     // A galley takes those aboard with it, from the water; in a city they
-    // stay. A land unit stepping onto the water is aboard, and sentried.
+    // stay. A merchant ship takes its escort, a galley fortified on its
+    // hexagon, and whoever is aboard that. A land unit stepping onto the
+    // water is aboard, and sentried.
     if (unit_kind[u] == KIND_GALLEY) {
         if (water(old_x, old_y))
             for (v = 0; v < MAX_UNITS && n < GALLEY_HOLD; ++v)
@@ -112,6 +114,18 @@ void unit_move_to(byte u, byte ax, byte ay)
                     unit_ax[v] = ax;
                     unit_ay[v] = ay;
                     ++n;
+                }
+    } else if (unit_kind[u] == KIND_MERCHANT) {
+        if (water(old_x, old_y))
+            for (v = 0; v < MAX_UNITS; ++v)
+                if (unit_ax[v] == old_x && unit_ay[v] == old_y
+                    && unit_owner[v] == unit_owner[u]
+                    && ((unit_kind[v] == KIND_GALLEY
+                         && unit_orders[v] == ORDERS_FORTIFY)
+                        || (unit_kind[v] != KIND_NONE
+                            && !KIND_IS_SHIP(unit_kind[v])))) {
+                    unit_ax[v] = ax;
+                    unit_ay[v] = ay;
                 }
     } else if (!KIND_IS_SHIP(unit_kind[u]) && water(ax, ay)) {
         unit_orders[u] = ORDERS_FORTIFY;

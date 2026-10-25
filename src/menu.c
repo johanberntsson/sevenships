@@ -171,6 +171,7 @@ static const char *order_name(byte command)
     case MENU_EMPORIUM: return "b: Found Emporium";
     case MENU_ROAD: return "r: Build a Road";
     case MENU_GOTO: return "g: Go To";
+    case MENU_ESCORT: return "f: Escort";
     }
     return "f: Fortify";
 }

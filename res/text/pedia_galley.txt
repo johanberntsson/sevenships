@@ -9,4 +9,6 @@
   Cost: 40 shields
   Needs: cedar, and a city by the shallows
 {at 6 17}{text}Sails the shallows and carries two land units: step onto it to board.
-They are woken when it stops next to land.
+They are woken when it stops next to land. Fortified (f) on the hexagon
+of a merchant ship, it is its escort: it goes where the merchant goes,
+and defends it twice as well as a galley alone.

@@ -71,6 +71,7 @@ void game_menu_command(byte command)
         unit_key('b');
         break;
     case MENU_FORTIFY:
+    case MENU_ESCORT:
         unit_key('f');
         break;
     case MENU_IRRIGATE:

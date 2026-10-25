@@ -628,10 +628,45 @@ static byte waiting(byte p)
     return UNIT_NONE;
 }
 
+// **Escorts** (25 Oct 2026, vision.md section 3: merchant fleets must be
+// escorted against piracy): a galley with nobody to ferry joins its
+// people's merchant ship at sea and fortifies on its hexagon, which makes
+// it go wherever the merchant goes (unit_move_to()) and defend it, twice
+// as strong as a galley alone (defence() in combat.c). Whether it is on
+// its way or there. It is woken (ai_turn()) when somebody wants ferrying
+// or the merchant has gone.
+static byte with_merchant(byte u)
+{
+    byte v;
+    for (v = 0; v < MAX_UNITS; ++v)
+        if (unit_kind[v] == KIND_MERCHANT && unit_owner[v] == unit_owner[u]
+            && unit_ax[v] == unit_ax[u] && unit_ay[v] == unit_ay[u])
+            return 1;
+    return 0;
+}
+
+static byte escort(byte u)
+{
+    byte m, dir;
+    for (m = 0; m < MAX_UNITS; ++m)
+        if (unit_kind[m] == KIND_MERCHANT && unit_owner[m] == unit_owner[u]
+            && is_water(unit_ax[m], unit_ay[m]))
+            break;
+    if (m == MAX_UNITS) return 0;
+    if (with_merchant(u)) {
+        unit_orders[u] = ORDERS_FORTIFY;
+        unit_moves[u] = 0;
+        return 1;
+    }
+    dir = map_direction(unit_ax[u], unit_ay[u], unit_ax[m], unit_ay[m]);
+    return dir != DIR_NONE ? step(u, dir) : sail(u, unit_ax[m], unit_ay[m]);
+}
+
 // Galley u: with cargo aboard, to where it is going (destination());
 // without, to a settler or a soldier waiting for it; with nobody to
-// ferry, exploring the coasts (boat_explore()). One it cannot reach is
-// let go, to walk or to ask again later.
+// ferry, escorting its people's merchant ship (escort()), or else
+// exploring the coasts (boat_explore()). One it cannot reach is let go,
+// to walk or to ask again later.
 static void ferry(byte u)
 {
     byte s, p = unit_owner[u], ax = unit_ax[u], ay = unit_ay[u];
@@ -653,7 +688,7 @@ static void ferry(byte u)
     // Not until it is on the coast: the route to an inland hexagon fails,
     // and would let it go before it got there.
     if (s == UNIT_NONE || !next_to_water(unit_ax[s], unit_ay[s])) {
-        boat_explore(u);
+        if (!escort(u)) boat_explore(u);
         return;
     }
     if (distance(ax, ay, unit_ax[s], unit_ay[s]) == 1 && is_water(ax, ay)) {
@@ -830,6 +865,11 @@ void ai_turn(byte p)
 
     for (u = 0; u < MAX_UNITS; ++u) {
         if (unit_kind[u] == KIND_NONE || unit_owner[u] != p) continue;
+        // An escort goes back to work when somebody wants ferrying or its
+        // merchant ship has gone (escort()).
+        if (unit_kind[u] == KIND_GALLEY && unit_orders[u] == ORDERS_FORTIFY
+            && (waiting(p) != UNIT_NONE || !with_merchant(u)))
+            unit_orders[u] = ORDERS_NONE;
         if (unit_orders[u] != ORDERS_NONE) continue;
         while (unit_kind[u] != KIND_NONE && unit_moves[u]) move_unit(u);
     }

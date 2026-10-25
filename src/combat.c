@@ -66,6 +66,11 @@ static byte defence(byte u)
         d += d >> 1;
     // The Lion Gate is the walls of its city (src/culture.h).
     if (c != CITY_NONE && (city_culture[c] & CITY_LION_GATE)) d <<= 1;
+    // A galley fortified at sea is an escort (unit.h): twice as strong,
+    // so that a merchant ship with one is an even fight for a raider.
+    if (unit_kind[u] == KIND_GALLEY && unit_orders[u] == ORDERS_FORTIFY
+        && t == TILE_SHALLOW_OCEAN)
+        d <<= 1;
     return d;
 }
 

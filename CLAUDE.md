@@ -891,7 +891,13 @@ stopped to play-test):
    Orders menu's Build a Road and Go To; the three new
    wonders in CHANGE, Help → Buildings and their popups, and what they
    do -- Knossos's corruption on the Finance screen, Karnak's temples'
-   upkeep, Ugarit's ships' moves.
+   upkeep, Ugarit's ships' moves. And the last of 25 Oct: the
+   difficulty levels, the peoples' starts and advantages, vassals (S on
+   Diplomacy, a submission letter, the score's column) and escorts (f on
+   a galley with a merchant ship). **With escorts the game is feature
+   complete against vision.md but for grain logistics and attrition**
+   (vision.md §3), left out unless play asks for it (TODO.txt); what is
+   left is art, the Civilopedia's pages and balance from play.
 3. **A 400-turn check** (25 Oct 2026, after roads and the wonders), in
    autoplay on seeds 3, 7 and 5: everybody but seed 7's Egyptians, who
    lost their capital at turn 262 and broke up (**The collapse**), stood
@@ -914,11 +920,10 @@ stopped to play-test):
    building art for the map and the Civilopedia, which has none yet.
 5. Tune from play: the Crisis, the collapse, merchant ships, gold and the
    new upkeep's allowances (`src/treasury.h`), the weight of legacy in
-   the score; escorts for the merchant ships, and the computer players'
-   galleys against the Sea Peoples.
+   the score; the computer players' galleys hunting the Sea Peoples.
 
-**Room is short in places** (25 Oct 2026, after the vassals): resident
-209 bytes, region 0 1 KB, **region 1 0.3 KB** (`road_site()` took
+**Room is short in places** (25 Oct 2026, after the escorts):
+**resident 100 bytes**, region 0 1 KB, **region 1 72 bytes** (`road_site()` took
 460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
 KB, region 6 2.9 KB, region 7 1.9 KB, region 8 2.0 KB, **highram 275
 bytes** (the road list took 440), `LOW_FREE` 735
@@ -1709,7 +1714,9 @@ none did either, as nobody lost a war that badly in those games -- it is
 for the lopsided wars, such as seed 1's Egyptians and Mycenaeans before
 the peoples' starts. Checked headlessly with throwaways (war with the
 Hittites from the start, `SUBMITS()` always true): the letter, Yes, "your
-vassal" on the Diplomacy screen, and the score's +10. **Purple dye**
+vassal" on the Diplomacy screen, and the score's +10. **In 400 turns of
+autoplay on seed 5 the Hittites made both the Egyptians and the
+Canaanites their vassals**, so it does come in a long game. **Purple dye**
 gives legacy too (vision.md §2): a point every `DYE_TURNS` (16) turns to
 a people that has it, in `tablets_turn()`.
 
@@ -1767,7 +1774,20 @@ and 7: 18, 14 and 4 deals made, 7, 6 and 4 renewed by ships, 14, 13 and
 3 lapsed — the computer players agree deals they cannot serve. At first,
 with a term of 24, no overland trade, and a merchant with no way to its
 partner founding an emporium, 5 renewals against 32 lapses on seed 1.
-Not yet: escorts.
+**Escorts** (25 Oct 2026, vision.md §3, the last of its features):
+**a galley fortified on the hexagon of a merchant ship of its people is
+its escort** -- the merchant ship takes it along when it moves from the
+water, with whoever is aboard (`unit_move_to()`), and **a galley
+fortified at sea defends twice as well** (`defence()` in `src/combat.c`:
+3 against a raider's attack of 3, where a merchant alone defends at 1),
+so it is the stack's defender. The human makes one with `f`, which the
+Orders menu offers a galley as "f: Escort" (`MENU_ESCORT`); **a computer
+player's galley with nobody to ferry joins its people's merchant ship at
+sea** (`escort()` in `src/ai.c`) and is woken again when somebody wants
+ferrying or the merchant has gone. In 400 turns of autoplay on seeds 3,
+7 and 5, 1, 2 and 0 galleys were escorting at the end (seed 5 had two
+galleys, both busy). Checked headlessly with a throwaway start: `f` on
+a galley, the merchant ship moved, and the galley with it, fortified.
 
 **Galleys** (milestone 9, `KIND_GALLEY`, Civilization's trireme, after
 asking the user which ship first) need cedar (`player_has()`) and a
@@ -1931,8 +1951,8 @@ a good its people lacks, copper and tin counted four hexagons nearer, by
 way of the resource list rather than the whole map (`emporium_ai()`),
 and explores as a boat does with nowhere to go. In 400 turns of
 autoplay: 6, 4 and 3 emporia standing at the end on seeds 1, 3 and 7.
-Trade deals are still letters; merchant fleets carrying them, and
-escorts, are for later.
+Merchant fleets carry the trade deals (**Trade**), and galleys escort
+them (**Trade**, *Escorts*).
 
 **The end** (milestone 10, its first part; `src/score.c`, region 5).
 **The calendar** is vision.md's (`GAME_SLOW_TURN` and the rest in

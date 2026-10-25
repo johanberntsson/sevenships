@@ -33,12 +33,13 @@
 #define MENU_MILITARY 23
 #define MENU_ROAD 24
 #define MENU_GOTO 25
-#define MENU_TERRAIN 26         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
-#define MENU_UNIT 36            // + a KIND_*, buildings too, after the terrains; last
+#define MENU_ESCORT 26          // f for a galley (unit.h)
+#define MENU_TERRAIN 27         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
+#define MENU_UNIT 37            // + a KIND_*, buildings too, after the terrains; last
 
 // What the Orders menu offers, for the unit that has the orders: up to four
 // of MENU_FOUND_CITY, MENU_FORTIFY, MENU_IRRIGATE, MENU_PASTURE, MENU_MINE,
-// MENU_FISH, MENU_EMPORIUM, MENU_ROAD and MENU_GOTO, in that order, each
+// MENU_FISH, MENU_EMPORIUM, MENU_ESCORT, MENU_ROAD and MENU_GOTO, each
 // MENU_NONE for none -- with none at all, Orders does not open. Set it before
 // menu_click() or menu_key().
 void menu_orders(byte command, byte second, byte third, byte fourth);

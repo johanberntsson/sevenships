@@ -185,6 +185,8 @@ void game_orders_menu(void)
             command = MENU_FISH;
         } else if (kind == KIND_MERCHANT) {
             command = MENU_EMPORIUM;
+        } else if (kind == KIND_GALLEY) {
+            command = MENU_ESCORT;              // with a merchant ship (unit.h)
         }
     }
     // Every unit can be sent somewhere.

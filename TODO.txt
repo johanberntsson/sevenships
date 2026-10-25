@@ -1,62 +1,68 @@
 --- OPEN ---
 
-NEXT (25 Oct 2026; CLAUDE.md "Where to start next time"):
+STATUS (25 Oct 2026): feature complete against vision.md but for one thing, grain
+logistics and attrition (below). What is left is tuning, polish, and what vision.md does not
+ask for.
+
+NEXT (CLAUDE.md "Where to start next time"):
 1. The user's play-testing: new items go at the top of this file
-2. Try on a real MEGA65: vassals (a letter, S on Diplomacy, the score's column; hard to
-   provoke: a war won by far); the difficulty levels (the AI pays 150-70%), the peoples' starts
-   and advantages (the people screen, chariots/ships' costs in CHANGE, Egypt's food box,
-   Canaanite BUY); Advisors/Finance (the treasury is region 8 now) with the scribes'
-   + and -, and a tablet's popup; the Orders menu's Build a Road and Go To; the three new
-   wonders in CHANGE, Help/Buildings and their popups, and what they do (Knossos's
-   corruption on Finance, Karnak's temples' upkeep, Ugarit's ships' moves); GOTO with a
-   galley and its cargo, a unit blocked on the way, a save and load during one
-3. Tune from play: the collapse, merchant ships, gold and the upkeep allowances
-   (treasury.h), the scribes' costs and the AI's pay (tablets.h), legacy's weight in the
-   score; escorts for merchant ships; AI galleys against the Sea Peoples
-Room (25 Oct, after the vassals): resident 209 bytes, region 0 1 KB, region 1 0.3 KB,
+2. Try on a real MEGA65: escorts (f on a galley with a merchant ship, Orders' "f: Escort",
+   the merchant taking it along); vassals (a letter, S on Diplomacy, the score's column; a
+   war won by far, or a long game: seed 5's Hittites had two by turn 400); the difficulty
+   levels (the AI pays 150-70%); the peoples' starts and advantages (the people screen,
+   chariots'/ships' costs in CHANGE, Egypt's food box, Canaanite BUY); Advisors/Finance
+   (region 8) with the scribes' + and -, and a tablet's popup; the Orders menu's Build a
+   Road and Go To; the three new wonders in CHANGE, Help/Buildings and their popups, and
+   what they do; GOTO with a galley and its cargo, a unit blocked on the way, a save and
+   load during one
+Room (25 Oct, after the escorts): resident 100 bytes, region 0 1 KB, region 1 72 bytes,
 region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7 KB, region 6 2.9 KB,
 region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.0 KB, highram 275
-bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions
+bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
+Resident and region 1 need room made before anything grows there
 
-THE CRISIS, left as it is (25 Oct, the user's): it is mild now that the peoples are bigger
-(in 400-turn autoplays from turn 250 to 300 citizens grew on seeds 3 and 5). If
-play-testing says so, the options are: the raids growing stronger towards the end (more
-ships a fleet, or more often), a higher SEA_CAP, shocks one turn in 8 rather than 16, or
-the computer players' coastal guards (guards_wanted()) fewer
+NOT DONE FROM VISION.MD
+- Grain logistics and attrition (vision.md 3): armies away from friendly territory eat
+  grain, and starve or desert when cut off. Civ 1 has nothing like it and it would change
+  warfare a good deal; left out unless play says otherwise
 
-Seed 1: before the peoples' starts the Egyptians had bronze and horses and conquered the
-Mycenaeans; with them all four stand at turn 255. Watch it in play
+TUNING, from play
+- THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
+  400-turn autoplays citizens grew from turn 250 to 300 on seeds 3 and 5). Options: the
+  raids growing stronger towards the end (more ships a fleet, or more often), a higher
+  SEA_CAP, shocks one turn in 8 rather than 16, fewer coastal guards (guards_wanted())
+- The collapse, merchant ships, gold and the upkeep allowances (treasury.h), the scribes'
+  costs and the AI's pay (tablets.h), legacy's weight in the score, how often vassals
+  come (SUBMIT_RATIO, diplomacy.h), the peoples' advantages and the levels' percentages
+- Trade: AIs only ask one turn in eight; goods are few (most peoples own one or two), so
+  deals are rare -- two in 300 turns of autoplay on seed 1
+- Diplomacy: wars come from crowding (cities of two peoples within 7 hexagons), and are
+  few. A computer player accepts a ceasefire the turn the human declares war on it if it
+  is the weaker
+- The AI ferries settlers rarely: most peoples reach AI_CITY_CAP (8) on their own land
+  before they have a galley. Raise the cap further (MAX_CITIES 40) for overseas cities
+- Seed 1: before the peoples' starts the Egyptians conquered the Mycenaeans; now all four
+  stand at turn 255. Watch it in play
+- Maybe: find_site() could value fish more, so that more cities are founded by it
 
-The AI's units do not seek out roads in approach() (moving along one is cheaper anyway)
+POLISH AND DETAILS
+- Placeholder art: res_grain, res_fish, res_cedar, res_dye (res_olives and res_wine are
+  recoloured orange trees); no art of their own for the temple and the wonders (a city in
+  the Civilopedia); the Sea Peoples' raiders have no ship of their own (a galley with a
+  barbarian flag)
+- The Civilopedia's pages (Help/Terrain Types, Military Units, Buildings) are placeholders,
+  and there is none on the tablets
+- The AI's units do not seek out roads in approach() (moving along one is cheaper anyway)
+- The AI's galleys only escort; they do not hunt the Sea Peoples
+- The Crisis: a deal ending when the sender no longer owns the good, or a raid cuts its
+  route; shocks weighted by region and growing towards the end. The collapse: half a
+  people's cities lost as a second trigger, besides the capital
 
-Per-continent AI policy (attack/defend/transport), as Civ 1's, now there are boats and wars
-
-Placeholder art to replace: res_grain, res_fish, res_cedar, res_dye (and res_olives and
-res_wine are recoloured orange trees). No art of their own for the temple and the wonders
-(drawn as a city in the Civilopedia)
-
-The Civilopedia's pages (Help/Terrain Types, Military Units, Buildings) are placeholders,
-and there is none on the tablets
-
-Diplomacy not yet: alliances, news of wars between the others; the human as a vassal
-
-Escorts for merchant ships (vision.md 3): the AI's merchant ships sail alone, and raiders
-and enemies sink them
-
-The AI ferries settlers now, but rarely: most peoples reach AI_CITY_CAP (8) on their own
-land before they have a galley. Raise the cap further (MAX_CITIES 40) if overseas cities
-are wanted sooner.
-
-Seed 7 has a landmass the shallows do not reach: its people (the Hittites) meets nobody in
-300 turns, even with fishing boats. Needs open-sea ships, or a map change.
-
-Trade to tune once played: AIs only ask one turn in eight; goods are few (most peoples
-own one or two), so deals are rare -- two in 300 turns of autoplay on seed 1.
-
-Diplomacy to tune once it has been played: wars come from crowding (cities of two
-peoples within 7 hexagons), and in 300 turns of autoplay on seed 1 only the Egyptians
-and Canaanites fought. A computer player accepts a ceasefire the turn the human declares
-war on it if it is the weaker.
+NOT IN VISION.MD, for later if wanted
+- Alliances, news of wars between the others, the human as a vassal
+- Per-continent AI policy (attack/defend/transport), as Civ 1's
+- Open-sea ships: seed 7 has a landmass the shallows do not reach, whose people (the
+  Hittites) met nobody in 300 turns, even with fishing boats; or a map change
 
 --- IDEAS, not yet decided implement or not --
 
@@ -66,29 +72,23 @@ Civ 1 and 2 didn't have the concept of borders and allowed city spamming to star
 
 --- MILESTONES ---
 
-Each milestone includes the AI's use of what it adds, so the computer players keep up.
-Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.txt and OpenCivOne
-(https://codeberg.org/rhorvat/OpenCivOne).
-
-Milestone 9: trade
-- Maybe: find_site() could value fish more, so that more cities are founded by it
-
-Milestone 10: the end game -- the Bronze Age Collapse (DRAFT, vision.md sections 4 and 5)
-A game is 400 turns, as Civ 1's: growth and rivalry first, then the Crisis, then the end.
-- Still open for the Crisis: the computer players' galleys fighting the Sea Peoples; the
-  raiders' own art (now the galley with a barbarian flag); a deal ending when the sender
-  no longer owns the good, or a raid cuts its route; shocks weighted by region and growing
-  towards the end
-- The collapse: half a people's cities lost as a second trigger, besides the capital
+All done (milestones 1-10, and what came after them): see DONE. Their last open items are
+under OPEN above. Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.txt and
+OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
+
+DONE (25 Oct 2026): escorts, the last of vision.md's features: a galley fortified on a
+merchant ship's hexagon goes where it goes and defends it, twice as strong at sea (f, or
+Orders "f: Escort"); the AI's idle galleys escort their merchant ships. With it, feature
+complete against vision.md but for grain logistics and attrition (see OPEN)
 
 DONE (25 Oct 2026): vassals (vision.md 3 and 5): a people at war, weaker and with half the
 cities, submits instead of asking a ceasefire -- the AI at once, the human by a letter in
 the vassals' formula, or S on Advisors/Diplomacy. Peace with the lord, an eighth of its
 gold a turn as tribute, 10 points of the lord's score (a Vassals column); free when
 stronger or its lord falls. Purple dye: a legacy point every 16 turns. SAVE_VERSION 22.
-Seen only in throwaway tests: no autoplay war went that badly
+Rare: none in 255-turn autoplays; seed 5's Hittites had two vassals by turn 400
 
 DONE (25 Oct 2026): the peoples differ (vision.md 3): each starts by a resource of its own
 (Mycenaeans wine/olives, Hittites copper, Egyptians grain, Canaanites cedar/dye) and has an
@@ -271,7 +271,7 @@ Milestone 9: trade: done parts
   owner owns the goods round it, for bronze, trade and score. Drawn as the improvement bits'
   fourth value (alltiles' bazaar); burnt by an enemy standing on it. The AI builds one at a
   time without bronze and makes for copper or tin it lacks. 3-6 emporia a 400-turn game
-- DONE (23 Oct 2026): trade deals carried by merchant ships (see above). Later: escorts
+- DONE (23 Oct 2026): trade deals carried by merchant ships (see above); escorts 25 Oct
 
 Milestone 8: basic diplomacy -- DONE (21 Oct 2026)
 - DONE: contact between all the peoples (adjacency); war, ceasefire (16 turns, then war)
