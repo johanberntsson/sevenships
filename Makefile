@@ -103,7 +103,7 @@ SRCS     = src/sevenships.c \
            src/text.c \
            src/game.c \
            src/turn.c src/hover.c src/score.c src/military.c src/crisis.c src/treasury.c src/culture.c \
-           src/command.c src/cities.c \
+           src/command.c src/cities.c src/orders.c src/road.c src/roadadd.c \
            src/ai.c \
            src/aiplace.c src/aibuild.c src/aisite.c \
            src/improve.c \
@@ -120,7 +120,7 @@ SRCS     = src/sevenships.c \
 BANKED   = src/title.c src/picture.c src/turn.c src/hover.c src/score.c src/military.c src/crisis.c src/treasury.c src/culture.c src/command.c src/cities.c src/aiplace.c src/cityscreen.c src/topcities.c src/fight.c src/diplomacy.c \
            src/save.c src/sheet.c src/mapload.c src/help.c src/menu.c src/ai.c src/aibuild.c src/aisite.c \
            src/improve.c src/growth.c src/trade.c src/path.c src/boat.c src/emporium.c \
-           src/goto.c
+           src/goto.c src/orders.c src/roadadd.c
 
 # Assembly: src/bank.s, which banks BASIC out before main(), and
 # src/dispatch.s, the MAP window and the calls into it.

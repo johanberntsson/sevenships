@@ -206,12 +206,12 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. About 150 bytes free (25 Oct 2026, after GOTO), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 136 bytes free (25 Oct 2026, after roads), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), save and load, the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the computer players' starts (`src/aiplace.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 0.4 KB free |
-| `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze. 0.8 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`; 3.1 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 2.2 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, the treasury, buildings and wonders, `src/menu.c`, `src/command.c`, `src/treasury.c`, `src/culture.c`, `src/cities.c`; 0.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
-| `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 7.6 KB free (`tools/mktiles.py` says) |
-| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries; about 1.4 KB free — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
+| `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.9 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, the treasury, buildings and wonders, `src/menu.c`, `src/command.c`, `src/treasury.c`, `src/culture.c`, `src/cities.c`; 0.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
+| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going; 300 bytes free (25 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
@@ -242,7 +242,7 @@ attic RAM instead and does not count. **The sheet is not something the VIC sees,
 ever a DMA source, copied into the tile store, so it needs chip RAM but
 not bank 5 — which is what step 1b uses. **Since 22 Oct 2026 it is
 packed** (step 1c), and `make` in `tiles/` says how much room is left —
-7.6 KB with 42 tiles, about five units. Take these in order when
+6 KB with 46 tiles, about four units. Take these in order when
 another tile or another full-colour surface needs room:
 
 1. **The tile store's row padding** — *done* (19 Oct 2026). Each of the
@@ -829,7 +829,7 @@ TODO.txt's milestones are the plan. Milestones 1 (pointer, turn loop, a
 settler, founding a city), 2 (the city screen and building units), 3
 (computer players) and 4 (combat and barbarians) are in, as of 18 Oct 2026,
 and 5 (plains, forest, desert and floodplain) as of 20 Oct 2026. **6 is
-done but for roads** (20 Oct 2026), which need tiles and a map bit:
+done** (20 Oct 2026; roads, its last item, 25 Oct 2026, see **Roads**):
 improvements, yields, city size and growth, worked tiles by hand,
 Civilization's production rules for the computer players and its
 grassland shields. **7, resources, and 7b, bronze, are done** (20 Oct
@@ -885,7 +885,9 @@ stopped to play-test):
    shifted F1 and F3 there), Advisors → Military, and HELP. And from 23
    Oct: the two rings' city screen, the chariot, `c`, Advisors → Cities,
    the temple and the Lion Gate, the legacy victory. And from 25 Oct:
-   GOTO (`g`).
+   GOTO (`g`); roads -- `r`, moving along them, the redraw with many in
+   view (scrolling over a computer player's network), the city screen's
+   roads, a save and load with roads.
 3. **The AI with the two rings is tuned** (25 Oct 2026): the cap went
    from 6 to 8 cities, `MAX_CITIES` from 32 to 40 (**The computer
    players**). Left open: why the human's side, played by the AI, is
@@ -900,18 +902,22 @@ stopped to play-test):
    the score; escorts for the merchant ships, and the computer players'
    galleys against the Sea Peoples.
 
-**Room is short in places** (25 Oct 2026, after GOTO): **resident
-about 150 bytes** (it was nearer 300 than 0.5 KB before GOTO, which took
-140), region 0 0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region 3 2.1
-KB, region 4 0.6 KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 2.2
-KB, highram 0.8 KB, `LOW_FREE` 735 bytes. Resident room is the one to
-watch: the next thing that needs it should first move something out of
-`game.c` (**The way to resident room is `game.c`**). Region 6 is the menus' and the treasury's (3 KB of it); a region 8
+**Room is short in places** (25 Oct 2026, after roads): **resident 136
+bytes** (the orders keys' move to `src/orders.c` gave back 670 just
+before roads, which took 690), region 0 0.3 KB, **region 1 0.3 KB**
+(`road_site()` took 460), region 2 1.9 KB, region 3 2.1 KB, region 4
+0.6 KB, region 5 0.8 KB, **region 6 0.3 KB**, region 7 1.9 KB, **highram
+300 bytes** (the road list took 440), `LOW_FREE` 735 bytes. Resident
+room is the one to watch: the next thing that needs it should first move
+something out of `game.c` (**The way to resident room is `game.c`**);
+**the orders keys `b f i m p r` and the Orders menu's filling went to
+`src/orders.c`, region 2** (25 Oct 2026), and `unit_key()` hands it what
+it does not know. Region 6 is the menus' and the treasury's (3 KB of it); a region 8
 for the treasury is the next room there (**A new region**, under
 **Growing past 32 KB**, is the recipe; attic holds eight).
 
-The tile sheet is packed and has about five units' room left (**When
-bank 5 fills up**, step 1c).
+The tile sheet is packed and has 6 KB, about four units', room left
+(**When bank 5 fills up**, step 1c).
 
 **The title's picture comes first** (`title_splash()` in `src/title.c`,
 22 Oct 2026; see **Pictures**): it goes up in the map window once the
@@ -1386,8 +1392,58 @@ irrigate in three turns. One known gap, in TODO.txt: a builder may
 improve any hexagon, however far from a city (Civilization allows it too). The
 hover readout adds "+irr" or "+mine", short so that a unit's name and the
 coordinates still fit its 40 columns. `map_reset()` clears them with the
-rest. **Roads need a bit**, and the map byte has none left: terrain is
-down to four bits (`MAP_TERRAIN_MASK` 0x0f, ten of sixteen values used).
+rest. The map byte has no bit left: terrain is down to four bits
+(`MAP_TERRAIN_MASK` 0x0f, ten of sixteen values used), which is why roads
+are a list (**Roads**).
+
+**Roads** (25 Oct 2026, milestone 6's last item, the user's: "very
+visible"; `src/road.h`), Civilization's: a builder makes one with `r`
+(`ORDERS_ROAD`, `improve.c`'s turns, 2 on the open land, 4 on hills and
+in forest, 6 on mountains, "Road / finished"), **every city stands on
+one** (`city_found()` calls `road_add()`), and **a step from a road to a
+road costs a third of a move**: `unit_moves[]` is in thirds since then
+(`MOVE_FULL`, `unit_kind_moves[]` ×3; the panel says "Moves: 1 1/3"),
+and the cost is taken in `unit_move_to()` itself, so every caller's
+`--unit_moves[u]` went. A road adds a trade on grassland, plains and
+desert (`yield()`), and the readout says "+road" when nothing is on the
+hexagon. **They are a list by hexagon row** like the resources
+(`road_first/ax/mask[]`, `MAX_ROADS` 200, `HIGH_BSS`, saved, `SAVE_VERSION`
+20), since the map byte is full: `road_mask[]` has a bit for each DIR_*
+neighbour with a road too, kept by `road_add()` (`src/roadadd.c`, region
+2). **They are drawn as joins** (`draw_roads()` in `view.c`, a row behind
+the terrain like the resources, under everything else): the hexagon with
+a road to its east, south-east or south-west draws the whole join from
+its junction to that neighbour's, `TILE_ROAD_E/SE/SW`, placed 4
+characters right, a row down, or a row down and 4 left of its own tile,
+and `TILE_ROAD_DOT` for a road leading nowhere; **only between two
+explored hexagons**. So the redraw looks 16 characters left of the window
+and 4 right, and at the joins of the row just above it. The art is
+`tools/mkroads.py`'s, lines drawn in `alltiles/`' road colours lightened:
+its own road tiles join two edges each (one a pair), and its width and
+colour made a dark lattice of a city's ring. The junction is at line 10
+of a hexagon, so the east join is one DMA job and the diagonals four.
+**Measured** (CIA2 round `view_redraw()`, real speed, the densest window
+of roads after 150 turns of autoplay on seed 1, Show Map on): 20.2 ms
+without roads, 22.1 ms with fifteen joins, and 22.6 ms as half-roads
+from the middle to each edge, which was the first version, twice the
+calls; the cost is about 25 us a call of `view_draw_tile()` and 35 a
+DMA job. The city screen draws them too. **The computer players' roads
+join their cities** (`road_site()` in `src/ai.c`): a builder with
+nothing to do on the hexagons its city works makes the next piece of
+road to the other cities of its people within `ROAD_RANGE` (8), the
+nearest first, greedily over land, before the hexagons the city does not
+work (`ai_work_site(c, WORK_WORKED)` then `WORK_ALL`); below
+`ROAD_AI_MAX` (160), the rest kept for the human. `improve_best()` never
+offers a road: the first version paved every hexagon of the two rings,
+which was the lattice, and the redraw 7.6 ms slower in a busy view.
+**Builders are no longer under the unit cap** (`ai_build()`, as settlers
+are not): under it there were five in the world for 33 cities by turn
+150. With all this, 255 turns of autoplay against the build before:
+seed 3 135 → 205 citizens, seed 7 121 → 184, all four peoples standing
+and about twice the gold; on seed 1 the Egyptians conquered the
+Mycenaeans by turn 226, as they did at a cap of 6 (they stood at 8
+before roads). Not yet: an Orders menu item for roads (region 6 is
+full), and the computer players weighing road moves in `approach()`.
 
 **Pastures** (24 Oct 2026, the user's: irrigating horses for chariots
 felt wrong) are a third improvement for cattle and horses
@@ -2140,8 +2196,8 @@ the beam race nothing. Keys:
 user's: `0 - p * : =` were awkward, and tile select moves a unit from
 the keyboard); a unit moves by Tab and the cursor keys and Return, or a
 click, and a move onto another player's unit or city is an attack; `b` founds a
-city with a settler; `i`, `m` and `p` irrigate, mine and build a pasture
-with a builder; MEGA or CTRL with a menu title's first letter (`g o a w d h`) opens it; space skips the unit this turn, `w` asks again
+city with a settler; `i`, `m`, `p` and `r` irrigate, mine and build a
+pasture or a road with a builder; MEGA or CTRL with a menu title's first letter (`g o a w d h`) opens it; space skips the unit this turn, `w` asks again
 after the others, `f` fortifies, `c` centres the view on the active unit, `g` goes to (**GOTO** below); Return ends the turn; the cursor keys
 scroll; ESC or RUN/STOP quits to BASIC, after asking with `popup_ask()`
 (Esc again is No). `w a s d` do not scroll.
@@ -2268,6 +2324,13 @@ out wrong:
   library has. Hoist the call into a variable.
 - `int` is 16 bits: constant expressions overflow silently, and a call with
   no prototype in scope truncates a 32-bit return (that one warns).
+- **two loops over the same counter in one function: the second was
+  started from the A register** (25 Oct 2026, `road_add()`), which the
+  compiler took to still hold the first loop's 0 -- it held the value
+  just stored, so `for (dir = 0; ...)` began at a mask of 0-63 and mostly
+  did nothing. The listing shows `sta dir` with no `lda #0` before it.
+  One loop doing both jobs fixed it (`src/roadadd.c`); checked on the PC
+  first with gcc, which is a quick way to tell such a bug from one's own.
 - this project's own: `_Stub_read` miscounts when the file ends on a 256-byte
   page boundary of the request (see the map loader under **The hex grid**).
 
@@ -2447,7 +2510,7 @@ in xemu by building once with `input_real_hw = 1` forced in
 
 ## Assets
 
-`res/tiles.fci` is 168x4 characters — 42 4x4 tiles side by side, in the
+`res/tiles.fci` is 184x4 characters — 46 4x4 tiles side by side, in the
 order `tiles/Makefile` lists the PNGs: ten terrains (hills, grass, mountain, ocean, shallow ocean, tundra, plains, forest,
 desert, floodplain), then the city, a selection ring
 (the tile-select cursor),
@@ -2461,7 +2524,8 @@ fishing boat (see **Galleys**, `alltiles/`' `unit_galley.png` and
 raider and the merchant ship (`alltiles/`' `unit_swordsman.png` and
 `unit_cargo_ship.png`, as `unit_raider` and `unit_merchant`), and the
 chariot (`unit_chariot_archer.png` as it is, as `unit_chariot`;
-**Chariots**);
+**Chariots**), and horses with a pasture, and the roads' joins east,
+south-east and south-west and the dot (`tools/mkroads.py`, **Roads**);
 `TILE_*` in `src/sheet.h`. Where each tile goes is the loader's business
 (**When bank 5 fills up**, step 1c). `res_cattle`, `res_copper` and `res_tin` are `alltiles/`'
 cattle, copper and iron cut to lines 8-23, `res_olives` and `res_wine` its

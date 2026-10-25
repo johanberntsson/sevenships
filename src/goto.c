@@ -33,7 +33,6 @@ static void walk(byte u)
             break;
         }
         unit_move_to(u, nx, ny);
-        --unit_moves[u];
     }
     if (unit_ax[u] == tx && unit_ay[u] == ty) stop = 1;
     if (stop) unit_orders[u] = ORDERS_NONE;

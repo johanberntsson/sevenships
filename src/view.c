@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "sheet.h"
 #include "unit.h"
+#include "road.h"
 
 #if TILE_STORE + TILE_STORE_SIZE > SHEET_EXPANDED
 #error "the tile store runs into the expanded sheet"
@@ -182,6 +183,46 @@ static word overlay_off_x;      // view_redraw()'s off_x
 // a row behind is as good as straight after the terrain -- and their list is
 // by hexagon row, so this looks at the row's two or three resources across
 // the whole map instead of testing every hexagon in view, which cost 0.8 ms.
+// **The roads go first** (src/road.h), the same way and for the same
+// reason, under everything else drawn over a hexagon: from the junction of
+// each road of hexagon row hy, the joins to its neighbours east,
+// south-east and south-west -- the other three are theirs to draw -- or a
+// dot if it leads nowhere. A join reaches a character row below the
+// hexagon's tile, into row hy + 1, whose terrain is already down, and no
+// further; and half a tile either side of it, which is why this looks at
+// hexagons from 16 characters left of the window, not 8, and 4 past its
+// right edge. Each is one call of view_draw_tile(), which is what roads
+// cost the redraw: about 2 ms for fifteen in a busy view, measured. **Only
+// between two explored hexagons**, so that a road does not give away
+// what is in the black.
+#define SEEN(AY, AX) ((map_tile[AY][(AX) & (MAP_COLUMNS - 1)] | map_show)     \
+                      & MAP_EXPLORED)
+
+static void draw_roads(byte hy, int ty)
+{
+    byte i, k, n, m;
+    byte ay = hy >> 1, below = (hy + 1) >> 1;
+    int x;
+
+    n = road_first[hy + 1];
+    for (i = road_first[hy]; i < n; ++i) {
+        k = road_ax[i];
+        x = (int)((MAP_CELL_X(k) + 16 - overlay_off_x) & (MAP_WIDTH_CHARS - 1));
+        if (x >= VIEW_COLUMNS + 20 || !SEEN(ay, k)) continue;
+        x -= 16;
+        m = road_mask[i];
+        if (!m) view_draw_tile(x, ty, TILE_ROAD_DOT);
+        // East is two columns on; south-east and south-west one either
+        // way, in the hexagon row below.
+        if ((m & (1 << DIR_E)) && SEEN(ay, k + 2))
+            view_draw_tile(x + 4, ty, TILE_ROAD_E);
+        if ((m & (1 << DIR_SE)) && SEEN(below, k + 1))
+            view_draw_tile(x, ty + 1, TILE_ROAD_SE);
+        if ((m & (1 << DIR_SW)) && SEEN(below, k - 1))
+            view_draw_tile(x - 4, ty + 1, TILE_ROAD_SW);
+    }
+}
+
 // Drawn after the improvements, so that both can be told apart.
 static void draw_overlays(byte hy, int ty)
 {
@@ -191,6 +232,7 @@ static void draw_overlays(byte hy, int ty)
     byte tiles[2];
     word x;
 
+    draw_roads(hy, ty);
     n = map_res_first[hy + 1];
     for (i = map_res_first[hy]; i < n; ++i) {
         k = map_res_ax[i];
@@ -295,6 +337,9 @@ void view_redraw(word off_x, word off_y)
             if (ax >= MAP_COLUMNS) ax -= MAP_COLUMNS;
         }
         if (hy != (byte)hy_first) draw_overlays(hy - 1, ty - 3);
+        // The row above the window has nothing to draw in it but the
+        // joins of its roads, which reach a row down into the window.
+        else if (hy) draw_roads(hy - 1, ty - 3);
     }
     draw_overlays((byte)hy_last, (int)(3 * hy_last) - (int)off_y);
 }

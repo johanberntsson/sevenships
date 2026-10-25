@@ -13,6 +13,7 @@
 #include "map.h"
 #include "sheet.h"
 #include "trade.h"
+#include "road.h"
 
 #pragma clang section text="r1text" rodata="r1rodata"
 
@@ -110,6 +111,11 @@ static void yield(byte ax, byte ay)
         }
     }
     t = m & MAP_TERRAIN_MASK;
+    // A road adds a trade on the open land, Civilization's (road.h); a
+    // city stands on one.
+    if ((t == TILE_GRASS || t == TILE_PLAINS || t == TILE_DESERT)
+        && road_at(ax, ay) != ROAD_NONE)
+        ++hex_trade;
     // **Civilization's grassland shields**: half the grassland and river
     // squares make a shield, on a fixed pattern -- (x*7 + y*11) & 2 clear,
     // from OpenCivOne's TerrainMapCell.cs -- which is what gets a new city

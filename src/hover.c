@@ -16,6 +16,7 @@
 #include "sheet.h"
 #include "text.h"
 #include "unit.h"
+#include "road.h"
 
 #pragma clang section text="r0text" rodata="r0rodata"
 
@@ -70,8 +71,10 @@ void game_draw_hover(void)
                             : MAP_TERRAIN(ax, ay) == TILE_SHALLOW_OCEAN ? "+boats"
                             : "+irr");
             // What it yields, food/shields/trade, where there is room:
-            // with nothing on it.
+            // with nothing on it; and only then a road, which is on the
+            // map anyway ("Grassland+irr+road 2/1/1 14,8").
             if (c == CITY_NONE && u == UNIT_NONE) {
+                if (road_at(ax, ay) != ROAD_NONE) line_add("+road");
                 hex_yield(ax, ay);
                 line_add(" ");
                 line_add_num(hex_food);

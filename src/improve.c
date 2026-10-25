@@ -4,9 +4,11 @@
 #define improve_best improve_best_r2
 #define improve_start improve_start_r2
 #define improve_turn improve_turn_r2
+#define road_add road_add_r2
 
 #include "improve.h"
 #include "map.h"
+#include "road.h"
 #include "sheet.h"
 #include "unit.h"
 
@@ -20,6 +22,16 @@
 // Turns of work, Civilization's.
 #define IRRIGATE_TURNS 5
 #define MINE_TURNS 10
+
+// A road's are Civilization's too: twice what it costs to walk onto the
+// terrain, so 2 on the open land, 4 on hills and in forest, 6 on mountains.
+static byte turns(byte orders, byte ax, byte ay)
+{
+    byte t = MAP_TERRAIN(ax, ay);
+    if (orders == ORDERS_MINE) return MINE_TURNS;
+    if (orders != ORDERS_ROAD) return IRRIGATE_TURNS;
+    return t == TILE_MOUNTAIN ? 6 : t == TILE_HILLS || t == TILE_FOREST ? 4 : 2;
+}
 
 // Water to irrigate from: the sea, a floodplain -- the river it stands for
 // -- or irrigation already there, on (ax, ay) or next to it.
@@ -49,6 +61,10 @@ byte improve_can(byte orders, byte ax, byte ay)
 
     byte r = map_resource_at(ax, ay);
 
+    // A road on any land without one, while the list has room.
+    if (orders == ORDERS_ROAD)
+        return t != TILE_OCEAN && t != TILE_SHALLOW_OCEAN
+               && road_at(ax, ay) == ROAD_NONE && road_count < MAX_ROADS;
     // A pasture on cattle or horses, wherever they are, with no water; it
     // replaces irrigation as a mine does.
     if (orders == ORDERS_PASTURE) return !(m & MAP_MINED) && RES_PASTURE(r);
@@ -81,6 +97,8 @@ byte improve_best(byte ax, byte ay)
     if (t != TILE_HILLS && improve_can(ORDERS_IRRIGATE, ax, ay))
         return ORDERS_IRRIGATE;
     if (improve_can(ORDERS_MINE, ax, ay)) return ORDERS_MINE;
+    // Never a road: the computer players' builders make those between
+    // their cities, when there is nothing else (road_site() in ai.c).
     return ORDERS_NONE;
 }
 
@@ -97,7 +115,7 @@ static byte working(byte u, byte orders, byte ax, byte ay)
     byte o = unit_orders[u];
     return unit_kind[u] == KIND_BUILDER
            && (o == ORDERS_IRRIGATE || o == ORDERS_MINE
-               || o == ORDERS_PASTURE)
+               || o == ORDERS_PASTURE || o == ORDERS_ROAD)
            && (!orders || o == orders)
            && unit_ax[u] == ax && unit_ay[u] == ay;
 }
@@ -127,11 +145,13 @@ byte improve_turn(void)
         work = 0;
         for (v = 0; v < MAX_UNITS; ++v)
             if (working(v, orders, ax, ay)) work += unit_work[v];
-        if (work < (orders == ORDERS_MINE ? MINE_TURNS : IRRIGATE_TURNS))
-            continue;
-        map_tile[ay][ax] = (map_tile[ay][ax] & ~MAP_IMPROVEMENT)
-                           | (orders == ORDERS_IRRIGATE ? MAP_IRRIGATED
-                                                        : MAP_MINED);
+        if (work < turns(orders, ax, ay)) continue;
+        if (orders == ORDERS_ROAD)
+            road_add(ax, ay);
+        else
+            map_tile[ay][ax] = (map_tile[ay][ax] & ~MAP_IMPROVEMENT)
+                               | (orders == ORDERS_IRRIGATE ? MAP_IRRIGATED
+                                                            : MAP_MINED);
         // All of them are free again, this turn.
         for (v = 0; v < MAX_UNITS; ++v)
             if (working(v, orders, ax, ay)) {

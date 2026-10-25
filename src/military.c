@@ -86,7 +86,7 @@ void military_screen(void)
         }
         figure[3] = unit_kind_attack[k];
         figure[4] = unit_kind_defence[k];
-        figure[5] = unit_kind_moves[k];
+        figure[5] = unit_kind_moves[k] / MOVE_FULL;
         all += figure[0];
         colour = figure[0] ? COLOR_LIGHTGREEN : COLOR_LIGHTGREY;
         screen_putsxy(LEFT, y, unit_kind_name[k], colour);

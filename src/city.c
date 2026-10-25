@@ -6,6 +6,7 @@
 #include "minimap.h"
 #include "sheet.h"
 #include "unit.h"
+#include "road.h"
 
 byte city_count;
 byte city_founded;
@@ -67,6 +68,7 @@ byte city_found(byte owner, byte ax, byte ay)
     ++city_count;
     city_capture(c, owner);
     unit_mark(ax, ay);
+    road_add(ax, ay);               // every city stands on a road
     return c;
 }
 

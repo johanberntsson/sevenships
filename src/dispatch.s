@@ -208,6 +208,9 @@ stub:       .macro  name, target, region
             stub    improve_start, improve_start_r2, 2
             stub    improve_turn, improve_turn_r2, 2
             stub    ai_build, ai_build_r2, 2
+            stub    game_order, game_order_r2, 2
+            stub    game_orders_menu, game_orders_menu_r2, 2
+            stub    road_add, road_add_r2, 2
 
 ; Region 3, slot 2: diplomacy.
             stub    diplomacy_reset, diplomacy_reset_r3, 3

@@ -12,10 +12,7 @@
 #include "gameint.h"
 #include "growth.h"
 #include "help.h"
-#include "improve.h"
 #include "ai.h"
-#include "boat.h"
-#include "emporium.h"
 #include "treasury.h"
 #include "city.h"
 #include "cityscreen.h"
@@ -176,13 +173,21 @@ void draw_status(void)
 static void draw_orders(void)
 {
     byte u = unit_active;
-    byte r;
+    byte r, v;
 
     if (u != UNIT_NONE) {
         panel_text(ROW_UNIT, unit_kind_name[unit_kind[u]], COLOR_WHITE);
         line_clear();
         line_add("Moves: ");
-        line_add_num(unit_moves[u]);
+        // In thirds since roads: "Moves: 1 1/3", "Moves: 2/3".
+        v = unit_moves[u];
+        if (v >= MOVE_FULL || !v) line_add_num(v / MOVE_FULL);
+        v %= MOVE_FULL;
+        if (v) {
+            if (unit_moves[u] >= MOVE_FULL) line_add(" ");
+            line_add_num(v);
+            line_add("/3");
+        }
         panel_text(ROW_MOVES, line, TEXT_COLOUR);
         for (r = 0; r < 2; ++r) panel_text(ROW_PROMPT + r, "", TEXT_COLOUR);
         return;
@@ -351,7 +356,6 @@ static void move_active(byte dir)
     }
     message("", "");
     unit_move_to(u, nx, ny);
-    --unit_moves[u];
     if (!unit_moves[u]) unit_wake_cargo(u);
     dirty = 1;
     contact = 1;
@@ -362,31 +366,6 @@ static void move_active(byte dir)
     } else {
         select_unit(u);
     }
-}
-
-static void found_city(void)
-{
-    byte u = unit_active;
-    byte c;
-
-    if (unit_kind[u] == KIND_MERCHANT) {
-        emporium_order(u);
-        return;
-    }
-    if (unit_kind[u] != KIND_SETTLER) {
-        message("Only settlers", "found cities");
-        return;
-    }
-    c = city_found(PLAYER_HUMAN, unit_ax[u], unit_ay[u]);
-    if (c == CITY_NONE) {
-        message("Cannot found", "a city here");
-        return;
-    }
-    unit_remove(u);
-    message("Founded", city_name_of(c));
-    dirty = 1;
-    hover_dirty = 1;
-    select_unit(u);
 }
 
 // The keypad in xemu, as res/xemu-keymap.cfg delivers it: 7 9 4 6 1 3.
@@ -404,37 +383,6 @@ byte key_dir(byte key)
     return DIR_NONE;
 }
 
-// The active unit, a builder, starts irrigating, mining or building a
-// pasture where it stands.
-static void improve(byte orders)
-{
-    byte u = unit_active;
-    const char *what = orders == ORDERS_IRRIGATE ? "irrigate"
-                       : orders == ORDERS_MINE ? "mine" : "build pastures";
-
-    if (unit_kind[u] != KIND_BUILDER) {
-        message("Only builders", what);
-        return;
-    }
-    if (!improve_can(orders, unit_ax[u], unit_ay[u])) {
-        if (orders == ORDERS_PASTURE) {
-            // It fails only where there is one, or no cattle or horses.
-            if (RES_PASTURE(map_resource_at(unit_ax[u], unit_ay[u])))
-                message("A pasture", "already");
-            else
-                message("Pastures are for", "cattle and horses");
-        } else {
-            line_clear();
-            line_add("Cannot ");
-            line_add(what);
-            message(line, "here");
-        }
-        return;
-    }
-    improve_start(u, orders);
-    select_unit(u);
-}
-
 static void select_begin(void);
 
 void unit_key(byte key)
@@ -448,7 +396,6 @@ void unit_key(byte key)
     }
 
     switch (key) {
-    case 'b': found_city(); break;
     case KEY_SPACE:                         // no orders this turn
         unit_moves[u] = 0;
         unit_wake_cargo(u);
@@ -457,17 +404,6 @@ void unit_key(byte key)
     case 'w':                               // ask again after the others
         select_unit(u);
         break;
-    case 'f':
-        unit_orders[u] = ORDERS_FORTIFY;
-        select_unit(u);
-        break;
-    case 'i':
-        // A fishing boat works the fish it is on.
-        if (unit_kind[u] == KIND_BOAT) boat_order(u);
-        else improve(ORDERS_IRRIGATE);
-        break;
-    case 'm': improve(ORDERS_MINE); break;
-    case 'p': improve(ORDERS_PASTURE); break;
     case 'c':                               // bring it into the middle
         centre_on(unit_ax[u], unit_ay[u]);
         break;
@@ -475,6 +411,9 @@ void unit_key(byte key)
         select_begin();
         going = 1;
         message("Go to: Return", "or a click there");
+        break;
+    default:                                // src/orders.c
+        game_order(key);
         break;
     }
 }
@@ -515,31 +454,6 @@ void open_top_cities(void)
 {
     top_cities_screen();
     draw_screen();
-}
-
-// Fill in the Orders menu for the unit that has the orders.
-static void set_orders_menu(void)
-{
-    byte command = MENU_NONE, second = MENU_NONE;
-    if (unit_active != UNIT_NONE) {
-        byte kind = unit_kind[unit_active];
-        if (kind == KIND_SETTLER) command = MENU_FOUND_CITY;
-        else if (kind == KIND_WARRIOR || kind == KIND_SPEARMAN
-                 || kind == KIND_CHARIOT)
-            command = MENU_FORTIFY;
-        else if (kind == KIND_BUILDER) {
-            // A pasture instead of a mine on cattle and horses.
-            command = MENU_IRRIGATE;
-            second = RES_PASTURE(map_resource_at(unit_ax[unit_active],
-                                                 unit_ay[unit_active]))
-                     ? MENU_PASTURE : MENU_MINE;
-        } else if (kind == KIND_BOAT) {
-            command = MENU_FISH;
-        } else if (kind == KIND_MERCHANT) {
-            command = MENU_EMPORIUM;
-        }
-    }
-    menu_orders(command, second);
 }
 
 // A click on hexagon (ax, ay) of the map, by the arrow or by Return in tile
@@ -602,7 +516,7 @@ static void click(void)
     byte ax, ay;
 
     if ((byte)(input_y >> 3) == 0) {
-        set_orders_menu();
+        game_orders_menu();
         game_menu_command(menu_click());
         return;
     }
@@ -885,7 +799,7 @@ byte game_run(void)
             break;
         default:
             if (KEY_IS_MEGA(key)) {
-                set_orders_menu();
+                game_orders_menu();
                 game_menu_command(menu_key(key));
             }
             else if (unit_active != UNIT_NONE) unit_key(key);

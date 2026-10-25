@@ -92,12 +92,12 @@ static byte at_war_with_people(byte p)
 
 HIGH_BSS byte ai_work_x, ai_work_y;
 
-byte ai_work_site(byte c)
+byte ai_work_site(byte c, byte passes)
 {
     byte pass, i, nx, ny, w;
 
     city_work(c);
-    for (pass = 0; pass < 3; ++pass) {
+    for (pass = 0; pass < passes; ++pass) {
         for (i = 0; i < RING; ++i) {
             if (work_owner[i] != c || (pass == 1 && !work_on[i])) continue;
             nx = work_ring_x[i];
@@ -142,7 +142,8 @@ void ai_build(byte p)
 {
     byte c, u, cap, kind, guard, horses, chariots;
     byte cities = 0, settlers, builders, galleys, boats, merchants, explorers = 0;
-    byte units = unit_count_kind(p, KIND_NONE) - unit_count_kind(p, KIND_SETTLER);
+    byte units = unit_count_kind(p, KIND_NONE) - unit_count_kind(p, KIND_SETTLER)
+                 - unit_count_kind(p, KIND_BUILDER);
 
     for (c = 0; c < city_count; ++c)
         if (city_owner[c] == p) ++cities;
@@ -219,6 +220,12 @@ void ai_build(byte p)
             // of size 1, which would rather grow and send a settler.
             kind = KIND_BOAT;
             ++boats;
+        } else if (builders < cities && ai_work_site(c, WORK_ALL)) {
+            // 3. A builder a city, over the cap: like settlers, they are
+            // not soldiers (25 Oct 2026, for roads -- under the cap there
+            // were five in the world for 33 cities by turn 150).
+            kind = KIND_BUILDER;
+            ++builders;
         } else if (units >= cap) {
             // At the cap, culture (src/culture.h): the Lion Gate in a city
             // of LION_GATE_SIZE, one city at a time; a temple in a city of
@@ -230,9 +237,6 @@ void ai_build(byte p)
             else if (city_size[c] >= TEMPLE_SIZE
                      && CULTURE_CAN(c, KIND_TEMPLE) && player_gold[p] >= 20)
                 kind = KIND_TEMPLE;
-        } else if (builders < cities && ai_work_site(c)) {
-            kind = KIND_BUILDER;
-            ++builders;
         } else {
             // 4. Attackers: chariots, with horses (unit.h).
             kind = horses ? KIND_CHARIOT : KIND_WARRIOR;

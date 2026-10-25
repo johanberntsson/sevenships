@@ -188,7 +188,6 @@ void emporium_ai(byte u)
             if (dir != DIR_NONE && map_neighbour(ax, ay, dir, &nx, &ny)
                 && unit_can_enter(p, KIND_MERCHANT, nx, ny) == ENTER_OK) {
                 unit_move_to(u, nx, ny);
-                --unit_moves[u];
                 return;
             }
         }
@@ -208,7 +207,6 @@ void emporium_ai(byte u)
     if (dir != DIR_NONE && map_neighbour(ax, ay, dir, &nx, &ny)
         && unit_can_enter(p, KIND_MERCHANT, nx, ny) == ENTER_OK) {
         unit_move_to(u, nx, ny);
-        --unit_moves[u];
         return;
     }
     // No way there, or somebody in it: look about meanwhile.

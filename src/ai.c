@@ -18,6 +18,7 @@
 #include "boat.h"
 #include "emporium.h"
 #include "path.h"
+#include "road.h"
 #include "sheet.h"
 #include "unit.h"
 
@@ -121,7 +122,6 @@ static byte step(byte u, byte dir)
     if (!map_neighbour(unit_ax[u], unit_ay[u], dir, &nx, &ny)) return 0;
     if (unit_can_enter(unit_owner[u], unit_kind[u], nx, ny) != ENTER_OK) return 0;
     unit_move_to(u, nx, ny);
-    --unit_moves[u];
     return 1;
 }
 
@@ -395,11 +395,11 @@ static byte strategic_site(byte p, byte ax, byte ay)
     return best != 0xffff;
 }
 
-// Builder u towards a hexagon round city c that wants improving. Whether
-// there was one.
-static byte to_work(byte u, byte c)
+// Builder u towards a hexagon round city c that wants improving -- of
+// those it works only, or all (ai_work_site()). Whether there was one.
+static byte to_work(byte u, byte c, byte passes)
 {
-    if (!ai_work_site(c)) return 0;
+    if (!ai_work_site(c, passes)) return 0;
     approach(u, ai_work_x, ai_work_y);
     return 1;
 }
@@ -425,6 +425,63 @@ static byte is_water(byte ax, byte ay)
 {
     byte t = MAP_TERRAIN(ax, ay);
     return t == TILE_OCEAN || t == TILE_SHALLOW_OCEAN;
+}
+
+// **Roads join a people's cities** (road.h), rather than paving every
+// hexagon round them, which made a dark lattice of the land and cost the
+// redraw several milliseconds in a busy view: from city c towards city
+// `to`, a step at a time to the land neighbour nearest it -- greedy, so a
+// road round a bay may stop short -- the first hexagon on the way without
+// a road, into (work_x, work_y). Whether there is one; none once the way
+// is all road, or someone else is in it.
+#define ROAD_RANGE 8
+
+static byte road_to(byte c, byte to)
+{
+    byte p = city_owner[c], x, y, dir, nx, ny, bx, by, n;
+    word d, best;
+
+    x = city_ax[c];
+    y = city_ay[c];
+    for (n = 0; n < ROAD_RANGE; ++n) {
+        best = 0xffff;
+        for (dir = 0; dir < 6; ++dir) {
+            if (!map_neighbour(x, y, dir, &nx, &ny) || is_water(nx, ny))
+                continue;
+            d = distance(nx, ny, city_ax[to], city_ay[to]);
+            if (d < best) {
+                best = d;
+                bx = nx;
+                by = ny;
+            }
+        }
+        if (best == 0xffff || !best) return 0;      // stuck, or there
+        x = bx;
+        y = by;
+        if (road_at(x, y) != ROAD_NONE) continue;
+        if (unit_can_enter(p, KIND_BUILDER, x, y) != ENTER_OK) return 0;
+        work_x = x;
+        work_y = y;
+        return 1;
+    }
+    return 0;
+}
+
+// The next hexagon of road from city c to the other cities of its people
+// within ROAD_RANGE, the nearest first, into (work_x, work_y).
+static byte road_site(byte c)
+{
+    byte p = city_owner[c], o, r;
+
+    if (road_count >= ROAD_AI_MAX) return 0;
+    for (r = 1; r <= ROAD_RANGE; ++r)
+        for (o = 0; o < city_count; ++o)
+            if (o != c && city_owner[o] == p
+                && distance(city_ax[c], city_ay[c], city_ax[o], city_ay[o])
+                       == r
+                && road_to(c, o))
+                return 1;
+    return 0;
 }
 
 static byte next_to_land(byte ax, byte ay)
@@ -707,8 +764,10 @@ static void move_unit(byte u)
         // bronze, and horses, for chariots (strategic_site()). Then
         // improve the hexagons round its city (improve_best()): where it
         // stands if it is one of them and wants something, or else the
-        // first of them that wants something and has nobody on it. With
-        // all of them done it waits next to the city.
+        // first of them that wants something and has nobody on it -- of
+        // those it works, then a road towards the nearest other city
+        // (road_site()), then the rest. With all of it done it waits next
+        // to the city.
         if (strategic_site(unit_owner[u], ax, ay)) {
             if (work_x == ax && work_y == ay)
                 improve_start(u, improve_best(ax, ay));
@@ -729,7 +788,17 @@ static void move_unit(byte u)
                 return;
             }
         }
-        if (to_work(u, c)) return;
+        // The hexagons it works first, then the road to the next city,
+        // then the rest of its reach.
+        if (to_work(u, c, WORK_WORKED)) return;
+        if (road_site(c)) {
+            if (work_x == ax && work_y == ay)
+                improve_start(u, ORDERS_ROAD);
+            else
+                approach(u, work_x, work_y);
+            return;
+        }
+        if (to_work(u, c, WORK_ALL)) return;
         if (ax == city_ax[c] && ay == city_ay[c])
             explore(u);
         else if (distance(ax, ay, city_ax[c], city_ay[c]) > 1)

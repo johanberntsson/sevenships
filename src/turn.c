@@ -46,7 +46,8 @@ void game_end_turn(void)
     kind = improve_turn();
     if (kind != ORDERS_NONE)
         message(kind == ORDERS_IRRIGATE ? "Irrigation"
-                : kind == ORDERS_MINE ? "Mine" : "Pasture", "finished");
+                : kind == ORDERS_MINE ? "Mine"
+                : kind == ORDERS_ROAD ? "Road" : "Pasture", "finished");
     crisis_turn();              // before the cities grow, for the drought
     treasury_turn();            // before they produce: the AI's buying
     for (c = 0; c < city_count; ++c) {

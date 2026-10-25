@@ -18,9 +18,11 @@ Room: resident 0.5 KB, region 0 0.4 KB, region 1 0.8 KB, region 2 3.1 KB, region
 region 4 1.5 KB, region 5 0.8 KB, region 6 0.3 KB (a region 8 for the treasury is the next
 room there), region 7 2.2 KB, highram 1.1 KB; the tile sheet 7.6 KB, about five units
 
-Roads (milestone 6's last item): they need a map bit (none left in map_tile; a 320-byte
-bitmap would do at 128x20) and road art for six directions (alltiles' road_*.png are
-corner pieces, check whether they fit)
+Roads are in (25 Oct 2026; CLAUDE.md "Roads"): r, a third of a move along them, a trade on
+open land, the AI joining its cities. To try on a real MEGA65: the redraw over a network
+(about 2 ms for fifteen joins in xemu), r, and save/load. Not in: an Orders menu item
+(region 6 full); the AI's approach() preferring roads; seed 1's Mycenaeans were conquered
+by the Egyptians by turn 226 in the first autoplay with roads
 
 Per-continent AI policy (attack/defend/transport), as Civ 1's, now there are boats and wars
 

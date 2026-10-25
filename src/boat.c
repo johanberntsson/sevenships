@@ -136,7 +136,6 @@ static byte sail_to(byte u)
         || unit_can_enter(unit_owner[u], unit_kind[u], nx, ny) != ENTER_OK)
         return 0;
     unit_move_to(u, nx, ny);
-    --unit_moves[u];
     return 1;
 }
 
@@ -162,7 +161,6 @@ void boat_explore(byte u)
             && map_neighbour(unit_ax[u], unit_ay[u], dir, &nx, &ny)
             && unit_can_enter(p, unit_kind[u], nx, ny) == ENTER_OK) {
             unit_move_to(u, nx, ny);
-            --unit_moves[u];
             return;
         }
         // There, next to it, or no way: seen, as far as a ship can see.

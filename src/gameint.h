@@ -88,6 +88,11 @@ void game_menu_command(byte command);
 // map screen put back at the end. Called from command.c, no stub.
 void cities_screen(void);
 
+// In orders.c, region 2: the keys b, f, i, m, p and r for the unit with the
+// orders; and the Orders menu filled in for it, just before a menu opens.
+void game_order(byte key);
+void game_orders_menu(void);
+
 // In hover.c, region 0: the readout of what is under the arrow, or the
 // ring, or hover_ax/ay, at the end of the top row.
 void game_draw_hover(void);

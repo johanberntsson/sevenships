@@ -63,6 +63,7 @@
 #define ORDERS_MINE 3
 #define ORDERS_PASTURE 4        // MAP_IRRIGATED on cattle or horses
 #define ORDERS_GOTO 5           // on its way to unit_goto_x/y (src/goto.h)
+#define ORDERS_ROAD 6           // a builder at work on a road (src/road.h)
 
 // The players: the human, and a computer player for each of the other
 // peoples (src/ai.c). Player p leads people player_civ[p] (civ.h).
@@ -78,7 +79,10 @@ extern byte unit_kind[MAX_UNITS];
 extern byte unit_owner[MAX_UNITS];
 extern byte unit_ax[MAX_UNITS];
 extern byte unit_ay[MAX_UNITS];
-extern byte unit_moves[MAX_UNITS];      // left this turn
+extern byte unit_moves[MAX_UNITS];      // left this turn, in thirds
+// **Moves are counted in thirds** since roads (25 Oct 2026): a step costs
+// MOVE_FULL, and a step from a road to a road one (unit_move_to()).
+#define MOVE_FULL 3
 extern byte unit_orders[MAX_UNITS];
 // Turns a builder has worked on its improvement; set by improve_start(),
 // meaningful only with ORDERS_IRRIGATE, ORDERS_MINE or ORDERS_PASTURE.
@@ -110,6 +114,9 @@ void unit_reset(void);
 // A new unit, with a full turn's moves. UNIT_NONE if the list is full.
 byte unit_create(byte kind, byte owner, byte ax, byte ay);
 void unit_remove(byte u);
+// Unit u steps onto (ax, ay), and pays for it out of unit_moves[]: a whole
+// move, or a third of one from a road to a road (road.h) for a land unit;
+// never below 0.
 void unit_move_to(byte u, byte ax, byte ay);
 
 // Give every unit of `owner` its moves back. Fortified units keep their

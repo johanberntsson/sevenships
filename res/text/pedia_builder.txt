@@ -9,5 +9,7 @@
   Cost: 20 shields
   Needs: nothing
 {at 6 17}{text}Irrigates (i) or mines (m) the hexagons round a city, and builds
-pastures (p) for cattle and horses. Builders on one hexagon with the
-same orders work together.
+pastures (p) for cattle and horses, and roads (r): a step from road to
+road costs a third of a move, and a road on grassland, plains or desert
+adds a trade. A road takes 2 turns, 4 on hills and in forest, 6 on
+mountains. Builders on one hexagon with the same orders work together.

@@ -24,6 +24,7 @@
 #include "treasury.h"
 #include "unit.h"
 #include "view.h"
+#include "road.h"
 
 #pragma clang section text="r7text" rodata="r7rodata"
 
@@ -195,6 +196,28 @@ static void draw_patch(byte c)
             view_draw_tile(x, y, MAP_OVERLAY_TILE(t));
         if ((t & MAP_EXPLORED) && (n = map_resource_at(nx, ny)) != RES_NONE)
             view_draw_tile(x, y, RES_TILE(n, t));
+    }
+    // The roads over all the terrain, as view_redraw() does a row behind
+    // it, and under everything else: the joins east, south-east and
+    // south-west (src/road.h), out into the black past the reach too.
+    for (i = 0; i < PATCHES; ++i) {
+        r = patch_ring[i];
+        nx = city_ax[c];
+        ny = city_ay[c];
+        if (r != PATCH_CITY) {
+            if (work_owner[r] == CITY_NONE) continue;
+            nx = work_ring_x[r];
+            ny = work_ring_y[r];
+        }
+        if (!MAP_IS_EXPLORED(nx, ny) || (k = road_at(nx, ny)) == ROAD_NONE)
+            continue;
+        x = col + patch_x[i];
+        y = row + patch_y[i];
+        n = road_mask[k];
+        if (!n) view_draw_tile(x, y, TILE_ROAD_DOT);
+        if (n & (1 << DIR_E)) view_draw_tile(x + 4, y, TILE_ROAD_E);
+        if (n & (1 << DIR_SE)) view_draw_tile(x, y + 1, TILE_ROAD_SE);
+        if (n & (1 << DIR_SW)) view_draw_tile((int)x - 4, y + 1, TILE_ROAD_SW);
     }
     // The overlays after all the terrain, as view_redraw() does a row
     // behind it. The active unit does not blink here, so it is always shown.

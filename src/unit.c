@@ -3,6 +3,7 @@
 #include "map.h"
 #include "minimap.h"
 #include "sheet.h"
+#include "road.h"
 
 // In HIGH_BSS, out of the 32 KB -- and so not cleared by the startup:
 // unit_reset() empties the list for every game.
@@ -30,7 +31,8 @@ const char *const unit_kind_name[] = {
     "", "Settler", "Warrior", "Builder", "Spearman", "Raider", "Chariot",
     "Galley", "Fishing Boat", "Merchant", "Temple", "Lion Gate"
 };
-const byte unit_kind_moves[] = { 0, 1, 1, 1, 1, 1, 2, 3, 2, 3 };
+// In thirds (MOVE_FULL): 1, 1, 1, 1, 1, 2, 3, 2 and 3 moves.
+const byte unit_kind_moves[] = { 0, 3, 3, 3, 3, 3, 6, 9, 6, 9 };
 // The temple's is Civilization's; the Lion Gate's a wonder's for cities
 // that make a few shields a turn (Civilization's take 200-600).
 const byte unit_kind_cost[] = {
@@ -88,6 +90,12 @@ void unit_remove(byte u)
 void unit_move_to(byte u, byte ax, byte ay)
 {
     byte old_x = unit_ax[u], old_y = unit_ay[u], v, n = 0;
+    byte cost = MOVE_FULL;
+
+    if (!KIND_IS_SHIP(unit_kind[u]) && road_at(old_x, old_y) != ROAD_NONE
+        && road_at(ax, ay) != ROAD_NONE)
+        cost = 1;
+    unit_moves[u] = unit_moves[u] > cost ? unit_moves[u] - cost : 0;
 
     // A galley takes those aboard with it, from the water; in a city they
     // stay. A land unit stepping onto the water is aboard, and sentried.

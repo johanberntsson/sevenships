@@ -49,9 +49,13 @@ extern byte ai_site_x, ai_site_y;
 // Whether a hexagon of city c's RING wants improving and has nobody on it,
 // and which, into ai_work_x and ai_work_y: copper or tin to mine first,
 // for bronze; then one the city works, as those are what an improvement
-// adds to; then any of the city's. In src/aibuild.c, region 2, beside
+// adds to; then any of the city's -- the last only with `passes`
+// WORK_ALL, since the builders make the road to the next city in between
+// (road_site() in ai.c). In src/aibuild.c, region 2, beside
 // improve_best(), since region 1 is full; ai.c calls it through a stub.
-byte ai_work_site(byte c);
+#define WORK_WORKED 2
+#define WORK_ALL 3
+byte ai_work_site(byte c, byte passes);
 extern byte ai_work_x, ai_work_y;
 
 // What each of p's cities builds this turn: src/aibuild.c, region 2.

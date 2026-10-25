@@ -1,6 +1,7 @@
 #include "map.h"
 #include "sheet.h"
 #include "minimap.h"
+#include "road.h"
 
 HIGH_BSS byte map_tile[MAP_ROWS][MAP_COLUMNS];
 HIGH_BSS byte map_res_count;
@@ -80,6 +81,7 @@ void map_reset(void)
     for (ay = 0; ay < MAP_ROWS; ++ay)
         for (ax = 0; ax < MAP_COLUMNS; ++ax)
             map_tile[ay][ax] &= MAP_TERRAIN_MASK;
+    road_reset();
 }
 
 static void explore(byte ax, byte ay)

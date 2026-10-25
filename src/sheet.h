@@ -45,7 +45,7 @@
 #define SHEET_HIGH_END 0x1F000UL
 
 // The sheet as it is in the file.
-#define SHEET_COLUMNS 168
+#define SHEET_COLUMNS 184
 #define SHEET_ROWS 4
 
 // A tile is 4x4 characters in the file and 8x4 once expanded.
@@ -110,6 +110,13 @@
 #define TILE_MERCHANT 39        // the merchant ship (src/emporium.h)
 #define TILE_CHARIOT 40         // horses (unit.h)
 #define TILE_HORSES_PASTURE 41  // horses with a pasture, as cattle's
+// Roads (src/road.h): the joins from a hexagon's junction to its east,
+// south-east and south-west neighbours', placed away from the hexagon's
+// own tile (view.c); and a dot for a road that leads nowhere.
+#define TILE_ROAD_E 42
+#define TILE_ROAD_SE 43
+#define TILE_ROAD_SW 44
+#define TILE_ROAD_DOT 45
 
 // The FCI on the disk. Capitals, because that is how diskutil.rb writes the
 // host name tiles.fci -- see MAP_FILE_NAME.

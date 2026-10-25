@@ -21,6 +21,7 @@
 #include "game.h"
 #include "map.h"
 #include "unit.h"
+#include "road.h"
 
 #pragma clang section text="r0text" rodata="r0rodata"
 
@@ -39,6 +40,10 @@ static const struct block blocks[] = {
     { map_res_first, sizeof map_res_first },
     { map_res_ax, sizeof map_res_ax },
     { map_res_kind, sizeof map_res_kind },
+    { &road_count, sizeof road_count },
+    { road_first, sizeof road_first },
+    { road_ax, sizeof road_ax },
+    { road_mask, sizeof road_mask },
     { unit_kind, sizeof unit_kind },
     { unit_owner, sizeof unit_owner },
     { unit_ax, sizeof unit_ax },
