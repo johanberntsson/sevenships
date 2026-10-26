@@ -209,6 +209,7 @@ stub:       .macro  name, target, region
             stub    game_order, game_order_r2, 2
             stub    game_orders_menu, game_orders_menu_r2, 2
             stub    game_move, game_move_r2, 2
+            stub    game_click_hex, game_click_hex_r2, 2
             stub    road_add, road_add_r2, 2
 
 ; Region 3, slot 2: diplomacy.

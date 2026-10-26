@@ -213,13 +213,13 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 70 bytes free (26 Oct 2026, after Help → Peoples and Clay Tablets), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 103 bytes free (26 Oct 2026, after `click_hex()` went to region 2 and the blink's band came in), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.7 KB free (26 Oct 2026) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 0.9 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.5 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 98 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 1.7 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.5 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 46 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 1.7 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; 234 bytes free (26 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
-| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 603 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
+| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 314 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
@@ -799,6 +799,12 @@ all three have to stay:
   after it started; one longer than 20 ms only misses the next frame's line
   243, so the view runs at 25 frames a second there rather than tearing.
   Leave the 20% by which xemu flatters compiled C out of that.
+  **On a real MEGA65 a busy screen went over** (26 Oct 2026, the user's
+  play-test: two cities, roads, irrigation, mines and builders in
+  view): the active unit's blink, a whole redraw twice a second, made
+  the screen flicker. The blink redraws only its band since (**The
+  active unit blinks**); scrolling such a screen still redraws it all,
+  and is where it would show next.
 - **It draws strictly top to bottom and never clears.** The `hy` loop makes the
   destination row monotonically increasing, which is what "ahead of the beam"
   means. A `view_clear()` first would blank rows the beam has not reached yet —
@@ -904,7 +910,9 @@ stopped to play-test, a lot, before the next session):
    Saved Game on the title screen and Game → Load Game, a slot "from
    another version"); and from 26 Oct, tile select's ring following
    the orders (to the next unit, and on `c`), and Help → Peoples and
-   Clay Tablets.
+   Clay Tablets. **Confirmed there on 26 Oct**: the fixes from the
+   user's first play-test -- the blink redrawing only its band (the
+   busy screen no longer flickers), GOTO along roads, and `d`, Disband.
    Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
 3. **Tuning**, from play, as TODO.txt's OPEN lists it: the Crisis, left
    mild on purpose (its options are in TODO.txt and **The Crisis** above:
@@ -921,26 +929,31 @@ stopped to play-test, a lot, before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (70
-   bytes), region 1 (72 bytes) or region 6 (98 bytes): **The way to resident room is
-   `game.c`** (`click_hex()`, tile select and the panel are the next
-   candidates), and region 1's is more of `ai.c` moving to a region of
+5. **Make room first** before anything grows in resident code (103
+   bytes), region 1 (72 bytes), region 4 (250 bytes) or region 6 (46 bytes): **The way to resident room is
+   `game.c`** (tile select and the panel are the next candidates;
+   `click_hex()` went on 26 Oct 2026), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
-**Room is short in places** (26 Oct 2026, after Help → Peoples and
-Clay Tablets): **resident 70 bytes** (36 after Game → Load Game;
-title.c's `describe_civ()` line went to `LOW_FREE` for tile select's
-ring), region 0 1.7 KB, **region 1 72 bytes** (`road_site()` took 460),
-region 2 0.9 KB, region 3 1.4 KB, region 4 0.6 KB, region 5 0.7 KB,
-**region 6 98 bytes** (the save slots took 2.7 KB, the two Help
-submenus 77), region 7 1.5 KB, region 8 1.7 KB, **highram 234 bytes**
-(the road list took 440), `LOW_FREE` 603 bytes. Resident room is
+**Room is short in places** (26 Oct 2026, after the first MEGA65
+play-test's fixes): **resident 103 bytes** (70 after Help → Peoples
+and Clay Tablets; the blink's band took about 100 and `click_hex()`
+going to region 2 gave back 130), region 0 1.7 KB, **region 1 72
+bytes** (`road_site()` took 460), region 2 0.4 KB (the click on the
+map), region 3 1.4 KB, **region 4 250 bytes** (GOTO's search along
+the roads took 385), region 5 0.7 KB, **region 6 46 bytes** (the save
+slots took 2.7 KB, the two Help submenus 77, Disband 52), region 7 1.5
+KB, region 8 1.7 KB, **highram 234 bytes** (the road list took 440),
+`LOW_FREE` 314 bytes (the search's pool took 290). Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
 **The orders keys `b f i m p r`, the Orders menu's filling, and a step
 of the active unit or its attack (`game_move()`, which was
 `move_active()` and `attack()`) went to `src/orders.c`, region 2** (25
 Oct 2026, 670 bytes for roads and 480 for the wonders, which took 130),
+**and so did a click on the map** (`game_click_hex()`, which was
+`click_hex()`, with `open_city()`, 26 Oct 2026, for the blink's band;
+`going` and `select_end()` are exported for it),
 `unit_key()` handing it what it does not know; `game.c`'s
 `draw_orders()`, `in_view()`, `centre_on()` and `hover_on()` are
 exported for it (`gameint.h`). **The treasury is region 8** (25 Oct
@@ -1007,12 +1020,12 @@ game. **Retire** asks "Do you want to quit this game?" with
 `popup_ask()` (Yes/No buttons, `y`/`n`, Esc for No, or the cursor keys to move the highlight — No to begin with — and Return) and on Yes shows the
 score (**The end**) and goes back to the title screen. **Orders is filled in for the active unit** just
 before a menu opens (`game_orders_menu()` in `src/orders.c`, through
-`menu_orders()`, four items at most): Found City for a settler, Fortify
+`menu_orders()`, five items at most): Found City for a settler, Fortify
 for a soldier, Irrigate, Build a Mine or Pasture and Build a Road for a
-builder, Fish, Found Emporium, and **Go To for every unit** (25 Oct
-2026); with no unit wanting orders it is empty and does not open; its
+builder, Fish, Found Emporium, and **Go To and Disband for every unit**
+(25 and 26 Oct 2026); with no unit wanting orders it is empty and does not open; its
 items do what their keys do. `MENU_ROAD` and `MENU_GOTO` are 24 and 25,
-before the terrains' and units' commands, which open help pages. World has **Top Five Cities**
+and `MENU_DISBAND` 29, before the terrains' and units' commands, which open help pages. World has **Top Five Cities**
 (`src/topcities.c`, region 2): the five largest cities the player has
 seen, whoever's, with their people and size; and **Score** (**The end**). Advisors has **Diplomacy**
 (see **Contact** below) and **Finance** (**The treasury**); **F1 to F4
@@ -1123,7 +1136,8 @@ title, straight to `game_init()` and `game_load()`; there is no "are you
 sure", since picking a slot is already a step past the menu. If the read
 fails, `main()` goes round to the title, and `title_run(1)` says "No
 saved game could be loaded" (a `NO_TITLE` build plays a new game).
-`MENU_LOAD` is 28, which moved `MENU_TERRAIN` and `MENU_UNIT` up one.
+`MENU_LOAD` is 28, which moved `MENU_TERRAIN` and `MENU_UNIT` up one
+(and `MENU_DISBAND`, 29, another).
 Checked headlessly: a save at turn 21, 20 more turns, then Load Game:
 turn 21 again, the map, the unit and city arrays and the gold
 byte-identical with a run that only saved. **Test builds needed
@@ -1873,8 +1887,9 @@ and `find_site()` tests the terrain before the distance, so a far search
 is tens of milliseconds. **Galleys sail by `sea_route()`** (`src/path.c`,
 region 4): a breadth-first search from the target out over the shallows
 until it reaches the galley, the cell that reached it being the first
-step, again for every step; a visited bitmap (320 bytes) and a 256-cell
-queue in `LOW_FREE` (128 until GOTO searched land as well). The greedy `approach()` it replaced got stuck
+step, again for every step; a visited bitmap (320 bytes) and a queue in
+`LOW_FREE` (since 26 Oct 2026 the search is Dijkstra's, for GOTO's
+roads, which for a ship is the same search: **GOTO** below). The greedy `approach()` it replaced got stuck
 behind every peninsula. With nobody to ferry the galley explores the
 coasts as the fishing boat does (`boat_explore()`, below). **Armies
 too** (22 Oct 2026): a warrior or spearman that comes no nearer the
@@ -2251,7 +2266,7 @@ too** (26 Oct 2026, the user's): submenus `PEOPLES` and `TABLETS` in
 `src/menu.c`, their items `list_peoples.txt` (the barbarians' line
 last, their page covering the Sea Peoples and the rebels) and
 `list_tablets.txt`, their commands `MENU_PAGE` + n after the kinds'
-(`MENU_PEOPLES` 57 and `MENU_TABLETS` 58 open them), opening
+(`MENU_PEOPLES` 58 and `MENU_TABLETS` 59 open them), opening
 `pedia_mycenaeans.txt` to `pedia_barbarians.txt` in `CIV_*` order and
 then `pedia_linear_b.txt`, `pedia_law_code.txt` and `pedia_alphabet.txt`,
 after the hall's in `TEXTS`. A submenu is now opened through
@@ -2404,12 +2419,26 @@ Still top to bottom, at most three character rows behind, so the beam race
 is unaffected.
 
 **The active unit blinks**, half a second drawn and half a second not
-(`unit_hidden`, flipped by `game_run()` every `BLINK_FRAMES`), and each
-change is a whole `view_redraw()`. Redrawing only its hexagon was
-considered and is not worth it: a tile overlaps five neighbours, so putting
-the terrain back under the unit means redrawing parts of all of them in
-painter's order, clipped, or keeping a snapshot — and the full redraw
-already runs every frame while a cursor key is held. Anything else that
+(`unit_hidden`, flipped by `game_run()` every `BLINK_FRAMES`), and **each
+change redraws a band**, `view_redraw(off_x, off_y, band)` with `band`
+the unit's hexagon row (or tile select's ring's): the rows above and
+below it and the row itself, with everything over them, in the same
+order as a whole redraw, clipped to the four character rows of the
+unit's tile (`clip_top`, `clip_end` in `view.c`, which
+`view_draw_tile()` and `view_draw_flag()` test in place of the window's
+edges). **Until 26 Oct 2026 it was the whole view**, and on a busy
+screen on a real MEGA65 (two cities, roads, seven irrigated hexagons,
+mines, three builders) the redraw twice a second ran into the beam: the
+user saw the screen flicker, and not on a quieter one. Measured in a
+throwaway scene of that kind (CIA2, xemu at real speed): 17.8 ms for
+the whole view, 6.9 for a band. **Checked headlessly to be exact**: two
+builds frozen at the same frame, one with bands and one with whole
+redraws, had byte-identical tile stores with the unit shown and hidden. **Confirmed on a real MEGA65** (26 Oct 2026): the busy screen no longer
+flickers.
+Redrawing only its hexagon was considered and is not worth it: a tile
+overlaps five neighbours, so putting the terrain back under the unit
+means redrawing parts of all of them in painter's order, clipped, or
+keeping a snapshot. Anything else that
 dirties the view shows the unit at once and restarts the blink, so a unit
 is visible the moment it moves or is selected. The city screen's patch
 always shows it.
@@ -2436,7 +2465,7 @@ highlighted; 24 Oct 2026, the user's, since a double click did not work
 with tile select) — on one of the player's units hands
 it the orders, elsewhere on the map centres the view, on the minimap
 centres the view there, and on the panel at the end of a turn ends it
-(`click()` and `click_hex()` in `src/game.c`). A city comes before a unit
+(`click()` in `src/game.c`, `game_click_hex()` in `src/orders.c`). A city comes before a unit
 in it, so a unit fortified in a city is woken from the city screen's unit
 list.
 **Everything must be possible from the keyboard alone**, since not every
@@ -2459,7 +2488,7 @@ the keyboard); a unit moves by Tab and the cursor keys and Return, or a
 click, and a move onto another player's unit or city is an attack; `b` founds a
 city with a settler; `i`, `m`, `p` and `r` irrigate, mine and build a
 pasture or a road with a builder; MEGA or CTRL with a menu title's first letter (`g o a w d h`) opens it; space skips the unit this turn, `w` asks again
-after the others, `f` fortifies, `c` centres the view on the active unit, `g` goes to (**GOTO** below); Return ends the turn; the cursor keys
+after the others, `f` fortifies, `c` centres the view on the active unit, `g` goes to (**GOTO** below), `d` disbands the unit after asking (26 Oct 2026, the user's; a ship at sea with whoever is aboard; `disband()` in `src/orders.c`); Return ends the turn; the cursor keys
 scroll; ESC or RUN/STOP quits to BASIC, after asking with `popup_ask()`
 (Esc again is No). `w a s d` do not scroll.
 **HELP opens the help screen** (PageUp in xemu, which maps it there) (`src/help.c`, and what it says is
@@ -2472,15 +2501,29 @@ advisors took it.
 
 **GOTO** (25 Oct 2026, the user's, from play; `src/goto.c`, region 4,
 Civilization's): `g` puts up tile select's ring (`going` in `game.c`),
-and Return or a click on a hexagon (`click_hex()`) gives the active unit
+and Return or a click on a hexagon (`game_click_hex()`) gives the active unit
 `ORDERS_GOTO` and the target in `unit_goto_x/y[]` (`HIGH_BSS`, saved,
 `SAVE_VERSION` 18) through `goto_order()`, which walks it at once with
 the moves it has left; `goto_turn()`, from `game_end_turn()` after
 `unit_begin_turn(PLAYER_HUMAN)`, walks every such unit at the start of
 each turn, Play 50 Turns included. **The way is `path_route()`**, the
-galleys' breadth-first search made general (`src/path.c`): the shallows
+galleys' search made general (`src/path.c`): the shallows
 for a ship, land for a land unit, no mountains for a chariot, and only
-explored hexagons (with Show Map, all), found again for every step. A
+explored hexagons (with Show Map, all), found again for every step.
+**It follows the roads** (26 Oct 2026, the user's, from the first
+MEGA65 play-test: it walked beside them): Dijkstra's search in thirds
+of a move, a step road to road 1 and any other 3, with four lists by
+cost modulo 4 as the priority queue, linked through one pool of 255
+cells in `LOW_FREE`; a hexagon off the roads is queued once (the
+visited bitmap), a road's may be queued again cheaper and is settled
+the first time out (`road_done`, a bit a road). For a ship every step
+is 3 and it is the breadth-first search it was: 255 turns of autoplay
+came out byte-identical. A plain search over land has at most 56 cells
+waiting on seeds 1, 3, 5 and 7 (every target, simulated), so the pool
+is ample. Checked headlessly with a throwaway road bent round from
+(16,7) to (26,7): the settler sent to (26,7) took three road steps to
+(21,6) with its first move, where the straight way would have reached
+(18,7). A
 target unexplored, of the wrong terrain or out of reach is refused in the
 panel ("Unexplored", "Cannot go there", "No way there"); a step onto
 another player's unit or city, or a way that has gone, stops the unit

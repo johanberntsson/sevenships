@@ -104,6 +104,9 @@ void game_menu_command(byte command)
     case MENU_GOTO:
         unit_key('g');
         break;
+    case MENU_DISBAND:
+        unit_key('d');
+        break;
     case MENU_TOP_CITIES:
         open_top_cities();
         break;

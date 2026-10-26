@@ -92,6 +92,7 @@ pointer, and the button acts as a click.
 | **m** | Build a mine (builder) |
 | **p** | Build a pasture on cattle or horses (builder) |
 | **r** | Build a road (builder) |
+| **d** | Disband the unit, after asking (a ship at sea with those aboard) |
 | **w** | Wait: ask again after the other units |
 | **space** | Skip this unit's turn |
 | **c** | Centre the map on the unit (and, in tile select, the ring) |
@@ -243,8 +244,13 @@ fish. The merchant ship carries trade and founds emporia (section 10). Help →
 Military Units has a page on each unit.
 
 **Go to** (**g**): pick a hexagon, and the unit walks there by itself over
-the explored land (or a ship over the shallows), turn after turn, and asks
-for orders when it arrives or finds the way blocked.
+the explored land (or a ship over the shallows), turn after turn, by the
+way that costs the fewest moves -- along the roads where there are some --
+and asks for orders when it arrives or finds the way blocked.
+
+**Disband** (**d**, or Orders → Disband): the unit is gone, once you have
+said yes. A ship at sea takes whoever is aboard with it. A unit you no
+longer need costs gold beyond the free allowance (section 11).
 
 **Advisors → Military** (F2) counts your units by kind, what they cost
 you, and your wars.

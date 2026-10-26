@@ -112,7 +112,14 @@ void view_draw_flag(int x, int y, byte owner);
 // **It does not clear first, and it draws strictly top to bottom.** Both are
 // deliberate; see the tearing note in view.c. Call view_wait_for_redraw()
 // immediately before it.
-void view_redraw(word off_x, word off_y);
+//
+// **With `band` a hexagon row, only that row's tile is redrawn**: the four
+// character rows it covers, which is all a blink changes -- the active unit
+// or tile select's ring, there one frame and gone the next (26 Oct 2026, the
+// user's: on a busy screen on a real MEGA65 the whole view, redrawn twice a
+// second, flickered). VIEW_ALL for the whole view.
+#define VIEW_ALL 0xff
+void view_redraw(word off_x, word off_y, byte band);
 
 // **The tile-select cursor** (Tab in src/game.c): view_redraw() draws
 // TILE_SELECT over hexagon row view_mark_hy at window column view_mark_x,

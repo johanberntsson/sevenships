@@ -104,7 +104,7 @@ most important routines included in each source file.
 | &nbsp;&nbsp;&nbsp;_diplomacy\_turn_ | once a turn: who has met whom, the attitudes, and the computer players' declarations and offers |
 | &nbsp;&nbsp;&nbsp;_diplomacy\_greet_ | the letters to the player, in popups, the offers answered Yes or No |
 |  |  |
-| path.c | routes along the shallows for galleys, and over land for GOTO: a breadth-first search |
+| path.c | routes along the shallows for galleys, and over land for GOTO: Dijkstra's search in thirds of a move, which follows the roads |
 | goto.c | GOTO: the human's units walking to a hexagon picked with `g`, a turn's moves at a time |
 | road.c, roadadd.c | roads: a list by hexagon row with each road's neighbours, looked up resident and added in region 2 |
 | tablets.c | the scribes, paid in gold, and the clay tablets they set down: Linear B, a law code, the alphabet |
@@ -245,13 +245,13 @@ window shows one region of code at a time. The figures below are from the linker
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1ca4 | 1.6 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the title's people line, and the route search of the galleys and of GOTO |
-| \$1ca5-\$1eff | 0.6 | free |
-| \$2001-\$5d08 | 15.3 | BASIC stub, startup and resident code |
-| \$5d09-\$5d55 | 0.1 | initialised data: the DMA lists |
-| \$5d56-\$5e55 | 0.25 | C stack |
-| \$5e56-\$5fb9 | 0.35 | BSS: small state |
-| \$5fba-\$5fff | 0.07 | free |
+| \$1638-\$1dc5 | 1.9 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the title's people line, and the route search of the galleys and of GOTO |
+| \$1dc6-\$1eff | 0.3 | free |
+| \$2001-\$5c8b | 15.2 | BASIC stub, startup and resident code |
+| \$5c8c-\$5d30 | 0.15 | initialised data: the DMA lists and a few small tables |
+| \$5d31-\$5e30 | 0.25 | C stack |
+| \$5e31-\$5f98 | 0.35 | BSS: small state |
+| \$5f99-\$5fff | 0.1 | free |
 | \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.3 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
 | \$a000-\$bf15 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
@@ -438,7 +438,11 @@ loop.
 
 What the game is waiting for is held in one variable, `unit_active`. It is
 either the unit that wants orders, which blinks twice a second, or none,
-in which case the panel asks the player to end the turn.
+in which case the panel asks the player to end the turn. A blink redraws
+only a band of the view: the unit's hexagon row and the rows above and
+below it, clipped to the four character rows of the unit's tile, in about
+a third of the time of the whole view. Redrawing the whole view twice a
+second made a busy screen flicker on a real MEGA65.
 
 ## Redrawing in step with the beam
 

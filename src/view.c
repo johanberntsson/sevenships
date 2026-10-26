@@ -61,6 +61,10 @@ void view_wait_for_redraw(void)
 // The DMA's source bank as blit_begin() or view_draw_tile() last set it.
 static byte source_bank;
 
+// The window's rows view_draw_tile() and view_draw_flag() may write, from
+// clip_top to clip_end - 1: all of them, but for a band (view_redraw()).
+static byte clip_top, clip_end = VIEW_ROWS;
+
 void view_blit_begin(void)
 {
     blit_begin(0x00, SHEET_EXPANDED_BANK, 0x00, 0x00);
@@ -85,7 +89,7 @@ void view_draw_tile(int x, int y, byte tile)
         byte width = sheet_row_width[k];
         int first = x + sheet_row_lead[k];  // leftmost column it touches
 
-        if (!width || row < 0 || row >= VIEW_ROWS) continue;
+        if (!width || row < (int)clip_top || row >= (int)clip_end) continue;
 
         cut = 0;                    // characters clipped off the left
         if (first < 0) {
@@ -132,8 +136,9 @@ static const word flag_addr[PLAYERS + 1] = {
 void view_draw_flag(int x, int y, byte owner)
 {
     byte row;
-    // Unsigned, so that one test each takes the negative ones out too.
-    if ((word)x > VIEW_COLUMNS - 2 || (word)y >= VIEW_ROWS) return;
+    // Unsigned, so that one test takes the negative ones out too.
+    if ((word)x > VIEW_COLUMNS - 2 || y < (int)clip_top || y >= (int)clip_end)
+        return;
     row = (byte)y;
     if (source_bank != VIEW_ROW_BANK(VIEW_FLAG_ROW)) {
         blit_source_bank(VIEW_ROW_BANK(VIEW_FLAG_ROW));
@@ -258,7 +263,7 @@ static void draw_overlays(byte hy, int ty)
     if (hy == view_mark_hy) view_draw_tile(view_mark_x, ty, TILE_SELECT);
 }
 
-void view_redraw(word off_x, word off_y)
+void view_redraw(word off_x, word off_y, byte band)
 {
     byte hy;
     word hy_first, hy_last;
@@ -285,6 +290,21 @@ void view_redraw(word off_x, word off_y)
     hy_first = (off_y < 4) ? 0 : (off_y - 4) / 3;
     hy_last = (off_y + VIEW_ROWS) / 3;
     if (hy_last >= 2 * MAP_ROWS) hy_last = 2 * MAP_ROWS - 1;
+    // **A band is the three hexagon rows that reach row `band`'s tile**,
+    // clipped to its four character rows: the row above's bottom row, the
+    // row below's top one, and everything drawn over the three. In the same
+    // order as the whole redraw, so those rows come out the same, and about
+    // a third of its time. The view never shows the top hexagon row or the
+    // bottom one (VIEW_MIN_OFF_Y, VIEW_MAX_OFF_Y), so band is never 0 or the
+    // last row when it is in view.
+    if (band != VIEW_ALL) {
+        int ty = (int)(3 * (word)band) - (int)off_y;
+        if (ty < -3 || ty >= VIEW_ROWS) return;     // out of view
+        clip_top = ty < 0 ? 0 : (byte)ty;
+        clip_end = ty > VIEW_ROWS - 4 ? VIEW_ROWS : (byte)(ty + 4);
+        hy_first = band - 1;
+        hy_last = band + 1;
+    }
 
     pending_n[0] = pending_n[1] = 0;
     overlay_off_x = off_x;
@@ -342,4 +362,6 @@ void view_redraw(word off_x, word off_y)
         else if (hy) draw_roads(hy - 1, ty - 3);
     }
     draw_overlays((byte)hy_last, (int)(3 * hy_last) - (int)off_y);
+    clip_top = 0;
+    clip_end = VIEW_ROWS;
 }

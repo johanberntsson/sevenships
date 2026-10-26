@@ -80,6 +80,15 @@ OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
 
+DONE (26 Oct): the first MEGA65 play-test, all confirmed fixed there. From a floppy, 45 s to
+   the main menu and Load/Save work; from the SD card, 15 s. A busy screen flickered: the
+   active unit's blink redrew the whole view twice a second, and it now redraws only its
+   band (view_redraw()'s band: its hexagon row and the rows round it, clipped to its tile).
+   GOTO follows roads (path_route() is Dijkstra's in thirds of a move). d / Orders->Disband
+   disbands a unit, after asking. Chariots right after a pasture on horses: not reproduced
+   headlessly, and fine on the machine since. click_hex() went to orders.c (region 2) for
+   resident room
+
 DONE (26 Oct): Help/Peoples, a page for each people (ruler, capital, starting resource,
 advantage, the wonder its AI builds first) and one for the barbarians and the Sea Peoples;
 and Help/Clay Tablets, a page each for Linear B, the law code and the alphabet. Checked

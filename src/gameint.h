@@ -41,6 +41,8 @@
 #define in_view game_in_view
 #define centre_on game_centre_on
 #define hover_on game_hover_on
+#define going game_going
+#define select_end game_select_end
 
 extern word off_x, off_y;       // the view, in map characters
 extern byte dirty;              // the view wants redrawing
@@ -53,6 +55,7 @@ extern byte quit;
 extern byte retired;
 extern byte loaded;
 extern byte selecting;          // tile select is up
+extern byte going;              // ... put up by g, to pick a GOTO
 extern byte sel_ax, sel_ay;     // ... and where its ring is
 extern byte hover_ax, hover_ay; // the readout's hexagon, while hover_unit
 extern byte line_len;
@@ -99,13 +102,18 @@ void draw_orders(void);
 byte in_view(byte ax, byte ay);
 void centre_on(byte ax, byte ay);
 void hover_on(byte ax, byte ay);
+// Tile select put away (by orders.c's click on a hexagon after g).
+void select_end(void);
 
-// In orders.c, region 2: the keys b, f, i, m, p and r for the unit with the
-// orders; the Orders menu filled in for it, just before a menu opens; and
-// a step of it in direction `dir`, or an attack.
+// In orders.c, region 2: the keys b, d, f, i, m, p and r for the unit with
+// the orders; the Orders menu filled in for it, just before a menu opens;
+// a step of it in direction `dir`, or an attack; and a click on hexagon
+// (ax, ay) of the map, or Return on it in tile select (out of game.c on 26
+// Oct 2026, for resident room).
 void game_order(byte key);
 void game_orders_menu(void);
 void game_move(byte dir);
+void game_click_hex(byte ax, byte ay);
 
 // In hover.c, region 0: the readout of what is under the arrow, or the
 // ring, or hover_ax/ay, at the end of the top row.

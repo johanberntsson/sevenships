@@ -68,13 +68,14 @@ word game_year;
 byte selecting;
 byte sel_ax, sel_ay;
 static byte sel_hidden;         // the ring's half of the blink
-static byte going;              // ... put up by g: the ring picks a GOTO
+byte going;                     // ... put up by g: the ring picks a GOTO
 
 // The active unit blinks: BLINK_FRAMES drawn, BLINK_FRAMES not, half a
-// second each at 50 Hz. Each change is a whole redraw, which is what a held
-// cursor key already does every frame, rather than a redraw of one hexagon:
-// a unit's tile overlaps five neighbours, so putting the terrain back under
-// it would mean redrawing parts of all of them in painter's order.
+// second each at 50 Hz. Each change is a redraw of the unit's hexagon row
+// (view_redraw()'s band), not of one hexagon: a unit's tile overlaps five
+// neighbours, so putting the terrain back under it means redrawing parts
+// of all of them in painter's order -- and until 26 Oct 2026 it was the
+// whole view, which on a busy screen ran into the beam on a real MEGA65.
 #define BLINK_FRAMES 25
 static byte blink;
 
@@ -385,16 +386,6 @@ void draw_screen(void)
     hover_dirty = 1;
 }
 
-static void open_city(byte c)
-{
-    city_screen(c);
-    // Its unit list may have woken a unit, with the turn otherwise over,
-    // or fortified the one that had the orders.
-    if (unit_active == UNIT_NONE || unit_orders[unit_active] != ORDERS_NONE)
-        select_unit(unit_active);
-    draw_screen();
-}
-
 void open_help(byte id)
 {
     help_screen(id);
@@ -405,59 +396,6 @@ void open_top_cities(void)
 {
     top_cities_screen();
     draw_screen();
-}
-
-// A click on hexagon (ax, ay) of the map, by the arrow or by Return in tile
-// select. After g, it is where the unit is to go. Next to the unit with
-// orders it moves the unit there; on one of
-// the player's cities it opens the city screen, and on one next to the unit
-// with orders it asks which; on one of the player's own
-// units that still has moves it gives that unit the orders, waking it if it
-// was fortified. Anywhere else it centres the view there.
-static void select_end(void);
-
-static void click_hex(byte ax, byte ay)
-{
-    byte u, dir = DIR_NONE, c;
-
-    // The active unit is to go there, and sets off (goto.h).
-    if (going) {
-        select_end();
-        if (unit_active != UNIT_NONE) goto_order(unit_active, ax, ay);
-        return;
-    }
-
-    c = city_at(ax, ay);
-    if (c != CITY_NONE && city_owner[c] != PLAYER_HUMAN) c = CITY_NONE;
-    if (unit_active != UNIT_NONE) {
-        dir = map_direction(unit_ax[unit_active], unit_ay[unit_active],
-                            ax, ay);
-        // Next to the unit and one of the player's cities: ask which.
-        if (dir != DIR_NONE
-            && (c == CITY_NONE
-                || popup_choose(city_name_of(c), POPUP_MOVE_VIEW))) {
-            game_move(dir);
-            return;
-        }
-    }
-    if (c != CITY_NONE) {
-        open_city(c);
-        return;
-    }
-    if (unit_active != UNIT_NONE
-        && unit_ax[unit_active] == ax && unit_ay[unit_active] == ay) return;
-    for (u = 0; u < MAX_UNITS; ++u) {
-        if (unit_kind[u] != KIND_NONE && unit_owner[u] == PLAYER_HUMAN
-            && unit_ax[u] == ax && unit_ay[u] == ay && unit_moves[u]) {
-            unit_orders[u] = ORDERS_NONE;
-            unit_active = u;
-            dirty = 1;
-            hover_on(ax, ay);
-            draw_orders();
-            return;
-        }
-    }
-    centre_on(ax, ay);
 }
 
 // A click of the mouse or fire: on the menu bar, the minimap or the map, or
@@ -479,7 +417,7 @@ static void click(void)
         if (unit_active == UNIT_NONE && !game_over) game_end_turn();
         return;
     }
-    click_hex(ax, ay);
+    game_click_hex(ax, ay);
 }
 
 // ------------------------------------------------------------- tile select
@@ -501,7 +439,7 @@ static void select_begin(void)
     message("Tile select:", "Tab to leave");
 }
 
-static void select_end(void)
+void select_end(void)
 {
     selecting = 0;
     going = 0;
@@ -539,7 +477,7 @@ static byte select_key(byte key)
     case KEY_RIGHT: dir = DIR_E; break;
     case KEY_UP: dir = odd ? DIR_NW : DIR_NE; break;
     case KEY_DOWN: dir = odd ? DIR_SW : DIR_SE; break;
-    case KEY_RETURN: click_hex(sel_ax, sel_ay); return 1;
+    case KEY_RETURN: game_click_hex(sel_ax, sel_ay); return 1;
     case KEY_TAB:
     case KEY_ESC: select_end(); return 1;
     }
@@ -603,13 +541,14 @@ byte game_run(void)
 #ifndef NO_TITLE
     view_wait_for_redraw();
     place_mark();
-    view_redraw(off_x, off_y);
+    view_redraw(off_x, off_y, VIEW_ALL);
     minimap_frame(off_x, off_y);
     dirty = 0;
     if (!loaded) intro();
 #endif
 
     while (!quit) {
+        byte band = VIEW_ALL;
         // Start the redraw the moment the beam leaves the map window, so
         // that it is rewriting rows the beam has already passed. Without
         // this the redraw lands in the middle of a displayed frame and the
@@ -627,14 +566,19 @@ byte game_run(void)
             blink = 0;
         } else if ((selecting || unit_active != UNIT_NONE)
                    && ++blink == BLINK_FRAMES) {
-            if (selecting) sel_hidden ^= 1;
-            else unit_hidden ^= 1;
+            if (selecting) {
+                sel_hidden ^= 1;
+                band = 2 * sel_ay + (sel_ax & 1);
+            } else {
+                unit_hidden ^= 1;
+                band = 2 * unit_ay[unit_active] + (unit_ax[unit_active] & 1);
+            }
             blink = 0;
             dirty = 1;
         }
         if (dirty) {
             place_mark();
-            view_redraw(off_x, off_y);
+            view_redraw(off_x, off_y, band);
             minimap_frame(off_x, off_y);
             dirty = 0;
             hover_dirty = 1;

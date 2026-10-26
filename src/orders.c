@@ -2,10 +2,12 @@
 // offers them, out of game.c (25 Oct 2026, to make resident room for
 // roads), and a step of the unit, or an attack (for the wonders): in
 // region 2, beside the improvements they start, called through the stubs
-// of game_order(), game_orders_menu() and game_move() (gameint.h).
+// of game_order(), game_orders_menu() and game_move() (gameint.h); and a
+// click on the map, which moves the unit (26 Oct 2026, game_click_hex()).
 #define game_order game_order_r2
 #define game_orders_menu game_orders_menu_r2
 #define game_move game_move_r2
+#define game_click_hex game_click_hex_r2
 
 #include "gameint.h"
 #include "boat.h"
@@ -14,6 +16,8 @@
 #include "diplomacy.h"
 #include "popup.h"
 #include "city.h"
+#include "cityscreen.h"
+#include "goto.h"
 #include "emporium.h"
 #include "improve.h"
 #include "map.h"
@@ -144,6 +148,33 @@ static void improve(byte orders)
     select_unit(u);
 }
 
+// The active unit is disbanded, once the player says so, as with Shift+D
+// in Civilization -- a ship at sea with those aboard it, who would
+// otherwise be left on the water.
+static void disband(void)
+{
+    byte u = unit_active, kind = unit_kind[u], v;
+    byte ax = unit_ax[u], ay = unit_ay[u];
+
+    popup_begin();
+    popup_add("Disband this ");
+    popup_add(unit_kind_name[kind]);
+    popup_add("?");
+    if (!popup_ask_shown()) return;
+    // A ship is at sea anywhere but in a city.
+    if (KIND_IS_SHIP(kind) && city_at(ax, ay) == CITY_NONE)
+        for (v = 0; v < MAX_UNITS; ++v)
+            if (unit_kind[v] != KIND_NONE && !KIND_IS_SHIP(unit_kind[v])
+                && unit_ax[v] == ax && unit_ay[v] == ay
+                && unit_owner[v] == PLAYER_HUMAN)
+                unit_remove(v);
+    unit_remove(u);
+    message(unit_kind_name[kind], "disbanded");
+    dirty = 1;
+    hover_dirty = 1;
+    select_unit(u);
+}
+
 void game_order(byte key)
 {
     byte u = unit_active;
@@ -162,6 +193,7 @@ void game_order(byte key)
     case 'm': improve(ORDERS_MINE); break;
     case 'p': improve(ORDERS_PASTURE); break;
     case 'r': improve(ORDERS_ROAD); break;
+    case 'd': disband(); break;
     }
 }
 
@@ -192,4 +224,65 @@ void game_orders_menu(void)
     // Every unit can be sent somewhere.
     menu_orders(command, second, road,
                 unit_active != UNIT_NONE ? MENU_GOTO : MENU_NONE);
+}
+
+static void open_city(byte c)
+{
+    city_screen(c);
+    // Its unit list may have woken a unit, with the turn otherwise over,
+    // or fortified the one that had the orders.
+    if (unit_active == UNIT_NONE || unit_orders[unit_active] != ORDERS_NONE)
+        select_unit(unit_active);
+    draw_screen();
+}
+
+// A click on hexagon (ax, ay) of the map, by the arrow or by Return in tile
+// select. After g, it is where the unit is to go. Next to the unit with
+// orders it moves the unit there; on one of
+// the player's cities it opens the city screen, and on one next to the unit
+// with orders it asks which; on one of the player's own
+// units that still has moves it gives that unit the orders, waking it if it
+// was fortified. Anywhere else it centres the view there.
+void game_click_hex(byte ax, byte ay)
+{
+    byte u, dir = DIR_NONE, c;
+
+    // The active unit is to go there, and sets off (goto.h).
+    if (going) {
+        select_end();
+        if (unit_active != UNIT_NONE) goto_order(unit_active, ax, ay);
+        return;
+    }
+
+    c = city_at(ax, ay);
+    if (c != CITY_NONE && city_owner[c] != PLAYER_HUMAN) c = CITY_NONE;
+    if (unit_active != UNIT_NONE) {
+        dir = map_direction(unit_ax[unit_active], unit_ay[unit_active],
+                            ax, ay);
+        // Next to the unit and one of the player's cities: ask which.
+        if (dir != DIR_NONE
+            && (c == CITY_NONE
+                || popup_choose(city_name_of(c), POPUP_MOVE_VIEW))) {
+            game_move(dir);
+            return;
+        }
+    }
+    if (c != CITY_NONE) {
+        open_city(c);
+        return;
+    }
+    if (unit_active != UNIT_NONE
+        && unit_ax[unit_active] == ax && unit_ay[unit_active] == ay) return;
+    for (u = 0; u < MAX_UNITS; ++u) {
+        if (unit_kind[u] != KIND_NONE && unit_owner[u] == PLAYER_HUMAN
+            && unit_ax[u] == ax && unit_ay[u] == ay && unit_moves[u]) {
+            unit_orders[u] = ORDERS_NONE;
+            unit_active = u;
+            dirty = 1;
+            hover_on(ax, ay);
+            draw_orders();
+            return;
+        }
+    }
+    centre_on(ax, ay);
 }
