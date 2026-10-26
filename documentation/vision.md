@@ -26,7 +26,7 @@ Rather than standard world conquest, players manage fragile trade monopolies, co
 
 ## 2. Resource System & Map Economy
 
-The economy relies on a dual-tier resource model: **Staple Goods** (population growth, army logistics) and **Luxury / Strategic Goods** (metallurgy, prestige, diplomatic currency).
+The economy relies on a dual-tier resource model: **Staple Goods** (population growth, manpower) and **Luxury / Strategic Goods** (metallurgy, prestige, diplomatic currency).
 
 ```
                       ┌───────────────────────────────┐
@@ -37,7 +37,7 @@ The economy relies on a dual-tier resource model: **Staple Goods** (population g
            ▼                                                   ▼
 ┌───────────────────────────┐                       ┌───────────────────────────┐
 │     STAPLE RESOURCES      │                       │  LUXURY & STRATEGIC GOODS │
-│  (Manpower & Logistics)   │                       │  (Prestige, Tech & Trade) │
+│    (Food & Manpower)      │                       │  (Prestige, Tech & Trade) │
 ├───────────────────────────┤                       ├───────────────────────────┤
 │ • Grain (Nile / Valleys)  │                       │ • Copper & Tin (Bronze)   │
 │ • Coastal Fishing         │                       │ • Wine & Olive Oil        │
@@ -61,12 +61,12 @@ The economy relies on a dual-tier resource model: **Staple Goods** (population g
 
 
 
-### Staple Resources (Food & Logistics)
+### Staple Resources (Food)
 
 * **Coastal Fishing (Universal):** Available on nearshore water hexes across the Mediterranean. Provides steady baseline food yields without land improvements, supporting island settlements and coastal outposts.
 
 
-* **Grain Agriculture (Egypt & Floodplains):** Concentrated in the Nile Delta and major river valleys. Generates massive food surpluses that can be stored in Palace Granaries to supply distant military campaigns.
+* **Grain Agriculture (Egypt & Floodplains):** Concentrated in the Nile Delta and major river valleys. Generates massive food surpluses that grow large cities.
 
 
 * **Livestock / Cattle (Inland Steppes):** Located on interior grass and hill hexes. Provides baseline food and draft animals for heavy transport and chariot production.
@@ -85,10 +85,6 @@ The economy relies on a dual-tier resource model: **Staple Goods** (population g
 * **Emporia (Outposts):** Factions can establish small coastal trade outposts on islands or foreign shores without founding full cities. These outposts tap into rare resources (tin, cedar) and extend naval supply lines.
 
 
-
-### Grain Logistics & Attrition
-
-Armies away from friendly territory consume grain every turn. If supply fleets or land convoys are severed, units suffer severe attrition or desert.
 
 ### Asymmetric Civilizations
 

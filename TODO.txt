@@ -1,8 +1,7 @@
 --- OPEN ---
 
-STATUS (25 Oct 2026): feature complete against vision.md but for one thing, grain
-logistics and attrition (below). What is left is tuning, polish, and what vision.md does not
-ask for.
+STATUS (26 Oct 2026): feature complete against vision.md.  What is left is tuning, polish,
+and what vision.md does not ask for.
 
 NEXT (CLAUDE.md "Where to start next time"):
 1. The user's play-testing: new items go at the top of this file
@@ -20,11 +19,6 @@ region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7 KB, region 6 2.9
 region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.0 KB, highram 275
 bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
 Resident and region 1 need room made before anything grows there
-
-NOT DONE FROM VISION.MD
-- Grain logistics and attrition (vision.md 3): armies away from friendly territory eat
-  grain, and starve or desert when cut off. Civ 1 has nothing like it and it would change
-  warfare a good deal; left out unless play says otherwise
 
 TUNING, from play
 - THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
@@ -58,13 +52,13 @@ POLISH AND DETAILS
   route; shocks weighted by region and growing towards the end. The collapse: half a
   people's cities lost as a second trigger, besides the capital
 
+--- IDEAS, not yet decided implement or not --
+
 NOT IN VISION.MD, for later if wanted
 - Alliances, news of wars between the others, the human as a vassal
 - Per-continent AI policy (attack/defend/transport), as Civ 1's
 - Open-sea ships: seed 7 has a landmass the shallows do not reach, whose people (the
   Hittites) met nobody in 300 turns, even with fishing boats; or a map change
-
---- IDEAS, not yet decided implement or not --
 
 Civ1 has unhappy people mostly depending on the city size with modifiers. If
 unhappy > happy there was a riot. Perhaps consider something similar. Fortifed
@@ -108,7 +102,7 @@ building sold for want of gold, and a real MEGA65
 DONE (25 Oct 2026): escorts, the last of vision.md's features: a galley fortified on a
 merchant ship's hexagon goes where it goes and defends it, twice as strong at sea (f, or
 Orders "f: Escort"); the AI's idle galleys escort their merchant ships. With it, feature
-complete against vision.md but for grain logistics and attrition (see OPEN)
+complete against vision.md
 
 DONE (25 Oct 2026): vassals (vision.md 3 and 5): a people at war, weaker and with half the
 cities, submits instead of asking a ceasefire -- the AI at once, the human by a letter in

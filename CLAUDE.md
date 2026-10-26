@@ -885,8 +885,8 @@ list.
 stopped to play-test, a lot, before the next session):
 1. **Ask what the play-testing found**, and take the new items at the
    top of TODO.txt first. **The game is feature complete against
-   vision.md** but for grain logistics and attrition (vision.md §3), left
-   out unless play asks for it; **from now on the work is tuning and
+   vision.md** (grain logistics and attrition were taken out of it on
+   26 Oct 2026, the user's: they will not be done); **from now on the work is tuning and
    polish** (the user's: "We'll do tuning and minor improvements later").
 2. **Try on a real MEGA65** what came on 25 Oct and has not been
    confirmed there: escorts (`f` on a galley with a merchant ship,
