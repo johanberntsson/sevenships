@@ -925,7 +925,7 @@ stopped to play-test, a lot, before the next session):
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
 **Room is short in places** (26 Oct 2026, after the save slots):
-**resident 36 bytes** (after Game → Load Game), region 0 1.8 KB, **region 1 72 bytes** (`road_site()` took
+**resident 70 bytes** (36 after Game → Load Game; title.c's `describe_civ()` line went to `LOW_FREE` for tile select's ring, 26 Oct 2026), region 0 1.8 KB, **region 1 72 bytes** (`road_site()` took
 460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
 KB, **region 6 175 bytes** (the save slots took 2.7 KB), region 7 1.9
 KB, region 8 2.0 KB, **highram 234 bytes** (the road list took 440), `LOW_FREE` 735
@@ -2420,7 +2420,9 @@ MEGA65 has a mouse and the joystick is slow: **Tab is tile select**, as in
 Civilization — a yellow ring (`TILE_SELECT`) on the active unit or the
 middle of the view, moved by the cursor keys (or xemu's keypad), and
 Return does what a click on its hexagon would; Tab or Esc puts it
-away. The cursor keys go up and down by zigzagging between a column and
+away. **The ring follows the orders** (26 Oct 2026, the user's): when
+they pass to another unit, and on `c`, it goes onto the active unit
+(`select_follow()`). The cursor keys go up and down by zigzagging between a column and
 the one east of it, so all four reach every hexagon. While it is up the
 ring blinks instead of the active unit, the hover readout follows the
 ring, and other keys (`b`, `f`, the menus, HELP) work as usual.

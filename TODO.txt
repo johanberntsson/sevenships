@@ -83,6 +83,12 @@ OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
 
+DONE (26 Oct): tile select's ring follows the orders: when they pass to another unit, and
+on c, the ring goes onto the active unit (select_follow() in game.c). Paid for by title.c's
+describe_civ() line going to LOW_FREE; resident room 70 bytes after. Checked headlessly:
+a settler moved by the ring hands the ring to the warrior, and c brings it back from two
+hexagons away. Not tried on a real MEGA65
+
 DONE (26 Oct): ten save slots, SEVENSHIPS.SV0 to .SV9, each with a comment that starts as
 "leader - people - year" and is typed in on Game/Save Game's slot screen; Load Saved Game
 on the title screen lists them. save.c moved to region 6 (216 bytes left there). Checked

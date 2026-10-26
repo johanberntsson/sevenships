@@ -187,7 +187,7 @@ static void draw_screen(byte id)
 // keeps the name and the title apart for the letters.
 static void describe_civ(byte i)
 {
-    static char line[SCREEN_COLUMNS + 1];
+    static char line[SCREEN_COLUMNS + 1] LOW_FREE;   // rebuilt each time
     const char *parts[4];
     byte n = 0, p;
     const char *s;

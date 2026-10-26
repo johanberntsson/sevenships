@@ -278,6 +278,17 @@ void hover_on(byte ax, byte ay)
     hover_dirty = 1;
 }
 
+// Tile select's ring onto unit u, if it is up: when the orders pass to a
+// unit, and on c, the ring goes with them.
+static void select_follow(byte u)
+{
+    if (!selecting) return;
+    sel_ax = unit_ax[u];
+    sel_ay = unit_ay[u];
+    dirty = 1;
+    hover_dirty = 1;
+}
+
 // Hand the orders to the next unit after `after` that wants some, bringing
 // it into view. With none left, the panel asks for the end of the turn.
 void select_unit(byte after)
@@ -294,7 +305,10 @@ void select_unit(byte after)
     // turn with nobody to give orders to still waits for Return.
     end_due = was != UNIT_NONE && u == UNIT_NONE;
     if (was != u) dirty = 1;   // another unit blinks
-    if (u != UNIT_NONE) hover_on(unit_ax[u], unit_ay[u]);
+    if (u != UNIT_NONE) {
+        hover_on(unit_ax[u], unit_ay[u]);
+        select_follow(u);
+    }
     if (u != UNIT_NONE && !in_view(unit_ax[u], unit_ay[u]))
         centre_on(unit_ax[u], unit_ay[u]);
     draw_orders();
@@ -342,6 +356,7 @@ void unit_key(byte key)
         break;
     case 'c':                               // bring it into the middle
         centre_on(unit_ax[u], unit_ay[u]);
+        select_follow(u);
         break;
     case 'g':                               // tile select picks where to
         select_begin();
@@ -474,17 +489,16 @@ static void select_begin(void)
 {
     word cx = off_x + VIEW_COLUMNS / 2;
 
+    selecting = 1;
     if (unit_active != UNIT_NONE) {
-        sel_ax = unit_ax[unit_active];
-        sel_ay = unit_ay[unit_active];
+        select_follow(unit_active);
     } else {
         if (cx >= MAP_WIDTH_CHARS) cx -= MAP_WIDTH_CHARS;
         map_cell_at(cx, off_y + VIEW_ROWS / 2, &sel_ax, &sel_ay);
+        dirty = 1;
+        hover_dirty = 1;
     }
-    selecting = 1;
     message("Tile select:", "Tab to leave");
-    dirty = 1;
-    hover_dirty = 1;
 }
 
 static void select_end(void)
