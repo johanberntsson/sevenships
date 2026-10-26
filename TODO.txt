@@ -11,14 +11,16 @@ NEXT (CLAUDE.md "Where to start next time"):
    levels (the AI pays 150-70%); the peoples' starts and advantages (the people screen,
    chariots'/ships' costs in CHANGE, Egypt's food box, Canaanite BUY); Advisors/Finance
    (region 8) with the scribes' + and -, and a tablet's popup; the Orders menu's Build a
-   Road and Go To; the three new wonders in CHANGE, Help/Buildings and their popups, and
-   what they do; GOTO with a galley and its cargo, a unit blocked on the way, a save and
-   load during one; the city buildings (see DONE above)
-Room (25 Oct, after the city buildings): resident 48 bytes, region 0 1 KB, region 1 72 bytes,
-region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7 KB, region 6 2.9 KB,
-region 7 1.9 KB, region 8 (the treasury, the scribes, the starts) 2.0 KB, highram 275
-bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
-Resident and region 1 need room made before anything grows there
+   Road and Go To; GOTO with a galley and its cargo, a unit blocked on the way, a save and
+   load during one; the city buildings; the ten save slots; tile select's ring following
+   the orders; Help/Peoples and Help/Clay Tablets (see DONE). Confirmed there on 25 Oct:
+   GOTO, the city cap, roads, the wonders
+Room (26 Oct, after Help/Peoples and Clay Tablets): resident 70 bytes, region 0 1.7 KB,
+region 1 72 bytes, region 2 0.9 KB, region 3 1.4 KB, region 4 0.6 KB, region 5 0.7 KB,
+region 6 98 bytes, region 7 1.5 KB, region 8 (the treasury, the scribes, the starts)
+1.7 KB, highram 234 bytes, LOW_FREE 603 bytes; the tile sheet 6 KB, about four units;
+attic's bank 1 is full with eight regions. Resident, region 1 and region 6 need room made
+before anything grows there
 
 TUNING, from play
 - THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
@@ -28,8 +30,9 @@ TUNING, from play
 - The collapse, merchant ships, gold and the upkeep allowances (treasury.h), the scribes'
   costs and the AI's pay (tablets.h), legacy's weight in the score, how often vassals
   come (SUBMIT_RATIO, diplomacy.h), the peoples' advantages and the levels' percentages
-- Trade: AIs only ask one turn in eight; goods are few (most peoples own one or two), so
-  deals are rare -- two in 300 turns of autoplay on seed 1
+- Trade: AIs only ask one turn in eight; goods are few (most peoples own one or two).
+  With merchant fleets, 18, 14 and 4 deals were made in 400 turns on seeds 1, 3 and 7, and
+  most lapsed for want of ships (the AI agrees deals it cannot serve)
 - Diplomacy: wars come from crowding (cities of two peoples within 7 hexagons), and are
   few. A computer player accepts a ceasefire the turn the human declares war on it if it
   is the weaker
@@ -44,8 +47,8 @@ POLISH AND DETAILS
   recoloured orange trees); no art of their own for the temple and the wonders (a city in
   the Civilopedia); the Sea Peoples' raiders have no ship of their own (a galley with a
   barbarian flag)
-- The Civilopedia's pages (Help/Terrain Types, Military Units, Buildings) are placeholders,
-  and there is none on the tablets
+- The Civilopedia's pages on terrains, units and buildings (Help/Terrain Types, Military
+  Units, City Buildings, Wonders) are placeholders; Peoples and Clay Tablets are fuller
 - The AI's units do not seek out roads in approach() (moving along one is cheaper anyway)
 - The AI's galleys only escort; they do not hunt the Sea Peoples
 - The Crisis: a deal ending when the sender no longer owns the good, or a raid cuts its
@@ -76,6 +79,12 @@ under OPEN above. Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.
 OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
+
+DONE (26 Oct): Help/Peoples, a page for each people (ruler, capital, starting resource,
+advantage, the wonder its AI builds first) and one for the barbarians and the Sea Peoples;
+and Help/Clay Tablets, a page each for Linear B, the law code and the alphabet. Checked
+headlessly: the menus and a page of each kind. Region 6 has 98 bytes left. Not tried on a
+real MEGA65
 
 DONE (26 Oct): tile select's ring follows the orders: when they pass to another unit, and
 on c, the ring goes onto the active unit (select_follow() in game.c). Paid for by title.c's

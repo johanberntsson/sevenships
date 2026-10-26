@@ -19,7 +19,7 @@ Markup:
     {COLOUR}      ink: white red cyan green blue yellow lightgreen grey,
                   or key (yellow), text (lightgreen), head (white);
                   {rev COLOUR} is the same in reverse
-    {A|B}         A on a real MEGA65, B in xemu: {HELP|F1}
+    {A|B}         A on a real MEGA65, B in xemu: {HELP|PgUp}
     {arg N}       the Nth string the caller passes; only popup_add_text()
                   fills these in, so they are for popups, which take plain
                   text, line breaks and arguments and nothing else

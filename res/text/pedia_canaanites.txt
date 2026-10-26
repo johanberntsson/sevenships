@@ -1,0 +1,16 @@
+# The Civilopedia's page on the Canaanites: Help/Peoples.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}CANAANITES
+{at 42 6}{grey}People
+{at 6 9}{head}Canaanites
+{text}  Ruler: Niqmaddu II, King of Ugarit
+  Capital: Ugarit
+  Starts by: cedar or purple dye
+  Advantage: buying costs a third less,
+  and each trade deal a gold more a turn
+  Wonder: the Great Harbour of Ugarit
+{at 6 17}{text}The merchant cities of the Levant coast, Ugarit, Byblos, Sidon and
+Tyre, the middlemen between Egypt, Hatti and the Aegean. They own the
+cedar and the purple dye, and pay mercenaries rather than raise armies:
+gold buys them more. Led by the computer, they build the Great Harbour
+of Ugarit before any other wonder.

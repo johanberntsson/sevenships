@@ -1,0 +1,15 @@
+# The Civilopedia's page on Linear B: Help/Clay Tablets.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}LINEAR B
+{at 42 6}{grey}Clay Tablet
+{at 6 9}{head}Linear B
+{text}  Knowledge: 100 points
+  Effect: your cities lose a quarter
+  less to corruption
+  Legacy: 10 points, 20 if the first
+  in the world
+{at 6 16}{text}The script of the Mycenaean palaces, in which their scribes counted
+sheep, bronze and oil. Kept accounts lose less on the way to the
+capital. Knowledge comes from the scribes: each gold paid them a turn
+(Advisors/Finance, + and -) is a point, and each edubba adds more. The
+tablets are set down in turn: Linear B, a law code, the alphabet.

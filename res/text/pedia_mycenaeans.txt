@@ -1,0 +1,16 @@
+# The Civilopedia's page on the Mycenaeans: Help/Peoples.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}MYCENAEANS
+{at 42 6}{grey}People
+{at 6 9}{head}Mycenaeans
+{text}  Ruler: Agamemnon, Wanax of Mycenae
+  Capital: Mycenae
+  Starts by: wine or olives
+  Advantage: ships cost a quarter less
+  Wonder: the Lion Gate
+{at 6 16}{text}The palace kingdoms of mainland Greece, behind their great walls:
+Mycenae, Tiryns, Pylos, Thebes. Their hills give wine and olive oil
+but little grain, so they look to the sea, trading with the coasts and
+islands round them and raiding them as well. Their ships are cheaper
+to build. Led by the computer, they build the Lion Gate before any
+other wonder.

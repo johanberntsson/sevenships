@@ -1,0 +1,15 @@
+# The Civilopedia's page on the alphabet: Help/Clay Tablets.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}ALPHABET
+{at 42 6}{grey}Clay Tablet
+{at 6 9}{head}Alphabet
+{text}  Knowledge: 600 points
+  Effect: your trade deals bring twice
+  the gold
+  Legacy: 10 points, 20 if the first
+  in the world
+{at 6 16}{text}Thirty signs pressed into clay, as the scribes of Ugarit wrote them,
+in place of hundreds: writing for merchants, not only for palaces.
+Trade deals bring twice the gold. The third and last tablet, after
+Linear B and a law code; knowledge comes from the scribes
+(Advisors/Finance, + and -) and the edubbas.

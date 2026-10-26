@@ -118,7 +118,9 @@ void game_menu_command(byte command)
         open_help(TEXT_HELP);
         break;
     default:
-        if (command >= MENU_UNIT)
+        if (command >= MENU_PAGE)
+            open_help(TEXT_PEDIA_MYCENAEANS + (command - MENU_PAGE));
+        else if (command >= MENU_UNIT)
             open_help(TEXT_PEDIA_SETTLER + (command - MENU_UNIT - KIND_SETTLER));
         else if (command >= MENU_TERRAIN)
             open_help(TEXT_PEDIA_HILLS + (command - MENU_TERRAIN));

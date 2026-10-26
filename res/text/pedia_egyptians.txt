@@ -1,0 +1,16 @@
+# The Civilopedia's page on the Egyptians: Help/Peoples.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}EGYPTIANS
+{at 42 6}{grey}People
+{at 6 9}{head}Egyptians
+{text}  Ruler: Thutmose III, King of Egypt
+  Capital: Waset
+  Starts by: grain
+  Advantage: cities need a quarter less
+  food to grow
+  Wonder: the Temple of Karnak
+{at 6 16}{text}The kingdom of the Nile in its New Kingdom, ruled from Waset, which
+the Greeks called Thebes. The river's flood makes it the richest land
+in grain and men, and its cities grow faster than anyone's. It has no
+cedar for ships and no tin for bronze, and must trade for both. Led by
+the computer, it builds the Temple of Karnak before any other wonder.

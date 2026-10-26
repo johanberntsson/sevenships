@@ -1,0 +1,15 @@
+# The Civilopedia's page on the law code: Help/Clay Tablets.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}LAW CODE
+{at 42 6}{grey}Clay Tablet
+{at 6 9}{head}Law Code
+{text}  Knowledge: 300 points
+  Effect: five more cities before the
+  realm costs gold
+  Legacy: 10 points, 20 if the first
+  in the world
+{at 6 16}{text}Laws written down and set up for all to see, of Hammurabi's kind, or
+the Hittite kings'. A realm held by law can be larger: ten cities are
+free of the realm's cost, and with a law code fifteen. The second
+tablet, after Linear B; knowledge comes from the scribes
+(Advisors/Finance, + and -) and the edubbas.

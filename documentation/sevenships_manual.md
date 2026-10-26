@@ -1,6 +1,6 @@
 # Seven Ships of the Enemy — Player's Manual
 
-*First draft, 25 October 2026.*
+*First draft, 25 October 2026; brought up to date 26 October 2026.*
 
 > *"My father, behold, the enemy's ships came; my cities were burned, and
 > they did evil things in my country. Does not my father know that all my
@@ -37,7 +37,8 @@ of hexagons.
 
 You choose one; the computer leads the other three. Every people is in every
 game. There are also **barbarians**, who own no kingdom but raid everybody,
-and late in the game the **Sea Peoples**.
+and late in the game the **Sea Peoples**. Help → Peoples has a page on
+each people, and one on the barbarians and the Sea Peoples.
 
 ## 2. Starting a game
 
@@ -93,7 +94,7 @@ pointer, and the button acts as a click.
 | **r** | Build a road (builder) |
 | **w** | Wait: ask again after the other units |
 | **space** | Skip this unit's turn |
-| **c** | Centre the map on the unit |
+| **c** | Centre the map on the unit (and, in tile select, the ring) |
 | **Return** | End the turn (when the panel asks) |
 
 ### The map and the game
@@ -238,7 +239,8 @@ and the fish yields a food more for good.
 Ships sail the **shallows** only, and their own cities. **A galley carries
 two land units**: step onto it to board; they are woken when it stops next
 to land, to step ashore. The fishing boat explores the coasts and works
-fish. The merchant ship carries trade and founds emporia (section 10).
+fish. The merchant ship carries trade and founds emporia (section 10). Help →
+Military Units has a page on each unit.
 
 **Go to** (**g**): pick a hexagon, and the unit walks there by itself over
 the explored land (or a ship over the shallows), turn after turn, and asks
@@ -376,7 +378,7 @@ turn. Each gold paid is a point of **knowledge** — and each edubba
 | **The alphabet** | 600 | Your trade deals bring twice the gold |
 
 Each is worth legacy (section 12): 10 points, 20 for the first people in
-the world to set it down.
+the world to set it down. Help → Clay Tablets has a page on each.
 
 ## 12. Culture and legacy
 

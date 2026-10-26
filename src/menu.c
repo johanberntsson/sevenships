@@ -10,6 +10,7 @@
 #include "menu.h"
 #include "game.h"
 #include "input.h"
+#include "civ.h"
 #include "map.h"
 #include "minimap.h"
 #include "screen.h"
@@ -93,10 +94,24 @@ static const byte *const kind_order[] = {
 #if MENU_UNIT != MENU_TERRAIN + TERRAIN_COUNT
 #error "MENU_UNIT in menu.h has to follow the terrains' commands"
 #endif
+#if MENU_PEOPLES != MENU_UNIT + BUILD_KINDS
+#error "MENU_PEOPLES in menu.h has to follow the kinds' commands"
+#endif
+// Peoples' are res/text/list_peoples.txt, the barbarians last, and Clay
+// Tablets' list_tablets.txt, both in their own order: each opens a page
+// from TEXT_PEDIA_MYCENAEANS, the peoples' then the tablets'.
+#define PEOPLE_PAGES (CIVS + 1)
+#define TABLET_PAGES 3
 static const char *const sub_heading[] = {
     "Options:", "Terrain Types:", "Military Units:", "City Buildings:",
-    "Wonders:"
+    "Wonders:", "Peoples:", "Clay Tablets:"
 };
+// The commands that open them, in the same order.
+static const byte sub_command[] = {
+    MENU_OPTIONS, MENU_TERRAINS, MENU_UNITS, MENU_BUILDINGS, MENU_WONDERS,
+    MENU_PEOPLES, MENU_TABLETS
+};
+#define SUBMENUS (sizeof sub_command)
 
 // Orders depends on the unit that has them, and menu_orders() fills it in.
 static const char *orders_items[4];
@@ -122,36 +137,39 @@ static const byte world_commands[] = { MENU_TOP_CITIES, MENU_SCORE };
 
 static const char *const help_items[] = {
     "Keyboard Control", "Terrain Types", "Military Units", "City Buildings",
-    "Wonders"
+    "Wonders", "Peoples", "Clay Tablets"
 };
 static const byte help_commands[] = {
-    MENU_KEYS, MENU_TERRAINS, MENU_UNITS, MENU_BUILDINGS, MENU_WONDERS
+    MENU_KEYS, MENU_TERRAINS, MENU_UNITS, MENU_BUILDINGS, MENU_WONDERS,
+    MENU_PEOPLES, MENU_TABLETS
 };
+#define HELP_ITEMS (sizeof help_commands)
 
 #ifdef DEBUG_MENU
-static const char *const *const menu_items[MENUS + 5] = {
+static const char *const *const menu_items[MENUS + SUBMENUS] = {
     game_items, orders_items, advisors_items, world_items, debug_items,
-    help_items, options_items, 0, 0, 0, 0
+    help_items, options_items
 };
-static const byte *const menu_commands[MENUS + 5] = {
+static const byte *const menu_commands[MENUS + SUBMENUS] = {
     game_commands, orders_commands, advisors_commands, world_commands,
-    debug_commands, help_commands, options_commands, 0, 0, 0, 0
+    debug_commands, help_commands, options_commands
 };
-static byte menu_count[MENUS + 5] = {
-    GAME_ITEMS, 0, 4, 2, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES,
-    WONDER_PAGES
+static byte menu_count[MENUS + SUBMENUS] = {
+    GAME_ITEMS, 0, 4, 2, 2, HELP_ITEMS, 1, TERRAIN_COUNT, UNIT_PAGES,
+    BUILDING_PAGES, WONDER_PAGES, PEOPLE_PAGES, TABLET_PAGES
 };
 #else
-static const char *const *const menu_items[MENUS + 5] = {
+static const char *const *const menu_items[MENUS + SUBMENUS] = {
     game_items, orders_items, advisors_items, world_items, help_items,
-    options_items, 0, 0, 0, 0
+    options_items
 };
-static const byte *const menu_commands[MENUS + 5] = {
+static const byte *const menu_commands[MENUS + SUBMENUS] = {
     game_commands, orders_commands, advisors_commands, world_commands,
-    help_commands, options_commands, 0, 0, 0, 0
+    help_commands, options_commands
 };
-static byte menu_count[MENUS + 5] = {
-    GAME_ITEMS, 0, 4, 2, 5, 1, TERRAIN_COUNT, UNIT_PAGES, BUILDING_PAGES, WONDER_PAGES
+static byte menu_count[MENUS + SUBMENUS] = {
+    GAME_ITEMS, 0, 4, 2, HELP_ITEMS, 1, TERRAIN_COUNT, UNIT_PAGES,
+    BUILDING_PAGES, WONDER_PAGES, PEOPLE_PAGES, TABLET_PAGES
 };
 #endif
 
@@ -161,15 +179,17 @@ static byte menu_count[MENUS + 5] = {
 #define OPTIONS MENUS           // the submenus
 #define TERRAINS (MENUS + 1)
 #define UNITS (MENUS + 2)       // these three by kind_order[]
-#define BUILDINGS (MENUS + 3)
-#define WONDERS_MENU (MENUS + 4)
+#define PEOPLES (MENUS + 5)     // and these two by their lists
+#define TABLETS (MENUS + 6)
 
 // The menu each submenu opens from.
-static const byte sub_parent[] = { 0, HELP, HELP, HELP, HELP };
+static const byte sub_parent[] = { 0, HELP, HELP, HELP, HELP, HELP, HELP };
 
 static const char *item_name(byte m, byte i)
 {
     if (m == TERRAINS) return text_line(TEXT_LIST_TERRAINS, terrain_order[i]);
+    if (m == PEOPLES) return text_line(TEXT_LIST_PEOPLES, i);
+    if (m == TABLETS) return text_line(TEXT_LIST_TABLETS, i);
     if (m >= UNITS) return unit_kind_name[kind_order[m - UNITS][i]];
     return menu_items[m][i];
 }
@@ -177,6 +197,8 @@ static const char *item_name(byte m, byte i)
 static byte item_command(byte m, byte i)
 {
     if (m == TERRAINS) return MENU_TERRAIN + terrain_order[i];
+    if (m == PEOPLES) return MENU_PAGE + i;
+    if (m == TABLETS) return MENU_PAGE + PEOPLE_PAGES + i;
     if (m >= UNITS) return MENU_UNIT + kind_order[m - UNITS][i];
     return menu_commands[m][i];
 }
@@ -366,16 +388,12 @@ static byte run(byte m, byte sel)
             if (key == KEY_RETURN || key == KEY_SPACE) i = sel;
             if (i != 0xff) {
                 key = item_command(m, i);
-                if (key != MENU_OPTIONS && key != MENU_TERRAINS
-                    && key != MENU_UNITS && key != MENU_BUILDINGS
-                    && key != MENU_WONDERS) {
+                for (was = 0; was < SUBMENUS; ++was)
+                    if (key == sub_command[was]) next = MENUS + was;
+                if (next == m) {
                     close_drop();
                     return key;
                 }
-                next = key == MENU_OPTIONS ? OPTIONS
-                       : key == MENU_TERRAINS ? TERRAINS
-                       : key == MENU_UNITS ? UNITS
-                       : key == MENU_BUILDINGS ? BUILDINGS : WONDERS_MENU;
                 parent_left = drop_left;
                 parent_width = drop_width;
                 parent_rows = n + 2;

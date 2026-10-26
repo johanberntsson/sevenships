@@ -1,0 +1,18 @@
+# The Civilopedia's page on the barbarians and the Sea Peoples:
+# Help/Peoples. The markup is described in tools/mktext.py.
+{at 42 4}{head}BARBARIANS
+{at 42 6}{grey}and the Sea Peoples
+{at 6 9}{head}Barbarians
+{text}  Bands: from turn 30, on empty land
+  The Sea Peoples: by ship, from 1200 BC
+  Raider: attack 3, defence 1
+  Rebels: the lost cities of a broken people
+  At war with everybody, always
+{at 6 16}{text}Bands of warriors who belong to no kingdom appear far from anyone and
+attack whatever is near, and burn the cities they take. They come more
+often, and more of them, on the harder levels.
+From 1200 BC the Sea Peoples come by galley, two raiders a ship, to the
+richest cities by the sea, more and more often towards the end. They
+attack from their ships, sink merchant ships and burn what they take.
+A people that loses its capital may break up: its far cities go over to
+the rebels, barbarian cities with a guard, which can be taken.

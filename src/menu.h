@@ -37,7 +37,10 @@
 #define MENU_WONDERS 27         // opens Wonders; never returned
 #define MENU_LOAD 28
 #define MENU_TERRAIN 29         // + a terrain, TILE_HILLS to TILE_FLOODPLAIN
-#define MENU_UNIT 39            // + a KIND_*, buildings too, after the terrains; last
+#define MENU_UNIT 39            // + a KIND_*, buildings too, after the terrains
+#define MENU_PEOPLES 57         // opens Peoples, after the kinds; never returned
+#define MENU_TABLETS 58         // opens Clay Tablets; never returned
+#define MENU_PAGE 59            // + a page from TEXT_PEDIA_MYCENAEANS; last
 
 // What the Orders menu offers, for the unit that has the orders: up to four
 // of MENU_FOUND_CITY, MENU_FORTIFY, MENU_IRRIGATE, MENU_PASTURE, MENU_MINE,

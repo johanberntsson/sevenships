@@ -13,6 +13,7 @@
 #define help_screen help_screen_r0
 
 #include "help.h"
+#include "civ.h"
 #include "input.h"
 #include "screen.h"
 #include "sheet.h"
@@ -48,7 +49,7 @@ static void draw_picture(byte t)
 
 void help_screen(byte id)
 {
-    byte key, k;
+    byte key, k, picture = 1;
 
     sprite_hide(2);             // the minimap's outline, which is gone
     sprite_hide(3);
@@ -64,11 +65,28 @@ void help_screen(byte id)
         view_draw_tile(PICTURE_LEFT - VIEW_LEFT + 4, PICTURE_TOP - VIEW_TOP,
                        k < KINDS ? unit_kind_tile[k] : TILE_CITY);
     }
+    // A people's (Help/Peoples): a city on grassland with the flag its
+    // player's are drawn with, and the barbarians' a raider with theirs.
+    // The clay tablets' have no picture.
+    k = id - TEXT_PEDIA_MYCENAEANS;
+    if (id >= TEXT_PEDIA_MYCENAEANS) {
+        if (k <= CIVS) {
+            draw_picture(TILE_GRASS);
+            view_draw_tile(PICTURE_LEFT - VIEW_LEFT + 4, PICTURE_TOP - VIEW_TOP,
+                           k < CIVS ? TILE_CITY : TILE_RAIDER);
+            view_draw_flag(PICTURE_LEFT - VIEW_LEFT + 4, PICTURE_TOP - VIEW_TOP,
+                           k < CIVS ? (byte)((k + CIVS - player_civ[0]) % CIVS)
+                                    : PLAYER_BARBARIAN);
+        } else {
+            picture = 0;
+        }
+    }
     screen_clear();
     if (id != TEXT_HELP) {      // a page, framed as Civilization's are
         screen_box(0, 0, SCREEN_COLUMNS - 1, SCREEN_ROWS - 1, COLOR_GREEN);
-        view_restore(PICTURE_LEFT - VIEW_LEFT, PICTURE_TOP - VIEW_TOP,
-                     PICTURE_COLUMNS, PICTURE_ROWS);
+        if (picture)
+            view_restore(PICTURE_LEFT - VIEW_LEFT, PICTURE_TOP - VIEW_TOP,
+                         PICTURE_COLUMNS, PICTURE_ROWS);
     }
     text_show(id);
 

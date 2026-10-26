@@ -1,0 +1,5 @@
+# The clay tablets, in the order they are set down (tablets.h): the
+# Help/Clay Tablets menu.
+Linear B
+Law Code
+Alphabet

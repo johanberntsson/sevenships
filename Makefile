@@ -208,7 +208,16 @@ TEXTS    = $(RES)/text/help.txt \
            $(RES)/text/pedia_ugarit.txt \
            $(RES)/text/pedia_stele.txt \
            $(RES)/text/pedia_edubba.txt \
-           $(RES)/text/pedia_hall.txt
+           $(RES)/text/pedia_hall.txt \
+           $(RES)/text/pedia_mycenaeans.txt \
+           $(RES)/text/pedia_hittites.txt \
+           $(RES)/text/pedia_egyptians.txt \
+           $(RES)/text/pedia_canaanites.txt \
+           $(RES)/text/pedia_barbarians.txt \
+           $(RES)/text/pedia_linear_b.txt \
+           $(RES)/text/pedia_law_code.txt \
+           $(RES)/text/pedia_alphabet.txt \
+           $(RES)/text/list_tablets.txt
 TEXT_PAK = $(BUILD)/text.pak
 TEXT_IDS = $(BUILD)/textid.h
 

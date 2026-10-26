@@ -1,0 +1,15 @@
+# The Civilopedia's page on the Hittites: Help/Peoples.
+# The markup is described in tools/mktext.py.
+{at 42 4}{head}HITTITES
+{at 42 6}{grey}People
+{at 6 9}{head}Hittites
+{text}  Ruler: Suppiluliuma, Great King of Hatti
+  Capital: Hattusa
+  Starts by: copper
+  Advantage: chariots cost a quarter less
+  Wonder: the Palace of Knossos
+{at 6 16}{text}The great kingdom of Anatolia, ruled from Hattusa in the highlands,
+whose kings called the Pharaoh their brother. They hold the copper of
+the mountains and are famous for their chariots, which cost them less.
+An inland power, strong in war on land. Led by the computer, they
+build the Palace of Knossos before any other wonder.

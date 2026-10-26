@@ -80,7 +80,7 @@ most important routines included in each source file.
 | &nbsp;&nbsp;&nbsp;_civ\_choose_ | which people the human and the computer lead |
 |  |  |
 | cityscreen.c | the city screen: the city and its two rings of hexagons, and its production |
-| help.c | the help screen: every key and click the map screen answers to |
+| help.c | the help screen, every key and click the map screen answers to, and the Civilopedia's pages: terrains, units, buildings and wonders, the peoples and the barbarians, and the clay tablets |
 | text.c | the long texts: read into Attic RAM at start-up, drawn from there |
 | &nbsp;&nbsp;&nbsp;_text\_show_ | draws one text, following its markup for position and colour |
 | topcities.c | the Top Five Cities screen, opened from World (empty so far) |
@@ -170,7 +170,7 @@ to `release/`), holding these files:
 | AUTOBOOT.C65 | the program, a C65-mode PRG loaded at \$2001 |
 | TILES.FCI | the tile sheet: a palette and 39 tiles of 4x4 full colour characters |
 | SEVENSHIPS.MAP | the map: a 16-byte header and one 4096-byte layer of terrain |
-| TEXT.PAK | the texts -- the title, help and new-game screens, the opening popup, and the lists of names -- with their markup |
+| TEXT.PAK | the texts -- the title, help and new-game screens, the opening popup, the letters, the Crisis's popups, the Civilopedia's pages and the lists of names -- with their markup |
 | SEVENSHIPS.R1 | code region 1, the computer players and the cities' growth: a header and the code, kept in Attic RAM and run at \$6000 from bank 1 |
 | SEVENSHIPS.R2 | code region 2, Top Five Cities, the builders' improvements and roads, the unit's orders keys and what the computer players' cities build, the same way |
 | SEVENSHIPS.R3 | code region 3, diplomacy, the same way |
@@ -239,20 +239,20 @@ BASIC ROM and is the program's once `src/bank.s` has banked BASIC out, before
 `main()` runs. **\$6000-\$7fff of the 32 KB is a code window** (see
 *Code banking* below): resident code lives on either side of it, and the
 window shows one region of code at a time. The figures below are from the linker's listing,
-`build/sevenships.lst`, for the build of 25 October 2026.
+`build/sevenships.lst`, for the build of 26 October 2026.
 
 | **Address range** | **KB** |  **Usage** |
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1c20 | 1.5 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view and the minimap, and the route search of the galleys and of GOTO |
-| \$1c21-\$1eff | 0.7 | free |
-| \$2001-\$5ad3 | 14.7 | BASIC stub, startup and resident code |
-| \$5ad4-\$5b32 | 0.1 | initialised data: the DMA lists |
-| \$5b33-\$5c32 | 0.25 | C stack |
-| \$5c33-\$5e19 | 0.5 | BSS: small state |
-| \$5e1a-\$5fff | 0.5 | free |
-| \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.2 KB used) |
+| \$1638-\$1ca4 | 1.6 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the title's people line, and the route search of the galleys and of GOTO |
+| \$1ca5-\$1eff | 0.6 | free |
+| \$2001-\$5d08 | 15.3 | BASIC stub, startup and resident code |
+| \$5d09-\$5d55 | 0.1 | initialised data: the DMA lists |
+| \$5d56-\$5e55 | 0.25 | C stack |
+| \$5e56-\$5fb9 | 0.35 | BSS: small state |
+| \$5fba-\$5fff | 0.07 | free |
+| \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.3 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
 | \$a000-\$bf15 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
 | \$bf16-\$bfff | 0.2 | free |
@@ -304,18 +304,20 @@ of a whole region takes about 3.3 ms on the real machine, which is
 nothing for code that runs once a turn or once a click, so the number of
 regions is limited only by the tables in `src/dispatch.s`; what must not
 happen is two regions of one slot calling each other in a loop. Region 0
-holds the screens that are not the map -- title, setup, help -- with
-save and load, the loaders of the tile sheet and the map, the end of a
+holds the screens that are not the map -- title, setup, help and the
+Civilopedia's pages -- with the loaders of the tile sheet and the map, the end of a
 turn and the readout of what is under the arrow;
 region 1 holds the computer players and the cities' yields and growth;
-region 2 Top Five Cities, the builders'
-improvements and what the computer players' cities build, which calls
+region 2 Top Five Cities, the fights' popups, the builders'
+improvements and roads, the unit's orders keys, and what the computer
+players' cities build and where their settlers found cities, which calls
 the improvements for every city and so is beside them; region 3
 diplomacy; region 4 trade, the ships' routes, exploring and fishing,
 merchant ships and emporia, and GOTO; region 5 the Crisis and the peoples'
-collapse, the score and the end of the game, and the pictures; region 6
-the menus and their commands, buildings and wonders, and saving; region 7 the
-city screen; region 8 the treasury and the scribes.
+collapse, the score and the end of the game, the pictures and the
+military advisor; region 6 the menus and their commands, buildings and
+wonders, the cities advisor, and saving and loading; region 7 the city
+screen; region 8 the treasury, the scribes and where the peoples start.
 
 Resident code calls a function in a region through a stub of the same
 name (`src/dispatch.s`), which maps the region in (copying it into its
@@ -364,7 +366,7 @@ the store is 94208 bytes, which leaves banks 2 and 3, the ROM, alone. A larger
 window would need the ROM banked out, with everything that brings with it;
 `src/view.h` stops the build if the store outgrows \$60000.
 
-**The expanded sheet** is the tile art as it is drawn: 39 tiles of 8x4
+**The expanded sheet** is the tile art as it is drawn: 46 tiles of 8x4
 characters, 2 KB each as drawn, but packed. It is in chip RAM rather
 than in Attic RAM because the redraw copies about 160 KB out of it, and DMA
 reading Attic RAM is about seven times slower than reading chip RAM on the
@@ -375,7 +377,7 @@ program notes which characters of each tile row have any pixels, keeps
 only those, and records where each row went, its bank and address: a
 unit or an improvement, a small picture in the middle of its tile, then
 takes a fraction of a whole tile's room and costs a fraction of its
-copying. The 39 tiles take 56 KB of the 68 KB the two parts hold. No
+copying. The 46 tiles take 62 KB of the 68 KB the two parts hold. No
 row crosses a bank, so a source address is 16 bits, and the redraw
 changes the DMA's source bank only when a row is in the other part.
 
@@ -514,7 +516,7 @@ to land, those aboard are asked for orders and can step ashore.
 Everything can be done from the keyboard alone, since not every MEGA65 has
 a mouse. Tab starts tile select, as in Civilization: a blinking yellow ring
 on a hexagon, which the cursor keys move, and Return
-does what a click on that hexagon would. Tab or ESC ends it. MEGA (Alt in
+does what a click on that hexagon would; when the orders pass to another unit, or on `c`, the ring goes to it. Tab or ESC ends it. MEGA (Alt in
 xemu) and a menu title's first letter opens that menu.
 
 Otherwise the cursor keys scroll the view, HELP (PageUp in xemu) lists the keys, F1 to F4 open the advisors (cities, military, diplomacy and finance), and ESC

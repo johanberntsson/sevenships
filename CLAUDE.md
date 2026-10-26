@@ -213,13 +213,13 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 36 bytes free (26 Oct 2026, after the save slots and Load Game), at the top of `$2001-$5FFF` |
-| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.8 KB free (26 Oct 2026, when save and load moved to region 6) |
-| `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 0.3 KB free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 1.2 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.9 KB free) region 3 (diplomacy; 2.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.8 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 175 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 2.3 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 70 bytes free (26 Oct 2026, after Help → Peoples and Clay Tablets), at the top of `$2001-$5FFF` |
+| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.7 KB free (26 Oct 2026) |
+| `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`; 0.9 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.5 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 0.6 KB free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 98 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 1.7 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; 234 bytes free (26 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
-| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), 735 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
+| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 603 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
@@ -894,7 +894,7 @@ stopped to play-test, a lot, before the next session):
    the score's Vassals column -- rare: a war won by far, or a long game);
    the difficulty levels; the peoples' starts and advantages; the scribes
    and the tablets on Advisors → Finance; the Orders menu's Build a Road
-   and Go To; the three new wonders and what they do; GOTO's corners (a
+   and Go To; GOTO's corners (a
    galley with cargo, a unit blocked on the way, a save during one);
    **the city buildings** (the stele, the edubba and the feasting hall
    in CHANGE, under BUY on the city screen, Help → City Buildings and
@@ -902,7 +902,9 @@ stopped to play-test, a lot, before the next session):
    gold -- the last two not even tried headlessly); **the ten save
    slots** (26 Oct 2026: Game → Save Game, a comment typed in, Load
    Saved Game on the title screen and Game → Load Game, a slot "from
-   another version").
+   another version"); and from 26 Oct, tile select's ring following
+   the orders (to the next unit, and on `c`), and Help → Peoples and
+   Clay Tablets.
    Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
 3. **Tuning**, from play, as TODO.txt's OPEN lists it: the Crisis, left
    mild on purpose (its options are in TODO.txt and **The Crisis** above:
@@ -914,22 +916,25 @@ stopped to play-test, a lot, before the next session):
    53-104 a people to 88-190 by turn 255 (`LEGACY_TURNS` in
    `src/culture.h`, `building_for()`'s sizes in `src/aibuild.c`).
 4. **Polish**: art for the placeholder resources, the temple, the wonders
-   and the Sea Peoples' ships; the Civilopedia's pages, and one on the
-   tablets; the player's manual (`documentation/sevenships_manual.md`, a
+   and the Sea Peoples' ships; the Civilopedia's pages, which are
+   short (the terrains', units' and buildings' were written as
+   placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (48
-   bytes) or region 1 (72 bytes): **The way to resident room is
+5. **Make room first** before anything grows in resident code (70
+   bytes), region 1 (72 bytes) or region 6 (98 bytes): **The way to resident room is
    `game.c`** (`click_hex()`, tile select and the panel are the next
    candidates), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
-**Room is short in places** (26 Oct 2026, after the save slots):
-**resident 70 bytes** (36 after Game → Load Game; title.c's `describe_civ()` line went to `LOW_FREE` for tile select's ring, 26 Oct 2026), region 0 1.8 KB, **region 1 72 bytes** (`road_site()` took
-460), region 2 1.2 KB, region 3 1.5 KB, region 4 0.6 KB, region 5 0.7
-KB, **region 6 175 bytes** (the save slots took 2.7 KB), region 7 1.9
-KB, region 8 2.0 KB, **highram 234 bytes** (the road list took 440), `LOW_FREE` 735
-bytes. Resident room is
+**Room is short in places** (26 Oct 2026, after Help → Peoples and
+Clay Tablets): **resident 70 bytes** (36 after Game → Load Game;
+title.c's `describe_civ()` line went to `LOW_FREE` for tile select's
+ring), region 0 1.7 KB, **region 1 72 bytes** (`road_site()` took 460),
+region 2 0.9 KB, region 3 1.4 KB, region 4 0.6 KB, region 5 0.7 KB,
+**region 6 98 bytes** (the save slots took 2.7 KB, the two Help
+submenus 77), region 7 1.5 KB, region 8 1.7 KB, **highram 234 bytes**
+(the road list took 440), `LOW_FREE` 603 bytes. Resident room is
 the one to watch: the next thing that needs it should first move
 something out of `game.c` (**The way to resident room is `game.c`**).
 **The orders keys `b f i m p r`, the Orders menu's filling, and a step
@@ -1048,7 +1053,9 @@ to a unit's numbers has to be made on its page as well**; and
 **Buildings** (23 Oct 2026, `BUILDINGS`), the temple and the Lion Gate,
 `pedia_temple.txt` and `pedia_lion_gate.txt` after the units' pages,
 `MENU_UNIT` + their kinds, drawn as a city on grassland for want of art
-of their own. All of these
+of their own -- **City Buildings** and **Wonders** since 25 Oct 2026
+(**Buildings and wonders**); and **Peoples** and **Clay Tablets** since
+26 Oct (the same section). All of these
 take over the screen and `draw_screen()` puts the map back, as after
 HELP. **Debug exists only
 with `DEBUG_MENU`**, which the Makefile defines unless `DEBUG=0`, and
@@ -1119,15 +1126,17 @@ saved game could be loaded" (a `NO_TITLE` build plays a new game).
 `MENU_LOAD` is 28, which moved `MENU_TERRAIN` and `MENU_UNIT` up one.
 Checked headlessly: a save at turn 21, 20 more turns, then Load Game:
 turn 21 again, the map, the unit and city arrays and the gold
-byte-identical with a run that only saved. **Test builds need
-`CSTACK=160`** to link with a `FAKE_KEYS` script since then: resident
-room is 36 bytes. **It cost 2.7 KB of region 6** (region 0, where save.c was,
+byte-identical with a run that only saved. **Test builds needed
+`CSTACK=160`** to link with a `FAKE_KEYS` script then, at 36 bytes of
+resident room; at 70 (26 Oct 2026) a `NO_TITLE` build with a three-key
+script links without it. **It cost 2.7 KB of region 6** (region 0, where save.c was,
 had 1 KB), and gave region 0 back its 0.8. Checked headlessly: a save
 after 20 turns of autoplay into slot 3 with the comment edited, the list
 afterwards, and the slot loaded by a throwaway in a `NO_TITLE` build,
 the map, the unit and city arrays and the gold byte-identical. **A title
 build no longer links with even a five-key `FAKE_KEYS` script** (it did
-not at HEAD before the slots either), so the title's path to the screen
+not at HEAD before the slots either, and still does not at 70 bytes,
+even with `CSTACK=160`), so the title's path to the screen
 was not tried headlessly. **To get a save from one test disk to
 another**, `c1541 -attach A.d81 -read "sevenships.sv3,s" F` and
 `-write F "sevenships.sv3,s"` (without the `,s` the read is refused). The
@@ -1547,8 +1556,8 @@ are not): under it there were five in the world for 33 cities by turn
 seed 3 135 → 205 citizens, seed 7 121 → 184, all four peoples standing
 and about twice the gold; on seed 1 the Egyptians conquered the
 Mycenaeans by turn 226, as they did at a cap of 6 (they stood at 8
-before roads). Not yet: an Orders menu item for roads (region 6 is
-full), and the computer players weighing road moves in `approach()`.
+before roads). Orders → Build a Road came the same day; not yet: the
+computer players weighing road moves in `approach()`.
 
 **Pastures** (24 Oct 2026, the user's: irrigating horses for chariots
 felt wrong) are a third improvement for cattle and horses
@@ -2237,7 +2246,21 @@ Wonders** in place of Buildings (`MENU_WONDERS` 27, so the terrains' and
 units' commands moved up one; `building_order[]` and `wonder_order[]` in
 `src/menu.c`, alphabetical, with a check that every building is in one),
 and a page each, `pedia_stele.txt`, `pedia_edubba.txt` and
-`pedia_hall.txt` after Ugarit's. **They overflowed resident room by 3
+`pedia_hall.txt` after Ugarit's. **Help has Peoples and Clay Tablets
+too** (26 Oct 2026, the user's): submenus `PEOPLES` and `TABLETS` in
+`src/menu.c`, their items `list_peoples.txt` (the barbarians' line
+last, their page covering the Sea Peoples and the rebels) and
+`list_tablets.txt`, their commands `MENU_PAGE` + n after the kinds'
+(`MENU_PEOPLES` 57 and `MENU_TABLETS` 58 open them), opening
+`pedia_mycenaeans.txt` to `pedia_barbarians.txt` in `CIV_*` order and
+then `pedia_linear_b.txt`, `pedia_law_code.txt` and `pedia_alphabet.txt`,
+after the hall's in `TEXTS`. A submenu is now opened through
+`sub_command[]`, a table, not a chain of tests. A people's page shows a
+city on grassland with the flag of the player that people is this game
+(the barbarians' a raider); the tablets' pages have no picture, and
+`help_screen()` then leaves the picture's cells as text. **A change to
+a people's advantage, or to a tablet's effect, has to be made on its
+page as well.** Region 6 has 98 bytes since. **They overflowed resident room by 3
 bytes** (the names and costs fill `resHi`, and `buildable[]` is
 resident BSS though `cityscreen.c` is banked: **a banked file's statics
 are resident**), so the city screen's `buildable`, `listed` and `digits`
@@ -2295,7 +2318,8 @@ picture's file name has to be copied out of the region before the
 open**: the KERNAL's disk code reads it with its own map, which sees
 region 0 at `$6000`, and the first try failed to find `INTRO.PIC` for
 that reason (the loaders in region 0 pass literals and get away with
-it). `win_legacy.png` is not converted: no legacy victory yet. Checked
+it). `win_legacy.png` came with the legacy victory (23 Oct 2026,
+**Buildings and wonders**). Checked
 headlessly: the splash, the tiles' colours after it, and the survival
 picture and score at the end of a throwaway five-turn game.
 
@@ -2463,11 +2487,12 @@ another player's unit or city, or a way that has gone, stops the unit
 with its orders back ("Settler / cannot get through") — it never
 attacks. Arrived, it has its orders back, and is asked at once if it has
 moves left. A click on it or the city screen's list (where it is "on its
-way") wakes it. There is no Orders menu item for it (region 6 has 0.3
-KB). Checked headlessly on seed 1 with Show Map: four hexagons east in
+way") wakes it. Orders → Go To does the same as `g` (25 Oct 2026).
+Checked headlessly on seed 1 with Show Map: four hexagons east in
 four turns, a 6-step detour round water to a hexagon 5 away, and a
-target across the water refused. **Not yet tried**: a ship's GOTO, a
-unit blocked on the way, a save during one, and a real MEGA65.
+target across the water refused. **Confirmed on a real MEGA65** (25 Oct
+2026); **not yet tried**: a ship's GOTO, a unit blocked on the way, and
+a save during one.
 
 **The game knows when it is in xemu**: bit 5 of `$D60F` is set on a real
 MEGA65 and clear in xemu, read into `input_real_hw` by `input_init()`. In
@@ -2794,7 +2819,8 @@ collection to pick from.
 the user's): `intro.png` (1260x1000) for the start, and `defeat.png`,
 `win_survival.png`, `win_legacy.png` and `win_hegemony.png` (1280x800)
 for the end of milestone 10, one for each of vision.md's three victories
-and the loss. **All but `win_legacy.png` are shown** (22 Oct 2026, see
+and the loss. **All of them are shown** (22 Oct 2026, `win_legacy.png`
+on 23 Oct; see
 **Pictures**): `make` in `screens/` (Pillow, like `tiles/`) makes
 `res/*.pic` from them, which are checked in, and a preview of each in
 `screens/build/`. The full screen, 640x200, would be 125 KB, more than
