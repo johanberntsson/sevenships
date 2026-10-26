@@ -11,6 +11,7 @@
 // under these names here. Its own region since the city's reach became
 // two rings (23 Oct 2026), with the patch's drawing from view.c.
 #define city_screen city_screen_r7
+#define city_next_build city_next_build_r7
 
 #include "cityscreen.h"
 #include "city.h"
@@ -26,6 +27,9 @@
 #include "unit.h"
 #include "view.h"
 #include "road.h"
+#include "aiint.h"
+#include "gameint.h"
+#include "popup.h"
 
 #pragma clang section text="r7text" rodata="r7rodata"
 
@@ -690,7 +694,8 @@ static void toggle(byte c, byte i)
     draw_build(c);
 }
 
-void city_screen(byte c)
+// The city screen, with CHANGE's list open to begin with if `changing`.
+static void screen(byte c, byte changing)
 {
     const char *name = city_name_of(c);
     byte key;
@@ -721,6 +726,7 @@ void city_screen(byte c)
                   "  esc", COLOR_LIGHTGREY);
     screen_putsxy(EXIT_LEFT, EXIT_ROW, EXIT_TEXT, BUTTON_EXIT);
     point_at(PATCH_MIDDLE);
+    if (changing) change(c);
 
     for (;;) {
         screen_wait_raster(SCREEN_ROW_LINE(SCREEN_ROWS - 1));
@@ -758,4 +764,86 @@ void city_screen(byte c)
             if (key != DIR_NONE) step(key);
         }
     }
+}
+
+void city_screen(byte c)
+{
+    screen(c, 0);
+}
+
+// ------------------------------------------------------ the next build
+
+HIGH_BSS byte city_built_count, city_built[BUILT_MAX], city_built_kind[BUILT_MAX];
+LOW_FREE static char button[16];        // "[ Warrior ]"
+
+// city_built_count's top bit: the first city has been brought into view.
+#define PLACED 0x80
+// Its tile's top in this window row, above the popup, or in BUILT_BELOW
+// near the bottom of the map: game.c's show_at(), for a fight.
+#define BUILT_ROW 1
+#define BUILT_BELOW 17
+
+void city_next_build(void)
+{
+    byte c = city_built[0], kind, i, n;
+    const char *s;
+    int y;
+
+    if (!(city_built_count & PLACED)) {
+        centre_on(city_ax[c], city_ay[c]);
+        y = (int)MAP_CELL_Y(city_ax[c], city_ay[c]) - BUILT_ROW;
+        if (y > VIEW_MAX_OFF_Y) y -= BUILT_BELOW - BUILT_ROW;
+        if (y < VIEW_MIN_OFF_Y) y = VIEW_MIN_OFF_Y;
+        if (y > VIEW_MAX_OFF_Y) y = VIEW_MAX_OFF_Y;
+        off_y = (word)y;
+        city_built_count |= PLACED;
+        return;
+    }
+
+    if (!game_over) {
+        // What the computer would build there, or with nothing (at its
+        // unit cap) the same unit again, or warriors after a building.
+        kind = ai_build(PLAYER_HUMAN, c);
+        if (kind == KIND_NONE)
+            kind = KIND_IS_BUILDING(city_built_kind[0])
+                   ? KIND_WARRIOR : city_built_kind[0];
+        popup_begin();
+        popup_add(city_name_of(c));
+        popup_add(" has built: ");
+        popup_add(unit_kind_name[city_built_kind[0]]);
+        popup_add(".\n\nWhat shall we build next?");
+        button[0] = '[';
+        button[1] = ' ';
+        n = 2;
+        for (s = unit_kind_name[kind]; *s; ++s) button[n++] = *s;
+        button[n++] = ' ';
+        button[n++] = ']';
+        button[n] = 0;
+        popup_first_text[POPUP_BUILD] = button;
+        popup_first_len[POPUP_BUILD] = n;
+        popup_second_text[POPUP_BUILD] = "[ Something else ]";
+        popup_second_len[POPUP_BUILD] = 18;
+        if (popup_choose_shown(POPUP_BUILD)) {
+            city_build[c] = kind;
+        } else {
+            // As open_city() in src/orders.c: the unit list may have woken
+            // a unit or fortified the one with the orders.
+            screen(c, 1);
+            if (unit_active == UNIT_NONE
+                || unit_orders[unit_active] != ORDERS_NONE)
+                select_unit(unit_active);
+            draw_screen();
+        }
+    }
+
+    // The next, and after the last the view back on the unit with the
+    // orders.
+    n = (city_built_count & ~PLACED) - 1;
+    for (i = 0; i < n; ++i) {
+        city_built[i] = city_built[i + 1];
+        city_built_kind[i] = city_built_kind[i + 1];
+    }
+    city_built_count = n;
+    if (!n && unit_active != UNIT_NONE)
+        centre_on(unit_ax[unit_active], unit_ay[unit_active]);
 }

@@ -114,7 +114,7 @@ most important routines included in each source file.
 | emporium.c | merchant ships and the emporia they found on foreign coasts |
 | picture.c | full pictures in the map window, with their own palette: the title's and the end's |
 | treasury.c | each player's gold: the cities' trade less corruption, the deals, the temples' upkeep, the computer players' buying, and Advisors/Finance |
-| culture.c | the temple and the Lion Gate, finished, and the legacy points they give |
+| culture.c | the temple and the Lion Gate, finished, and the legacy points they give, in region 8 |
 | command.c | what a menu item does, out of game.c |
 | cities.c | Advisors/Cities: the player's cities in a list, and a city screen from it |
 |  |  |
@@ -176,9 +176,9 @@ to `release/`), holding these files:
 | SEVENSHIPS.R3 | code region 3, diplomacy, the same way |
 | SEVENSHIPS.R4 | code region 4, trade, the ships' routes, exploring and fishing, merchant ships and emporia, and GOTO, the same way |
 | SEVENSHIPS.R5 | code region 5, the Crisis and the peoples' collapse, the score and the end of the game, and the pictures, the same way |
-| SEVENSHIPS.R6 | code region 6, the menus and their commands, buildings and wonders, and saving and loading, the same way |
-| SEVENSHIPS.R7 | code region 7, the city screen, the same way |
-| SEVENSHIPS.R8 | code region 8, the treasury and the scribes, the same way |
+| SEVENSHIPS.R6 | code region 6, the menus and their commands, and saving and loading, the same way |
+| SEVENSHIPS.R7 | code region 7, the city screen and the next build popup, the same way |
+| SEVENSHIPS.R8 | code region 8, the treasury and the scribes, buildings and wonders, the same way |
 | INTRO.PIC, DEFEAT.PIC, WIN_SURVIVAL.PIC, WIN_HEGEMONY.PIC, WIN_LEGACY.PIC | the pictures shown at boot and at the end: a palette and 60x23 full colour characters, 87 KB each |
 
 The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
@@ -245,17 +245,17 @@ window shows one region of code at a time. The figures below are from the linker
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1dc5 | 1.9 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the title's people line, and the route search of the galleys and of GOTO |
-| \$1dc6-\$1eff | 0.3 | free |
-| \$2001-\$5c8b | 15.2 | BASIC stub, startup and resident code |
-| \$5c8c-\$5d30 | 0.15 | initialised data: the DMA lists and a few small tables |
-| \$5d31-\$5e30 | 0.25 | C stack |
-| \$5e31-\$5f98 | 0.35 | BSS: small state |
-| \$5f99-\$5fff | 0.1 | free |
+| \$1638-\$1dd5 | 1.9 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, and the route search of the galleys and of GOTO |
+| \$1dd6-\$1eff | 0.3 | free |
+| \$2001-\$5cb0 | 15.2 | BASIC stub, startup and resident code |
+| \$5cb1-\$5d64 | 0.15 | initialised data: the DMA lists and a few small tables |
+| \$5d65-\$5e64 | 0.25 | C stack |
+| \$5e65-\$5fcd | 0.35 | BSS: small state |
+| \$5fce-\$5fff | 0.05 | free |
 | \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.3 KB used) |
 | \$8000-\$9fff | 8 | resident constant data and code |
-| \$a000-\$bf15 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
-| \$bf16-\$bfff | 0.2 | free |
+| \$a000-\$bf26 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown and the cities' builds waiting for the next build popup, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
+| \$bf27-\$bfff | 0.2 | free |
 
 The long texts and the names are not in this table at all: they are in
 TEXT.PAK, read into Attic RAM at start-up, which is most of why the
@@ -315,9 +315,10 @@ the improvements for every city and so is beside them; region 3
 diplomacy; region 4 trade, the ships' routes, exploring and fishing,
 merchant ships and emporia, and GOTO; region 5 the Crisis and the peoples'
 collapse, the score and the end of the game, the pictures and the
-military advisor; region 6 the menus and their commands, buildings and
-wonders, the cities advisor, and saving and loading; region 7 the city
-screen; region 8 the treasury, the scribes and where the peoples start.
+military advisor; region 6 the menus and their commands, the cities
+advisor, and saving and loading; region 7 the city screen and the next
+build popup; region 8 the treasury, the scribes, where the peoples start,
+and buildings and wonders.
 
 Resident code calls a function in a region through a stub of the same
 name (`src/dispatch.s`), which maps the region in (copying it into its

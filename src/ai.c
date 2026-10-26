@@ -861,7 +861,7 @@ void ai_turn(byte p)
         if (city_owner[c] == p) seen(p, city_ax[c], city_ay[c]);
 
     // What each city builds: src/aibuild.c, in region 2.
-    ai_build(p);
+    ai_build(p, CITY_NONE);
 
     for (u = 0; u < MAX_UNITS; ++u) {
         if (unit_kind[u] == KIND_NONE || unit_owner[u] != p) continue;

@@ -199,6 +199,7 @@ stub:       .macro  name, target, region
 ; Region 2, slot 2: the city screen, Top Five Cities, the fights' popups,
 ; the builders' improvements and what the computer players' cities build.
             stub    city_screen, city_screen_r7, 7
+            stub    city_next_build, city_next_build_r7, 7
             stub    top_cities_screen, top_cities_screen_r2, 2
             stub    fight_show, fight_show_r2, 2
             stub    improve_can, improve_can_r2, 2
@@ -249,7 +250,7 @@ stub:       .macro  name, target, region
             stub    menu_draw, menu_draw_r6, 6
             stub    menu_click, menu_click_r6, 6
             stub    menu_key, menu_key_r6, 6
-            stub    culture_built, culture_built_r6, 6
+            stub    culture_built, culture_built_r8, 8
             stub    game_menu_command, game_menu_command_r6, 6
 
 ; Region 8, slot 2: the treasury, and where the peoples start.

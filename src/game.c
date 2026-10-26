@@ -55,6 +55,7 @@ byte quit;
 byte retired;            // quit by Game/Retire or Load Game: game_run()'s result
 byte loaded;             // from a saved game: no opening popup
 byte game_end_wait;      // see game.h
+byte game_build_quiet;   // see game.h
 static byte end_due;     // the last unit has had its orders: end the turn
 static byte fight_shown;  // fights shown of fight_count (combat.h)
 static byte fight_placed; // ... and the next brought into view
@@ -604,6 +605,8 @@ byte game_run(void)
                         centre_on(unit_ax[unit_active], unit_ay[unit_active]);
                 }
             }
+        } else if (city_built_count) {
+            city_next_build();  // src/cityscreen.h
         } else if (contact) {
             contact = 0;
             greet |= diplomacy_contact();

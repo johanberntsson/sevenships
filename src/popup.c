@@ -100,12 +100,18 @@ static byte wrap(byte draw, byte x, byte y, byte *widest)
 #define OK_TEXT "[ OK ]"
 #define BUTTON_GAP 4
 
-static const char *const first_text[] = { 0, "[ Yes ]", "[ Move unit ]" };
-static const char *const second_text[] = { 0, "[ No ]", "[ View city ]" };
-static const byte first_len[] = { 0, 7, 13 };
-static const byte second_len[] = { 0, 6, 13 };
-static const byte first_key[] = { 0, 'y', 'm' };
-static const byte second_key[] = { 0, 'n', 'v' };
+// POPUP_BUILD's texts are its caller's (popup.h). Its first button has no
+// key of its own but Return, since it is highlighted to begin with.
+const char *popup_first_text[] = { 0, "[ Yes ]", "[ Move unit ]", 0 };
+const char *popup_second_text[] = { 0, "[ No ]", "[ View city ]", 0 };
+byte popup_first_len[] = { 0, 7, 13, 0 };
+byte popup_second_len[] = { 0, 6, 13, 0 };
+static const byte first_key[] = { 0, 'y', 'm', KEY_RETURN };
+static const byte second_key[] = { 0, 'n', 'v', 's' };
+#define first_text popup_first_text
+#define second_text popup_second_text
+#define first_len popup_first_len
+#define second_len popup_second_len
 
 // Whether the arrow is on row `row`, from column `x` for `w` columns.
 static byte pointer_on(byte row, byte x, byte w)
@@ -130,7 +136,8 @@ static void draw_buttons(byte pair, byte bx, byte by, byte yes)
 // return 1 for OK or the first button, 0 for the second.
 static byte show(byte pair)
 {
-    byte lines, widest, w, h, x0, y0, y, key, bx, by, answer, yes = 0;
+    byte lines, widest, w, h, x0, y0, y, key, bx, by, answer;
+    byte yes = pair == POPUP_BUILD;
     // OK's box is as wide as Yes and No's.
     byte b = pair ? pair : POPUP_YES_NO;
     byte ask_width = first_len[b] + BUTTON_GAP + second_len[b];
@@ -172,7 +179,8 @@ static byte show(byte pair)
         }
         // A question needs the click on a button, since either answer
         // matters. From the keyboard the cursor keys move the highlight,
-        // which starts on No so that a stray Return does nothing, and
+        // which starts on No so that a stray Return does nothing (but for
+        // POPUP_BUILD, where either answer is harmless), and
         // Return or space picks it; y and n answer at once, Esc is No.
         answer = yes;
         if (input_moved()) {
@@ -210,9 +218,9 @@ byte popup_ask(const char *s)
     return popup_choose(s, POPUP_YES_NO);
 }
 
-byte popup_ask_shown(void)
+byte popup_choose_shown(byte pair)
 {
-    return show(POPUP_YES_NO);
+    return show(pair);
 }
 
 byte popup_choose(const char *s, byte pair)

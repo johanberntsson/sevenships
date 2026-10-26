@@ -13,14 +13,15 @@ NEXT (CLAUDE.md "Where to start next time"):
    (region 8) with the scribes' + and -, and a tablet's popup; the Orders menu's Build a
    Road and Go To; GOTO with a galley and its cargo, a unit blocked on the way, a save and
    load during one; the city buildings; the ten save slots; tile select's ring following
-   the orders; Help/Peoples and Help/Clay Tablets (see DONE). Confirmed there on 25 Oct:
-   GOTO, the city cap, roads, the wonders
-Room (26 Oct, after Help/Peoples and Clay Tablets): resident 70 bytes, region 0 1.7 KB,
-region 1 72 bytes, region 2 0.9 KB, region 3 1.4 KB, region 4 0.6 KB, region 5 0.7 KB,
-region 6 98 bytes, region 7 1.5 KB, region 8 (the treasury, the scribes, the starts)
-1.7 KB, highram 234 bytes, LOW_FREE 603 bytes; the tile sheet 6 KB, about four units;
-attic's bank 1 is full with eight regions. Resident, region 1 and region 6 need room made
-before anything grows there
+   the orders; Help/Peoples and Help/Clay Tablets; the next build popup and its option
+   (see DONE). Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders
+Room (26 Oct, after the next build popup): resident 52 bytes, region 0 1.7 KB, region 1
+68 bytes, region 2 350 bytes, region 3 1.4 KB, region 4 250 bytes, region 5 0.7 KB,
+region 6 0.6 KB (culture.c went to region 8), region 7 0.8 KB, region 8 (the treasury,
+the scribes, the starts, buildings and wonders) 1.1 KB, highram 217 bytes, LOW_FREE 298
+bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
+Resident and region 1 need room made before anything grows there; a FAKE_KEYS test build
+needs CSTACK=160
 
 TUNING, from play
 - THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
@@ -79,6 +80,21 @@ under OPEN above. Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.
 OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
+
+DONE (26 Oct): the next build popup (the user's, to make it easier to play). When one of the
+   human's cities finishes something, the view goes to it and a popup says "Mycenae has
+   built: Warrior. What shall we build next?" with two buttons: what the computer would
+   build there (ai_build() for that one city, which changes nothing; the same unit again,
+   or warriors after a building, when it would build nothing), highlighted, so Return takes
+   it; and "Something else" (s), the city screen with CHANGE's list open. One a city, in
+   turn, after the fights and before the greetings; not during Play 50 Turns. Game/Options/
+   Next Build Popup turns it off (on by default; a preference, not saved). The first
+   version never showed it in play (the user's): a Calypsi bug dropped the whole test in
+   game_end_turn() (CLAUDE.md's list), and my first check had been built before that
+   line changed. Checked headlessly: the popup, Return taking the suggestion (a fishing
+   boat), s, the Options box, 30 turns with the warrior given orders each turn (four
+   popups), and 100 turns of autoplay byte-identical with HEAD. Works in the user's play
+   after the fix (26 Oct)
 
 DONE (26 Oct): the first MEGA65 play-test, all confirmed fixed there. From a floppy, 45 s to
    the main menu and Load/Save work; from the SD card, 15 s. A busy screen flickered: the

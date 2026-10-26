@@ -63,6 +63,9 @@ void game_menu_command(byte command)
         game_end_wait ^= 1;
         message("End of Turn", game_end_wait ? "waits" : "automatic");
         break;
+    case MENU_NEXT_BUILD:
+        game_build_quiet ^= 1;
+        break;
     case MENU_LOAD:
         // game_run() ends, and main() reads the slot into a new game.
         if (save_screen(0) != SAVE_NONE) {

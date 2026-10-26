@@ -34,13 +34,21 @@ void popup(const char *text);
 // No to begin with; cursor left and right or the arrow move that, and
 // Return or space picks it. A click anywhere else is ignored.
 byte popup_ask(const char *text);
-// The same, for a question built with popup_begin() and popup_add().
-byte popup_ask_shown(void);
+// The same, for a question built with popup_begin() and popup_add(), and
+// with popup_choose()'s pair of buttons.
+#define popup_ask_shown() popup_choose_shown(POPUP_YES_NO)
+byte popup_choose_shown(byte pair);
 // The same with another pair of buttons, 1 for the first and 0 for the
 // second, which is highlighted to begin with; each button's key is its
 // first letter. A new pair is an entry in each of popup.c's tables.
 #define POPUP_YES_NO 1
 #define POPUP_MOVE_VIEW 2       // Move unit, View city
+// Buttons the caller names, the first highlighted to begin with and picked
+// by Return, the second by s: popup_first_text[POPUP_BUILD] and the rest,
+// with their lengths, set before the call (src/cityscreen.c).
+#define POPUP_BUILD 3
+extern const char *popup_first_text[], *popup_second_text[];
+extern byte popup_first_len[], popup_second_len[];
 byte popup_choose(const char *text, byte pair);
 
 #endif // SEVENSHIPS_POPUP_H

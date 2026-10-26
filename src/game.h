@@ -31,6 +31,10 @@ byte key_dir(byte key);
 // for Return at the end of every turn; not (the default), it waits only if
 // no unit was given orders during the turn. A preference, not saved.
 extern byte game_end_wait;
+// Game -> Options -> Next Build Popup, on by default (so kept the other
+// way round, 0 for on): when one of the human's cities finishes something,
+// a popup asks what next (city_next_build() in src/cityscreen.h). Not saved.
+extern byte game_build_quiet;
 
 // **The calendar** (milestone 10): from 1600 BC, two years a turn until
 // turn GAME_SLOW_TURN (1250 BC), then one, so that the Crisis is due at

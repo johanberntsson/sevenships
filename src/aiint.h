@@ -58,7 +58,10 @@ extern byte ai_site_x, ai_site_y;
 byte ai_work_site(byte c, byte passes);
 extern byte ai_work_x, ai_work_y;
 
-// What each of p's cities builds this turn: src/aibuild.c, region 2.
-void ai_build(byte p);
+// What each of p's cities builds this turn: src/aibuild.c, region 2. With
+// `only` a city of p's rather than CITY_NONE, nothing is changed: what
+// that city would build is returned (KIND_NONE for nothing), which is the
+// human's next build popup's suggestion (src/cityscreen.c).
+byte ai_build(byte p, byte only);
 
 #endif // SEVENSHIPS_AIINT_H

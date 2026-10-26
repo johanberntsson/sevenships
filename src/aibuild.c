@@ -174,8 +174,10 @@ static byte fish_to_work(byte c)
 // AI_CITY_CAP; then up to the cap 3. a builder for each city that has
 // hexagons to improve, and 4. warriors to explore and fight, or chariots
 // with horses -- and at war chariots straight after the guards. Changing keeps the shields, so nothing is lost by it. With
-// bronze the guards are spearmen, defence 2 to a warrior's 1.
-void ai_build(byte p)
+// bronze the guards are spearmen, defence 2 to a warrior's 1. For one city
+// alone (`only`), its choice is returned and nothing is changed, nor a
+// warrior retired.
+byte ai_build(byte p, byte only)
 {
     byte c, u, cap, kind, guard, horses, chariots;
     byte cities = 0, settlers, builders, galleys, boats, merchants, explorers = 0;
@@ -201,8 +203,8 @@ void ai_build(byte p)
     chariots = horses && at_war_with_people(p)
                ? unit_count_kind(p, KIND_CHARIOT) : 0xff;
     for (c = 0; c < city_count; ++c) {
-        if (city_owner[c] != p) continue;
-        retire(p, c);
+        if (city_owner[c] != p || (only != CITY_NONE && c != only)) continue;
+        if (only == CITY_NONE) retire(p, c);
         u = guards(p, c);
         city_work(c);
         if (u < ai_guards_wanted(c) && (u == 0 || units < cap)) {
@@ -276,6 +278,8 @@ void ai_build(byte p)
             // 4. Attackers: chariots, with horses (unit.h).
             kind = horses ? KIND_CHARIOT : KIND_WARRIOR;
         }
+        if (c == only) return kind;
         city_build[c] = kind;
     }
+    return KIND_NONE;
 }

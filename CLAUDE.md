@@ -213,10 +213,10 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 103 bytes free (26 Oct 2026, after `click_hex()` went to region 2 and the blink's band came in), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 52 bytes free (26 Oct 2026, after the next build popup; 103 before it), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.7 KB free (26 Oct 2026) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`; 1.5 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, buildings and wonders, `src/menu.c`, `src/command.c`, `src/culture.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 46 bytes free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`; 1.7 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; 234 bytes free (26 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 314 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -887,8 +887,9 @@ hover readout from region 0, the calendar, the score and the end
 screen, and the Crisis — omens, Sea Peoples, shocks — with the 96-unit
 list.
 
-**Where to start next time** (25 Oct 2026, end of the day; the user
-stopped to play-test, a lot, before the next session):
+**Where to start next time** (26 Oct 2026, end of the day, after the
+next build popup, which the user tried and found working; the user
+goes on play-testing before the next session):
 1. **Ask what the play-testing found**, and take the new items at the
    top of TODO.txt first. **The game is feature complete against
    vision.md** (grain logistics and attrition were taken out of it on
@@ -909,8 +910,11 @@ stopped to play-test, a lot, before the next session):
    slots** (26 Oct 2026: Game → Save Game, a comment typed in, Load
    Saved Game on the title screen and Game → Load Game, a slot "from
    another version"); and from 26 Oct, tile select's ring following
-   the orders (to the next unit, and on `c`), and Help → Peoples and
-   Clay Tablets. **Confirmed there on 26 Oct**: the fixes from the
+   the orders (to the next unit, and on `c`), Help → Peoples and
+   Clay Tablets, and **the next build popup** (its suggestion, Return,
+   `s` into CHANGE, two cities finishing in one turn, Options' tick;
+   working in the user's play on 26 Oct, after the fix).
+   **Confirmed there on 26 Oct**: the fixes from the
    user's first play-test -- the blink redrawing only its band (the
    busy screen no longer flickers), GOTO along roads, and `d`, Disband.
    Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders.
@@ -929,14 +933,20 @@ stopped to play-test, a lot, before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (103
-   bytes), region 1 (72 bytes), region 4 (250 bytes) or region 6 (46 bytes): **The way to resident room is
+5. **Make room first** before anything grows in resident code (52
+   bytes), region 1 (68 bytes), region 2 (350 bytes) or region 4 (250 bytes): **The way to resident room is
    `game.c`** (tile select and the panel are the next candidates;
    `click_hex()` went on 26 Oct 2026), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
 
-**Room is short in places** (26 Oct 2026, after the first MEGA65
-play-test's fixes): **resident 103 bytes** (70 after Help → Peoples
+**Room is short in places** (26 Oct 2026, after the next build
+popup, which took **51 bytes resident** -- its stub, its test in
+`game_run()`, popup.c's third pair of buttons -- and moved `culture.c`
+from region 6 to region 8 to make room for its option: resident 52,
+region 1 68, region 2 350, region 6 0.6 KB, region 7 0.8 KB, region 8
+1.1 KB, highram 217, `LOW_FREE` 298; **a `FAKE_KEYS` build needs
+`CSTACK=160`** since). Before it, after the first MEGA65
+play-test's fixes: **resident 103 bytes** (70 after Help → Peoples
 and Clay Tablets; the blink's band took about 100 and `click_hex()`
 going to region 2 gave back 130), region 0 1.7 KB, **region 1 72
 bytes** (`road_site()` took 460), region 2 0.4 KB (the click on the
@@ -1010,7 +1020,11 @@ Game has **Load Game** and **Save Game** (see **Saving** below), **Options** and
 does (`civ1-reference/civ1-game-options.png`): menu index `OPTIONS` (=
 `MENUS`, not on the bar) in `src/menu.c`'s tables, at `OPTIONS_LEFT`,
 `OPTIONS_TOP`, with a heading and a tick (screen code `$7A`) on an option
-that is on. Its one option is **End of Turn**, Civilization's: ticked
+that is on (`i ? !game_build_quiet : game_end_wait` in `draw_item()`).
+Its second is **Next Build Popup** (**The next build popup**, under
+**Production**), on by default, so kept as `game_build_quiet`, 0 for
+on; a preference, neither saved nor reset. Its first is **End of
+Turn**, Civilization's: ticked
 (`game_end_wait`), the game waits for Return at the end of every turn;
 unticked, the default, `select_unit()` sets `end_due` when the orders to
 the last unit leave nobody wanting any, and `game_run()` ends the turn
@@ -1137,7 +1151,7 @@ sure", since picking a slot is already a step past the menu. If the read
 fails, `main()` goes round to the title, and `title_run(1)` says "No
 saved game could be loaded" (a `NO_TITLE` build plays a new game).
 `MENU_LOAD` is 28, which moved `MENU_TERRAIN` and `MENU_UNIT` up one
-(and `MENU_DISBAND`, 29, another).
+(and `MENU_DISBAND`, 29, another, and `MENU_NEXT_BUILD`, 30, another).
 Checked headlessly: a save at turn 21, 20 more turns, then Load Game:
 turn 21 again, the map, the unit and city arrays and the gold
 byte-identical with a run that only saved. **Test builds needed
@@ -1499,6 +1513,35 @@ coming turn asks for its orders first like any other, and the surplus
 carries over. The panel says "Mycenae / built Warrior" (the last city, if
 several finish at once). With the unit list full the shields wait at the
 cost.
+
+**The next build popup** (26 Oct 2026, the user's, to make it easier to
+play; `city_next_build()` in `src/cityscreen.c`, region 7): when one of
+the human's cities finishes something, `game_end_turn()` notes it in
+`city_built[]`/`city_built_kind[]` (`BUILT_MAX` 8 a turn, `HIGH_BSS`,
+reset by `game_init()`; not during Play 50 Turns, `diplomacy_auto`,
+tested under `#ifdef DEBUG_MENU`: `HUMAN_ASKED(PLAYER_HUMAN)` there
+made Calypsi drop the whole test, so that the first version never
+showed the popup in play),
+and `game_run()` calls `city_next_build()` once a frame while
+`city_built_count` is not 0, after the fights and before the
+greetings: the first call puts the city in window row 1 above the
+popup, as a fight is (the top bit of the count, `PLACED`, says it has
+been), the next, after the redraw, asks "Mycenae has built: Warrior.
+What shall we build next?" with **what the computer would build there**
+-- `ai_build(PLAYER_HUMAN, c)`, which for one city returns its choice
+and changes nothing, nor retires a warrior; with nothing (at the cap,
+no building to pay for) the same unit again, warriors after a building
+-- and **Something else** (`s`), the city screen with CHANGE's list
+open (`screen(c, 1)`), then `open_city()`'s tidying. The suggestion is
+`POPUP_BUILD`, popup.c's third pair, whose button texts and lengths
+the caller sets (`popup_first_text[]` and the rest) and whose first
+button is highlighted to begin with, so Return takes it. After the
+last the view goes back to the unit with the orders. Game → Options →
+Next Build Popup turns it off. Checked headlessly: the popup (a
+fishing boat suggested for a coastal city of size 1), Return taking
+it, `s`, 30 turns with the warrior given orders each turn (four
+popups, the suggestions taken: a boat, a settler, a builder), and 100 turns of autoplay byte-identical with the build
+before (`ai_build()`'s new parameter, `culture.c` in region 8).
 
 **Improvements** (`src/improve.c`, milestone 6, in region 2) are bits 4
 and 5 of the map byte: `MAP_IRRIGATED` or `MAP_MINED`, never both, drawn
@@ -2170,7 +2213,7 @@ nothing, 50), buying, the Finance screen, the score, save and load, and
 300-turn autoplays.
 
 **Buildings and wonders** (23 Oct 2026, the user's request: a cultural
-building and a wonder; `src/culture.c`, region 6; vision.md 5B; and three
+building and a wonder; `src/culture.c`, region 6, region 8 since 26 Oct 2026; vision.md 5B; and three
 more wonders on 25 Oct 2026, below). **They
 are kinds after the units'** (`KIND_TEMPLE` 10, `KIND_LION_GATE` 11 and
 the wonders after it, `KIND_IS_WONDER()`,
@@ -2266,7 +2309,7 @@ too** (26 Oct 2026, the user's): submenus `PEOPLES` and `TABLETS` in
 `src/menu.c`, their items `list_peoples.txt` (the barbarians' line
 last, their page covering the Sea Peoples and the rebels) and
 `list_tablets.txt`, their commands `MENU_PAGE` + n after the kinds'
-(`MENU_PEOPLES` 58 and `MENU_TABLETS` 59 open them), opening
+(`MENU_PEOPLES` 59 and `MENU_TABLETS` 60 open them, since `MENU_NEXT_BUILD`), opening
 `pedia_mycenaeans.txt` to `pedia_barbarians.txt` in `CIV_*` order and
 then `pedia_linear_b.txt`, `pedia_law_code.txt` and `pedia_alphabet.txt`,
 after the hall's in `TEXTS`. A submenu is now opened through
@@ -2345,7 +2388,9 @@ and show it with `popup_show()`, or `popup("...")` for a fixed one; `\n`
 breaks a line. Like the menus it has its own once-a-frame loop, so the
 input is still read every frame. **It must stay inside the map window**:
 closing it restores the window's cells with `view_restore()`, and nothing
-would put panel text back. A new game opens with one (`intro()` in
+would put panel text back. `popup_choose()` and `popup_choose_shown()`
+take a pair of buttons (`POPUP_YES_NO`, `POPUP_MOVE_VIEW`, and
+`POPUP_BUILD`, whose texts the caller sets). A new game opens with one (`intro()` in
 `src/game.c`), drawn over the map, which `NO_TITLE` builds skip.
 
 **One loop, once a frame** — `game_run()` in `src/game.c`: wait for raster
@@ -2625,6 +2670,12 @@ out wrong:
   byte. Load the two halves into locals.
 - a constant-false term in `&&` can be dropped (`if (f < 40 && X == 1)` with
   `X` 2 compiled to `if (f < 40)`). Use `#if` for compile-time switches.
+  **A constant-true one can lose the whole test** (26 Oct 2026):
+  `if (!a && HUMAN_ASKED(PLAYER_HUMAN) && n < 8) { ... }`, whose macro
+  is `(0 == PLAYER_HUMAN && !diplomacy_auto)`, compiled to a load of `a`
+  and nothing else -- the body was gone, and the next build popup never
+  came. The listing shows the `lda` with no branch after it. Spell such a
+  term out under `#ifdef` instead (`src/turn.c`).
 - a function call inside a 32-bit expression emits `_FillZPQ`, which no
   library has. Hoist the call into a variable.
 - `int` is 16 bits: constant expressions overflow silently, and a call with

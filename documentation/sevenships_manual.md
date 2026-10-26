@@ -153,6 +153,13 @@ Click one of your cities (or Return on it in tile select) to open it:
   **BUY** (b) finishes it at the end of the turn for gold. Under them, the
   city's buildings.
 
+When a city finishes something, the map goes to it and you are asked
+what it should build next: the first button is what the computer would
+choose there (press Return to take it), and **Something else** (s) opens
+the city screen with CHANGE's list. Game → Options → Next Build Popup
+turns this off; the city then goes on building the same thing (warriors,
+after a building).
+
 **Advisors → Cities** (F1) lists all your cities; pick one to open it.
 
 ## 6. The land

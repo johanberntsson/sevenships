@@ -1,6 +1,7 @@
-// In region 6 (src/region.h): called through the stub in src/dispatch.s,
+// In region 8 (src/region.h; region 6 until 26 Oct 2026, when the next
+// build popup's option needed its room): called through the stub in src/dispatch.s,
 // under this name here.
-#define culture_built culture_built_r6
+#define culture_built culture_built_r8
 
 #include "culture.h"
 #include "city.h"
@@ -9,7 +10,7 @@
 #include "diplomacy.h"
 #include "popup.h"
 
-#pragma clang section text="r6text" rodata="r6rodata"
+#pragma clang section text="r8text" rodata="r8rodata"
 
 HIGH_BSS byte wonders_built;
 HIGH_BSS word player_legacy[PLAYERS];

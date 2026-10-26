@@ -10,6 +10,7 @@
 #include "gameint.h"
 #include "ai.h"
 #include "city.h"
+#include "cityscreen.h"
 #include "civ.h"
 #include "combat.h"
 #include "crisis.h"
@@ -72,6 +73,16 @@ void game_end_turn(void)
             line_add(unit_kind_name[kind]);
             message(city_name_of(c), line);
             dirty = 1;
+            // Not HUMAN_ASKED(PLAYER_HUMAN): its constant term made
+            // Calypsi drop the whole test, and nothing was ever noted.
+            if (!game_build_quiet && city_built_count < BUILT_MAX
+#ifdef DEBUG_MENU
+                && !diplomacy_auto
+#endif
+                ) {
+                city_built[city_built_count] = c;
+                city_built_kind[city_built_count++] = kind;
+            }
         }
     }
     dirty = 1;
@@ -159,6 +170,7 @@ void game_init(void)
     greet = 0;
     hover_unit = 0;
     selecting = 0;
+    city_built_count = 0;
 
     // START_OFF_X / START_OFF_Y are what let a headless run check
     // scrolling: `make START_OFF_X=41` against a plain build must shift the
