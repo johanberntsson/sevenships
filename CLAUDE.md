@@ -629,6 +629,13 @@ an erosion pass, rivers, shallow ocean next to land, then the resources
 straight into the list (**Resources**). **Rivers are not drawn yet** —
 `tile_river.png` is a 17x3 texture, not a tile — but where one crosses
 desert or plains it leaves a line of floodplain, the Nile's arrangement.
+**There are no lakes** (26 Oct 2026, from the user's play): water cut
+off from the world ocean is made land straight after the land masses
+(`fill_lakes()`, a flood from the top row through the high nibble), so
+that the climate makes it whatever land it would be. A lake made the
+cities beside it coastal (`city_coastal()` looks only for shallows next
+to the city), and the boats they built could go nowhere; both
+generators made them, the old one's seed 1 a lake of 36 hexagons.
 `main()` calls it when a new game starts, after the title's screens and
 before `game_init()`, never for a loaded game, whose map is in the save;
 "Creating the world" is on the screen meanwhile. **Until then the map was
@@ -656,7 +663,13 @@ the same bytes; or first on the PC, compiling `mapgen.c` with gcc against
 a stub `map_neighbour()` and `screen_*()`, which separates a logic slip
 from a Calypsi one. The first try differed on the machine only: `2560 *
 35` overflows Calypsi's 16-bit int, which gcc's 32 hid. Checked
-identical on seeds 1, 3, 7 and 54321. Layer
+identical on seeds 1, 3, 7 and 54321 (and on 1 and 48854 again after
+`fill_lakes()`). In 255 turns of autoplay on the new seeds 1, 3 and 7 all
+four peoples stood, with 26-31 cities and 144, 149 and 211 citizens;
+without lakes, 27-34 cities and 129, 165 and 217.
+A world takes 1.8 s in xemu (CIA2, real speed), so about 2 s on the
+machine; 2.45 before `step()` was its own and erosion looked at its
+neighbours once. Layer
 0 is terrain, and **its values are `TILE_*` numbers** because every
 terrain has exactly one tile, which is why the ten terrain tiles come first
 in the sheet (`TERRAIN_COUNT`) and the city, units and the rest after them.

@@ -174,6 +174,40 @@ static void make_land(void)
     }
 }
 
+// **Water that does not reach the world ocean becomes land**, before the
+// climate decides what land it is: a lake made a city beside it coastal
+// (city_coastal()), and the boats it built could go nowhere. The ocean is
+// found from the top row, never land, by marking water next to marked
+// water in the high nibble, sweeping both ways in turn.
+static void fill_lakes(void)
+{
+    byte x, y, i, j, k, changed, back = 0;
+
+    for (x = 0; x < MAP_COLUMNS; ++x) SET_NIB(x, 0, 1);
+    do {
+        changed = 0;
+        for (j = 0; j < MAP_ROWS; ++j)
+            for (i = 0; i < MAP_COLUMNS; ++i) {
+                y = back ? MAP_ROWS - 1 - j : j;
+                x = back ? MAP_COLUMNS - 1 - i : i;
+                if (NIB(x, y) || TER(x, y) != TILE_OCEAN) continue;
+                for (k = 0; k < 6; ++k)
+                    if (step(x, y, k) && NIB(nx, ny)) {
+                        SET_NIB(x, y, 1);
+                        changed = 1;
+                        break;
+                    }
+            }
+        back ^= 1;
+    } while (changed);
+    for (y = 0; y < MAP_ROWS; ++y)
+        for (x = 0; x < MAP_COLUMNS; ++x) {
+            if (TER(x, y) == TILE_OCEAN && !NIB(x, y))
+                SET_TER(x, y, TILE_GRASS);
+            map_tile[y][x] &= MAP_TERRAIN_MASK;
+        }
+}
+
 // The steps from each land cell to the nearest water, at most FAR, in the
 // high nibble, relaxed until nothing changes: a sweep forwards, then one
 // backwards, and so on, which settles in three or four.
@@ -387,21 +421,13 @@ static void rivers(void)
     }
 }
 
-// Step 6: lakes filled, then the shallows.
+// Step 6: the shallows.
 static void clean_up(void)
 {
-    byte x, y, k, all, any;
+    byte x, y, k, any;
 
     for (y = 0; y < MAP_ROWS; ++y)
         for (x = 0; x < MAP_COLUMNS; ++x) map_tile[y][x] &= MAP_TERRAIN_MASK;
-    for (y = 0; y < MAP_ROWS; ++y)
-        for (x = 0; x < MAP_COLUMNS; ++x) {
-            if (TER(x, y) != TILE_OCEAN) continue;
-            all = 1;
-            for (k = 0; k < 6; ++k)
-                if (step(x, y, k) && !IS_LAND(TER(nx, ny))) all = 0;
-            if (all) SET_TER(x, y, TILE_GRASS);
-        }
     for (y = 0; y < MAP_ROWS; ++y)
         for (x = 0; x < MAP_COLUMNS; ++x) {
             if (TER(x, y) != TILE_OCEAN) continue;
@@ -502,6 +528,7 @@ void map_new(void)
     for (y = 0; y < MAP_ROWS; ++y)
         for (x = 0; x < MAP_COLUMNS; ++x) map_tile[y][x] = TILE_OCEAN;
     make_land();
+    fill_lakes();
     coast_distance();
     raise_mountains();
     raise_hills();

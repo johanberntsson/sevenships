@@ -38,8 +38,10 @@ the sheet has today:
    They are not drawn -- the sheet has no river tile yet -- but where one
    crosses desert or plains it leaves a line of floodplain, the Nile's
    arrangement and the grain the game's peoples lived on.
-6. Clean-up: one-hexagon lakes are filled in, and ocean next to land becomes
-   shallow ocean.
+6. Clean-up: ocean next to land becomes shallow ocean. There are no
+   lakes: water cut off from the world ocean is made land straight after
+   step 1 (fill_lakes()), since a city by a lake built boats that could
+   go nowhere.
 7. Resources (milestone 7, vision.md section 2): tin first, a few nodes in
    the far north and south (the imports from the edge of the world), then
    the rest by terrain, a little more tin among them, never next to each
@@ -416,18 +418,45 @@ def rivers(rng, m):
         made += 1
 
 
+def fill_lakes(m):
+    """Step 1, second half: **water that does not reach the world ocean
+    becomes land**, before the climate decides what land it is. A lake
+    made a city beside it coastal (city_coastal() looks for shallows
+    next to it), and the boats it built could go nowhere. The ocean is
+    found from the top row, which is never land, by marking water next to
+    marked water in the high nibble, sweeping forwards and backwards in
+    turn until nothing changes."""
+    for x in range(COLUMNS):
+        m.set_nib(x, 0, 1)
+    changed = True
+    back = False
+    while changed:
+        changed = False
+        for j in range(ROWS):
+            for i in range(COLUMNS):
+                y = ROWS - 1 - j if back else j
+                x = COLUMNS - 1 - i if back else i
+                if m.nib(x, y) or m.terrain(x, y) != OCEAN:
+                    continue
+                for k in range(6):
+                    cell = step(x, y, k)
+                    if cell and m.nib(*cell):
+                        m.set_nib(x, y, 1)
+                        changed = True
+                        break
+        back = not back
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            if m.terrain(x, y) == OCEAN and not m.nib(x, y):
+                m.set_terrain(x, y, GRASS)
+            m.set_nib(x, y, 0)
+
+
 def clean_up(m):
-    """Step 6. Lakes first, so a filled lake does not leave a shallow ring."""
+    """Step 6: the shallows. (Lakes went in fill_lakes().)"""
     for y in range(ROWS):
         for x in range(COLUMNS):
             m.set_nib(x, y, 0)
-    for y in range(ROWS):
-        for x in range(COLUMNS):
-            if m.terrain(x, y) != OCEAN:
-                continue
-            if all(m.land(*cell) for cell in
-                   (step(x, y, k) for k in range(6)) if cell):
-                m.set_terrain(x, y, GRASS)
     for y in range(ROWS):
         for x in range(COLUMNS):
             if m.terrain(x, y) == OCEAN and any(
@@ -510,6 +539,7 @@ def generate(seed, land_percent):
     rng = Rng(seed)
     m = Map()
     make_land(rng, m, land_percent)
+    fill_lakes(m)
     coast_distance(m)
     raise_mountains(rng, m)
     raise_hills(rng, m)
