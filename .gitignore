@@ -3,6 +3,8 @@ build/
 alltiles/
 civ1-reference/
 
+tools/__pycache__
+
 # Screenshots and memory dumps from headless xemu runs
 shot*.png
 mem.bin

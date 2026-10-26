@@ -16,7 +16,7 @@ need them any more.
 
 The game is **Seven Ships of the Enemy** (`documentation/vision.md` has where the title
 comes from), `sevenships` wherever a short name is needed: the repository,
-the PRG, the disk and its map file `SEVENSHIPS.MAP`. Until 19 Oct 2026 it
+the PRG and the disk. Until 19 Oct 2026 it
 was called Hexwar, and so is everything in git history before that.
 
 `basic/civ.bas` was a more complete XC=BASIC 3 version of the same idea and
@@ -45,10 +45,10 @@ these, except hexgame's own `design.md`.)
 ## Build and run
 
 ```sh
-make                      # build/sevenships.prg, build/sevenships.map and build/sevenships.d81
+make                      # build/sevenships.prg, build/sevenships.d81 and a preview of the world, build/sevenships-map.png
 make run                  # build them and boot it in xemu (blocks until closed)
 make START_OFF_X=41       # start the view one character further right; see below
-make MAP_SEED=7           # another map; MAP_LAND=45 for more land
+make MAP_SEED=7           # always world 7 (NO_TITLE and FAKE_KEYS builds: 1); MAP_LAND=45 for more land
 make FAKE_KEYS='{10,0,0,13},{12,0,0,13},{14,0,0,13},{16,0,0,13},{30,0,0,98}'  # see below
 make NO_TITLE=1           # straight to the map, no title screen
 make DEBUG=0              # without the Debug menu, as a release is
@@ -65,9 +65,10 @@ checked in. `make release` also needs pandoc and pdflatex, for
 (renamed from `player_manual.md` on 25 Oct 2026); this TeX Live has no
 `geometry.sty`, so `tools/manual-header.tex` sets the margins by hand.
 
-**The program reads its texts, its code regions, the title's picture,
-its tile sheet and its map from drive 8** (`TEXT.PAK`, `SEVENSHIPS.R1`
-to `.R7`, `INTRO.PIC`, `TILES.FCI`, `SEVENSHIPS.MAP`, in that order), so it needs the d81 mounted: `make run`
+**The program reads its texts, its code regions, the title's picture
+and its tile sheet from drive 8** (`TEXT.PAK`, `SEVENSHIPS.R1`
+to `.R9`, `INTRO.PIC`, `TILES.FCI`, in that order; the map is made for
+each game, **The hex grid**), so it needs the d81 mounted: `make run`
 does that, and a bare `-prg` boot stops at `cannot read TEXT.PAK`.
 
 There are no tests. Verification is running it — see **Verifying a change**.
@@ -213,19 +214,20 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 44 bytes free (26 Oct 2026, after the music; 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
-| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 238 bytes free (26 Oct 2026, after the music; 1.7 KB before it) |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 98 bytes free (26 Oct 2026, after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
+| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's loader, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 707 bytes free (26 Oct 2026, since the map loader went; 238 after the music, 1.7 KB before it) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 1.9 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
-| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; **12 bytes free** (26 Oct 2026, after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
-| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 314 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
+| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header, the world's seed and the generator's state; **8 bytes free** (26 Oct 2026, after the map generator; 12 after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
+| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, and the map generator's row of rainfall and river, 138 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
 | `$8000000` | ~3 KB | attic RAM: the texts, `TEXT.PAK`'s body (`src/text.h`) |
-| `$8010000` | 8 KB a region | attic RAM: code regions 1 and up as read from the disk, region r at `REGION_ATTIC(r)` (`src/region.h`) |
-| `$8020000` | ~0.8 KB | attic RAM: the music's tune (`MUSIC_ATTIC` in `src/music.h`); the rest of the 8 MB free |
+| `$8010000` | 8 KB a region | attic RAM: code regions 1 to 8 as read from the disk, region r at `REGION_ATTIC(r)` (`src/region.h`) |
+| `$8020000` | ~0.8 KB | attic RAM: the music's tune (`MUSIC_ATTIC` in `src/music.h`) |
+| `$8030000` | 8 KB | attic RAM: code region 9, the map generator, and room for seven more; the rest of the 8 MB free |
 | `$FF81000` | 4000 | colour RAM |
 
 **The store's rows are padded to 4096 bytes, and the padding is load bearing.**
@@ -376,8 +378,9 @@ the ROM — and `bank_basic_in()` puts it back as the last thing before
 second content area as soon as anything initialised lands there
 (*multiple program areas not allowed in prg output*), and `(type ram)`
 does not work. Mark a variable `HIGH_BSS` to move it; **uninitialised data
-only**, since the PRG is loaded with BASIC still mapped. `map_load()`
-reads straight into it through the KERNAL. Seen in xemu and on a real
+only**, since the PRG is loaded with BASIC still mapped. The map
+loader (since replaced by the generator) read straight into it through
+the KERNAL. Seen in xemu and on a real
 MEGA65 (18 Oct 2026): the map loads, the game plays, and quitting
 reaches READY.
 
@@ -388,7 +391,7 @@ whole BSS there** — which is what hexgame does — so use `LOW_FREE` and
 **Nothing that must survive a KERNAL disk call may live in `LOW_FREE`.** It is
 below `$2001`, where the C65 ROM keeps its own buffers. Search And Rescue,
 which uses all of it, writes it only after the last file has been read. Here
-that means after `map_load()`, and again after any later load or save.
+that means after `sheet_load()`, and again after any later load or save.
 
 ## Growing past 32 KB
 
@@ -617,29 +620,58 @@ Verified pixel-exact: `START_OFF_X=508` shows `START_OFF_X=0`'s picture four
 characters to the right. The generator wraps the same way, so land crosses
 the seam.
 
-**The map comes from `tools/mapgen.py`**, a build-time Python generator after
-Civ 1's (design.md): land-mass random walks, inland mountain ranges and
-hills, rainfall swept along each row (desert, plains, grassland and forest by
-how wet a hexagon is, desert only in the warm band), latitude for tundra, an
-erosion pass, rivers, then shallow ocean next to land. **Rivers are not drawn
-yet** — `tile_river.png` is a 17x3 texture, not a tile — but where one
-crosses desert or plains it leaves a line of floodplain, the Nile's
-arrangement. Its docstring is the file format: a 16-byte header (`"HXM"`,
-version, columns, rows, layer count, seed), then layer 0, a byte a cell, and
-layer 1, the resources as a sorted list (see **Resources**). Layer
+**The game makes a new world for every game** (26 Oct 2026, the
+user's; `src/mapgen.c`, region 9, `map_new()`), after Civ 1's generator
+(design.md): land-mass random walks, inland mountain ranges and hills,
+rainfall swept along each row (desert, plains, grassland and forest by
+how wet a hexagon is, desert only in the warm band), latitude for tundra,
+an erosion pass, rivers, shallow ocean next to land, then the resources
+straight into the list (**Resources**). **Rivers are not drawn yet** —
+`tile_river.png` is a 17x3 texture, not a tile — but where one crosses
+desert or plains it leaves a line of floodplain, the Nile's arrangement.
+`main()` calls it when a new game starts, after the title's screens and
+before `game_init()`, never for a loaded game, whose map is in the save;
+"Creating the world" is on the screen meanwhile. **Until then the map was
+made at build time** and read off the disk (`SEVENSHIPS.MAP`, `map_load()`),
+the same world every game. The seed is `map_seed` (`HIGH_BSS`, saved,
+`SAVE_VERSION` 24), drawn from `$D7EF`, the MEGA65's random number
+register, the CIA's timer and the raster, and **shown on World → Score**
+("World 12345"); **`make MAP_SEED=n` fixes it**, and NO_TITLE and
+FAKE_KEYS builds default to 1, so that a headless run is the same every
+time. `MAP_LAND` (35) is the land in per cent.
+**It needs no memory of its own**: `map_tile`'s high nibble, clear until
+`game_init()`, holds in turn the coast distance (relaxed rather than a
+breadth-first search, so no queue), erosion's pending change and the
+resources; a row of rainfall and the river's path are in `LOW_FREE`.
+Integers throughout, moisture in sixteenths. **`tools/mapgen.py` is the
+same generator, random number for random number** — the same xorshift,
+the neighbours in DIR_* order, cells drawn at random until one fits
+rather than picked from lists — so `python3 tools/mapgen.py --seed n
+--png F.png` previews world n in a moment, and `make` leaves
+`build/sevenships-map.png` of `MAP_SEED`'s. **A change to one is a change
+to the other, and is checked byte for byte**: a `NO_TITLE MAP_SEED=n`
+build's `-dumpmem` (`map_tile`'s low nibble, `map_res_*`, `map_seed` at
+the listing's addresses) against `mapgen.py --seed n OUT`, which writes
+the same bytes; or first on the PC, compiling `mapgen.c` with gcc against
+a stub `map_neighbour()` and `screen_*()`, which separates a logic slip
+from a Calypsi one. The first try differed on the machine only: `2560 *
+35` overflows Calypsi's 16-bit int, which gcc's 32 hid. Checked
+identical on seeds 1, 3, 7 and 54321. Layer
 0 is terrain, and **its values are `TILE_*` numbers** because every
 terrain has exactly one tile, which is why the ten terrain tiles come first
 in the sheet (`TERRAIN_COUNT`) and the city, units and the rest after them.
 A terrain that needed two tiles, or an eleventh terrain once the sheet is
-full, would mean a terrain-to-tile table in the redraw instead. `make` leaves a preview at
-`build/sevenships-map.png`, which is the fastest way to judge a generator change.
-`map_load()` reads the file with the Calypsi `_Stub_open`/`_Stub_read` calls
-directly; stdio would only add a buffer. That cost about 560 bytes. **It reads
-a row per call because `_Stub_read` miscounts** when the file ends on the last
-byte of a 256-byte page of the request: it returns before carrying into the
-count's high byte, so one 4096-byte read of the last layer reports 3840 and
-the load fails with every byte in place. Requests under 256 take a different
-path in `stub_read.s` and are fine. 80x50 hid this, since 4000 ends mid-page.
+full, would mean a terrain-to-tile table in the redraw instead.
+**Positions on seed 1 written down before 26 Oct 2026** — the settler at
+(16,7), the throwaway starts at (28,9) and (51,9), the fish at (21,4), the
+autoplay figures per seed — **are the old generator's**, whose worlds
+cannot be made any more; the new seed 1 is another world.
+**`_Stub_read` miscounts** when a file ends on the last byte of a 256-byte
+page of the request: it returns before carrying into the count's high
+byte, so one 4096-byte read of the map's last layer reported 3840 and the
+load failed with every byte in place. Requests under 256 take a different
+path in `stub_read.s` and are fine, which is why every loader reads in
+pieces of 128.
 
 **Doubled coordinates** (redblobgames): a hexagon is `(hx, hy)` with `hx` and
 `hy` always the same parity, so a step east is `hx += 2` and the four diagonal
@@ -938,14 +970,15 @@ goes on play-testing before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (44
-   bytes), region 0 (238 bytes), region 1 (68 bytes), region 2 (350
-   bytes), region 4 (250 bytes) or highram (12 bytes, after the music):
+5. **Make room first** before anything grows in resident code (98
+   bytes), region 1 (68 bytes), region 2 (350 bytes), region 4 (250
+   bytes), highram (8 bytes) or `LOW_FREE` (138 bytes, after the map
+   generator; region 0 has 707 since the map loader went):
    a second tune would want a file of its own read into attic at boot,
    not region 0; **The way to resident room is
    `game.c`** (tile select and the panel are the next candidates;
    `click_hex()` went on 26 Oct 2026), and region 1's is more of `ai.c` moving to a region of
-   its own (attic's bank 1 is full with eight: a ninth needs bank 2).
+   its own (attic's bank 1 is full with eight, and bank 2 is the music's: region 9, the map generator, is in bank 3, which has room for seven more).
 
 **Room is short in places** (26 Oct 2026, after the next build
 popup, which took **51 bytes resident** -- its stub, its test in
@@ -976,8 +1009,10 @@ Oct 2026, 670 bytes for roads and 480 for the wonders, which took 130),
 `draw_orders()`, `in_view()`, `centre_on()` and `hover_on()` are
 exported for it (`gameint.h`). **The treasury is region 8** (25 Oct
 2026, for room in region 6, by **A new region** under **Growing past 32
-KB**, which held): **attic's bank 1 is full with eight**, so a ninth
-region needs attic bank 2 in `dispatch.s`'s tables. Checked as
+KB**, which held): **attic's bank 1 is full with eight**, and bank 2 is
+the music's, so **region 9, the map generator** (26 Oct 2026), is at
+`$8030000`, attic bank 3 in `dispatch.s`'s tables, and `REGION_ATTIC()`
+counts from there for regions 9 and up. Checked as
 byte-identical through 226 turns of autoplay.
 
 The tile sheet is packed and has 6 KB, about four units', room left
@@ -1661,7 +1696,7 @@ irrigated cattle there are irrigation now, not a pasture.
 | purple dye | shallows | 3 trade |
 | horses | plains, grassland | 2 shields |
 
-`mapgen.py` places them (step 7): four tin nodes at the edges of the
+The generator places them (step 7): four tin nodes at the edges of the
 world, then the rest by `RESOURCE_TERRAIN`'s chances (tin among them), **never two next to
 each other**, about 80-100 a map. They never change, and add to the yield
 in `yield()` in `src/growth.c` like an improvement, so the computer's
@@ -1682,7 +1717,7 @@ with the list empty, about 120 µs a resource. The hover readout says
 "Hills+Copper 0/3/0"; with a city or unit there, the resource replaces
 the terrain to keep within 40 columns ("Canaanite Builder  Cattle+irr").
 The names are a text, `list_resources.txt`. The map loader moved to
-region 0 with the list (`src/mapload.c`), which more than paid for it.
+region 0 with the list (`src/mapload.c`, gone since the generator), which more than paid for it.
 
 **Bronze** (milestone 7b): **a player owns a resource when it is on one
 of its cities, or in its reach (the two rings) and improved as that
@@ -1958,7 +1993,7 @@ counters in 300 turns on seed 3: two settlers asked, boarded and went
 ashore; on seeds 1 and 7 none asked, since most peoples reach
 `AI_CITY_CAP` (6 then, 8 since 25 Oct 2026) on their own land first —
 raising the cap is the lever if overseas cities are wanted sooner. **Cedar** went from 12% to 25% of forests
-in `mapgen.py`, since 4 cedar a map gave no galleys at all: now 14-23.
+in the generator, since 4 cedar a map gave no galleys at all: now 14-23.
 In 300 turns of autoplay galleys were built on seeds 3 and 7 (on seed 7
 the human's side traded cedar for tin and built one too); on seed 3 they
 did not yet bring the peoples together. Checked headlessly with a
@@ -2413,7 +2448,7 @@ that is always mapped and that disk access leaves alone: the window at
 be loaded from the PRG, it is assembled into region 0's code,
 **position-independent** (branches only inside it; absolute addresses
 only for its variables, the SID and the vector), and `music_init()`
-copies it out at boot, called from `map_load()`, region 0's last boot
+copies it out at boot, called from `sheet_load()`, region 0's last boot
 load, so as to cost no stub. `music_on()` and `music_off()` are entries
 of the copy, so any region can call them, and resident code at 3 bytes
 a call. **It reads the tune out of attic with `lda [zp],z`**, through
@@ -2850,7 +2885,7 @@ finally exits, which can be well after the signal.
 in fixed-point integers so that a seed reproduces a map byte for byte, and
 routes roads with a Dijkstra in which high ground is a price, not a wall. Its
 notes on rivers (a river cut against the map it is changing digs a canyon)
-are worth reading before rivers go into `mapgen.py`.
+are worth reading before rivers are drawn.
 
 ## The things cc65 was doing silently
 
@@ -3011,8 +3046,8 @@ A new tile needs all of these, and nothing checks that they agree:
    tile). `sheet_load()` refuses a sheet whose size disagrees, so a stale
    constant stops at boot with "cannot read TILES.FCI or it is not the sheet
    this build expects".
-4. for terrain: the matching constants in `tools/mapgen.py`, the generator
-   taught to place it, its minimap colour in `TERRAIN_COLOURS` in
+4. for terrain: the matching constants in `src/mapgen.c` and
+   `tools/mapgen.py`, both generators taught to place it, its minimap colour in `TERRAIN_COLOURS` in
    `tools/mktiles.py`, a line in `res/text/list_terrains.txt` and a
    `pedia_*.txt` page (in the Makefile's `TEXTS` straight after
    `pedia_floodplain.txt`, so

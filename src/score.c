@@ -11,6 +11,7 @@
 #include "growth.h"
 #include "input.h"
 #include "map.h"
+#include "mapgen.h"
 #include "picture.h"
 #include "screen.h"
 #include "trade.h"
@@ -179,6 +180,12 @@ void score_screen(byte how)
                   : "The score in", COLOR_WHITE);
     put_year(how == SCORE_END ? PEOPLE_LEFT + 27
              : how == SCORE_RETIRED ? PEOPLE_LEFT + 11 : PEOPLE_LEFT + 13, 2);
+    // Which world this was (src/mapgen.h), for `make MAP_SEED=n` or
+    // tools/mapgen.py to make again.
+    x = column_right[FIGURES - 1];
+    put_right(x, 2, number(map_seed), COLOR_LIGHTGREY);
+    screen_putsxy(x - length(number(map_seed)) - 5, 2, "World",
+                  COLOR_LIGHTGREY);
     if (how == SCORE_NOW) {
         x = PEOPLE_LEFT;
         screen_putsxy(x, 3, "Turn", COLOR_LIGHTGREY);

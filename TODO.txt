@@ -500,7 +500,7 @@ We should already prepare for different civilizations, and should problaby alrea
 implement a start screen with "New Game", "Load Save", "Quit". New Game will then ask
 which civilization and difficulty level. Then the game starts.
   Note: "Load Save" means writing to disk, so anything in LOW_FREE has to be
-  set up again after a save, as it already is after map_load().
+  set up again after a save, as it already is after sheet_load().
 
 Each civ has a name and a leader, and later properties that guide the AI and make the civs
 distinct.

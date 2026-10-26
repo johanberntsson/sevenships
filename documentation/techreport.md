@@ -135,8 +135,10 @@ most important routines included in each source file.
 | input.c | keyboard, mouse, joystick and the pointer sprites |
 | &nbsp;&nbsp;&nbsp;_input\_poll_ | one frame's input, returned as a key code |
 |  |  |
+| mapgen.c | the map generator, region 9 |
+| &nbsp;&nbsp;&nbsp;_map\_new_ | makes a new world from a seed: terrain into `map_tile`, resources into the list |
+|  |  |
 | map.c | the map and hexagon geometry |
-| &nbsp;&nbsp;&nbsp;_map\_load_ | reads the terrain from SEVENSHIPS.MAP |
 | &nbsp;&nbsp;&nbsp;_map\_cell\_at_ | which hexagon is under a character of the map |
 | &nbsp;&nbsp;&nbsp;_map\_neighbour_ | one step in one of the six directions |
 |  |  |
@@ -157,8 +159,9 @@ most important routines included in each source file.
 | &nbsp;&nbsp;&nbsp;_blit_ | the transparent copy the map is drawn with |
 |  |  |
 
-The tools directory holds the build-time programs: `mapgen.py` generates the
-map, `mktiles.py` turns the tile PNGs in the tiles directory into the tile
+The tools directory holds the build-time programs: `mapgen.py` is the
+game's map generator again, in Python and giving the same worlds, for a
+preview of one, `mktiles.py` turns the tile PNGs in the tiles directory into the tile
 sheet, `res/tiles.fci`, `mkpic.py` the pictures in the screens directory
 into `res/*.pic`, and `diskutil.rb` (in Ruby, by Fredrik Ramsberg)
 writes the disk image with a sector interleave suited to the MEGA65's floppy
@@ -173,7 +176,6 @@ to `release/`), holding these files:
 | -- |  ---- |
 | AUTOBOOT.C65 | the program, a C65-mode PRG loaded at \$2001 |
 | TILES.FCI | the tile sheet: a palette and 39 tiles of 4x4 full colour characters |
-| SEVENSHIPS.MAP | the map: a 16-byte header and one 4096-byte layer of terrain |
 | TEXT.PAK | the texts -- the title, help and new-game screens, the opening popup, the letters, the Crisis's popups, the Civilopedia's pages and the lists of names -- with their markup |
 | SEVENSHIPS.R1 | code region 1, the computer players and the cities' growth: a header and the code, kept in Attic RAM and run at \$6000 from bank 1 |
 | SEVENSHIPS.R2 | code region 2, Top Five Cities, the builders' improvements and roads, the unit's orders keys and what the computer players' cities build, the same way |
@@ -183,6 +185,7 @@ to `release/`), holding these files:
 | SEVENSHIPS.R6 | code region 6, the menus and their commands, and saving and loading, the same way |
 | SEVENSHIPS.R7 | code region 7, the city screen and the next build popup, the same way |
 | SEVENSHIPS.R8 | code region 8, the treasury and the scribes, buildings and wonders, the same way |
+| SEVENSHIPS.R9 | code region 9, the map generator, the same way, but kept at \$8030000 |
 | INTRO.PIC, DEFEAT.PIC, WIN_SURVIVAL.PIC, WIN_HEGEMONY.PIC, WIN_LEGACY.PIC | the pictures shown at boot and at the end: a palette and 60x23 full colour characters, 87 KB each |
 
 The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
@@ -190,7 +193,7 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
 1. keeps the VIC registers as BASIC left them (`screen_save`), switches the
    VIC-IV to 80x25 16-bit text mode with full colour characters
    (`screen_init`), reads TEXT.PAK into Attic RAM (`text_load`) and
-   SEVENSHIPS.R1 to .R7 into Attic RAM (`region_load`), and reads
+   SEVENSHIPS.R1 to .R9 into Attic RAM (`region_load`), and reads
    INTRO.PIC into the map window's tile store, palette first, so that the
    title picture shows while the rest loads (`title_splash`);
 2. reads TILES.FCI, a character at a time. Each character is widened to twice
@@ -202,9 +205,7 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
    rather than to the VIC, for `picture_end` to put in place once the
    picture has gone;
 3. copies the music's player to \$a000 and its tune to Attic RAM
-   (`music_init`), and reads SEVENSHIPS.MAP: the terrain into `map_tile`,
-   and the resources, a list sorted by hexagon row, into `map_res_*`
-   (`map_load`);
+   (`music_init`, from `sheet_load`);
 4. sets up the pointer sprites (`input_init`), starts the music
    (`music_on`), waits for a key over the
    picture and puts the tiles' palette in place, and runs the title menu
@@ -213,12 +214,18 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
    Canaanites) and one of five difficulty levels. Each menu has a
    once-a-frame loop of its own, like the main loop's, so that the mouse and
    joystick can pick an item;
-5. clears the screen, writes the map window's character numbers into screen
+5. for a new game, makes a new world (`map_new`, region 9): a seed from
+   the MEGA65's random number register, then land masses, relief,
+   rainfall and climate, erosion, rivers, the coasts and the resources,
+   into `map_tile` and the resource list, a list sorted by hexagon row,
+   using no memory but `map_tile`'s spare bits and a row; about two
+   seconds;
+6. clears the screen, writes the map window's character numbers into screen
    RAM, once (`view_init`), and places the player's settler (`game_init`) --
    or, for Load Saved Game, reads the slot picked (SEVENSHIPS.SV0 to .SV9)
-   over what `game_init` set up (`game_load`), going back to step 4 if it
-   cannot;
-6. clears the tile store and enters the main loop (`game_run`).
+   over what `game_init` set up (`game_load`), the world with it, going
+   back to step 4 if it cannot;
+7. clears the tile store and enters the main loop (`game_run`).
 
 Apart from saving and loading a game, and the picture before the final
 score, all disk access is finished by the end of step 3. The music stops
@@ -229,8 +236,8 @@ at \$a000-\$bfff, and that before `main()` starts.
 
 Game/Retire on the menu bar asks for confirmation and then goes back to
 step 4 for a new game; `game_init` clears everything the old one left on the
-map and in the unit and city lists. Game/Load Game goes back to step 5
-instead, reading the slot picked. When the player quits, from the title
+map and in the unit and city lists, and the new game is on a new world.
+Game/Load Game goes back to step 6 instead, reading the slot picked. When the player quits, from the title
 menu or from the game, `main()` turns
 the sprites and the music off, writes back the VIC registers `screen_save()` read before
 the game touched them, so that BASIC gets its own 80-column screen and
@@ -254,17 +261,17 @@ window shows one region of code at a time. The figures below are from the linker
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1dd5 | 1.9 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, and the route search of the galleys and of GOTO |
-| \$1dd6-\$1eff | 0.3 | free |
-| \$2001-\$5cb6 | 15.2 | BASIC stub, startup and resident code |
-| \$5cb7-\$5d6a | 0.15 | initialised data: the DMA lists and a few small tables |
-| \$5d6b-\$5e6a | 0.25 | C stack |
-| \$5e6b-\$5fd3 | 0.35 | BSS: small state |
-| \$5fd4-\$5fff | 0.04 | free |
-| \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.8 KB used, 0.8 KB of it the music's tune) |
+| \$1638-\$1e75 | 2.1 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, the route search of the galleys and of GOTO, and the map generator's row of rainfall and river |
+| \$1e76-\$1eff | 0.13 | free |
+| \$2001-\$5c83 | 15.0 | BASIC stub, startup and resident code |
+| \$5c84-\$5d43 | 0.19 | initialised data: the DMA lists and a few small tables |
+| \$5d44-\$5e43 | 0.25 | C stack |
+| \$5e44-\$5f9d | 0.34 | BSS: small state |
+| \$5f9e-\$5fff | 0.1 | free |
+| \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.3 KB used, 0.8 KB of it the music's tune) |
 | \$8000-\$9fff | 8 | resident constant data and code |
-| \$a000-\$bff3 | 8 | `highbss` (`HIGH_BSS`): the music's player and its state, first, then the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown and the cities' builds waiting for the next build popup, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
-| \$bff4-\$bfff | 0.01 | free |
+| \$a000-\$bff3 | 8 | `highbss` (`HIGH_BSS`): the music's player and its state, first, then the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown and the cities' builds waiting for the next build popup, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, the resources, a list by hexagon row, and the world's seed |
+| \$bff8-\$bfff | 0.01 | free |
 
 The long texts and the names are not in this table at all: they are in
 TEXT.PAK, read into Attic RAM at start-up, which is most of why the
@@ -275,7 +282,7 @@ because the PRG is loaded while BASIC is still mapped there, so only BSS
 marked `HIGH_BSS` is put in the window. BASIC is banked back in as the last
 thing `main()` does before it returns.
 
-The largest item in the BSS is the terrain layer, `map_tile`, at 4096 bytes,
+The largest item in the BSS is the terrain layer, `map_tile`, at 2560 bytes,
 which is why it was the first to move up. The units take 384 bytes (six
 one-byte fields for each of 64 units) and the cities 256 (six byte fields
 and a word for each of 32), and they followed it. The startup does not
@@ -327,7 +334,8 @@ collapse, the score and the end of the game, the pictures and the
 military advisor; region 6 the menus and their commands, the cities
 advisor, and saving and loading; region 7 the city screen and the next
 build popup; region 8 the treasury, the scribes, where the peoples start,
-and buildings and wonders.
+and buildings and wonders; region 9 the map generator, called only when a
+new game starts.
 
 Resident code calls a function in a region through a stub of the same
 name (`src/dispatch.s`), which maps the region in (copying it into its
@@ -352,7 +360,7 @@ and the main loop stay resident, where a call costs nothing.
 | \$20000-\$3ffff | 128 | The C65 ROM, left in place |
 | \$40000-\$56fff | 92 | The tile store: the map window's character definitions, and in the row padding the minimap's 80 and the owners' flags |
 | \$57000-\$5ffff | 36 | The expanded tile sheet, first area |
-| \$08000000- | 8192 | Attic RAM: the texts from TEXT.PAK at the bottom, the tiles' palette at \$0800f000 (for after a picture), the code regions from \$08010000, 8 KB each, the music's tune at \$08020000, the rest free |
+| \$08000000- | 8192 | Attic RAM: the texts from TEXT.PAK at the bottom, the tiles' palette at \$0800f000 (for after a picture), the code regions 1 to 8 from \$08010000, 8 KB each, the music's tune at \$08020000, region 9 at \$08030000, the rest free |
 | \$0ff81000-\$0ff81f9f | 4 | Colour RAM |
 
 **The tile store** is the heart of the display. A screen cell in this mode is a

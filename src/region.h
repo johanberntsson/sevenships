@@ -13,8 +13,8 @@
 // MAP), which is why there are slots at all. Two slots fit between screen
 // RAM and the tile sheet in bank 1: slot 1 is region 1's alone, and slot 2
 // is shared by regions 2 and up, so **there can be as many regions as
-// attic and the tables in dispatch.s allow** (eight in attic's bank 1 as
-// they stand). A copy is about 8 KB at 16 cycles a byte on a real MEGA65,
+// attic and the tables in dispatch.s allow** (eight in attic's bank 1 and
+// the rest in bank 3). A copy is about 8 KB at 16 cycles a byte on a real MEGA65,
 // 3.3 ms at most, so it is nothing for per-turn code and per-click
 // screens, and **two regions in one slot must not call each other in a
 // loop**, or every call is two copies. Bank 1 from $13000 is BASIC 65's
@@ -57,13 +57,16 @@
 // The regions from 1, and where each is kept. **slot_of, attic_bank and
 // attic_hi in src/dispatch.s are per region and have to agree**, as do
 // REGION_FILES in the Makefile and the winN memories in sevenships.scm.
-#define REGIONS 8
-#define REGION_ATTIC(R) (0x8010000UL + ((dword)(R) - 1) * REGION_SIZE)
-#if REGIONS > 8
+#define REGIONS 9
+#if REGIONS > 9
 #error "add the new region to the tables in src/dispatch.s"
 #endif
-// Attic's bank 1, $8010000-$801FFFF, holds eight: a ninth needs attic_bank
-// 2 in src/dispatch.s.
+// Attic's bank 1, $8010000-$801FFFF, holds eight, and bank 2 is the
+// music's (MUSIC_ATTIC), so the ninth, the map generator, is at the start
+// of bank 3, $8030000, which has room for seven more.
+#define REGION_ATTIC(R)                                                     \
+    ((R) <= 8 ? 0x8010000UL + ((dword)(R) - 1) * REGION_SIZE               \
+              : 0x8030000UL + ((dword)(R) - 9) * REGION_SIZE)
 
 // The slots in bank 1. Six 8 KB ones would fit below $1F600, where BASIC 65
 // keeps something of its own, but **$17000 up is the tile sheet's**

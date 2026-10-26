@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
-"""Generate a map file for Seven Ships of the Enemy.
+"""The map generator of Seven Ships of the Enemy, as the PC sees it.
 
-    mapgen.py [--seed N] [--land PERCENT] [--png preview.png] out.map
+    mapgen.py [--seed N] [--land PERCENT] [--png preview.png] [out.bin]
+
+**The game makes its own worlds** (src/mapgen.c, since 26 Oct 2026): a new
+one for every Start Game, from a seed. This is the same generator, step for
+step and random number for random number, so that a seed gives the same
+world here as on the MEGA65 -- which is what makes it useful: a preview
+(--png) and the resource counts in a moment, for tuning, rather than a
+game started in xemu. **The two have to be kept in step**, and a change
+to one is checked against the other byte for byte (CLAUDE.md, *The hex
+grid*). Hence everything here is integers, one 16-bit xorshift, no lists
+picked from (cells are drawn at random until one fits) and the
+neighbours in the game's DIR_* order.
 
 The steps follow the Civilization 1 generator described in design.md (and the
 civfanatics thread it links), adapted to a hex grid and to the ten terrains
@@ -20,8 +31,9 @@ the sheet has today:
    second lap, so that the seam gets the moisture the wrap would bring it.
    In the warm band dry land becomes desert, then plains, then grassland as
    the rain rises; elsewhere plains, grassland and, wettest, forest.
+   Moisture is in sixteenths, a byte.
 4. Temperature: land near the top and bottom of the map becomes tundra, with
-   a ragged edge rather than a straight line.
+   a ragged edge rather than a straight line. Then two rounds of erosion.
 5. Rivers: from mountains and hills down the coast distance to the sea.
    They are not drawn -- the sheet has no river tile yet -- but where one
    crosses desert or plains it leaves a line of floodplain, the Nile's
@@ -30,52 +42,37 @@ the sheet has today:
    shallow ocean.
 7. Resources (milestone 7, vision.md section 2): tin first, a few nodes in
    the far north and south (the imports from the edge of the world), then
-   the rest by terrain, a little more tin among them, scattered at random and never next to each other;
-   see RESOURCE_TERRAIN.
+   the rest by terrain, a little more tin among them, never next to each
+   other; see RESOURCE_TERRAIN.
 
-**The file layout**, which src/map.c reads; all of it little-endian:
+**Memory on the MEGA65 is map_tile alone**: the terrain is its low nibble,
+and the high one, clear until the game starts, holds in turn the distance
+to the coast (cut at 15), erosion's pending change and the resources. The
+order of the steps here follows from that: the distance is worked out
+again after erosion, and cleared before the resources.
 
-    0   3   "HXM"
-    3   1   format version, MAP_VERSION
-    4   1   columns (128)
-    5   1   rows (20)
-    6   1   number of layers that follow
-    7   1   0
-    8   4   the seed that made it
-    12  4   0
-    16      layer 0, columns*rows bytes, row-major [ay][ax]
-    ...     layer 1, the resources as a list: a count (at most 255), then
-            three bytes each, hexagon row hy, column ax and resource,
-            sorted by hy and then ax
-
-Layer 0 is terrain. **Its values are tile numbers** -- TILE_* in src/sheet.h,
-mirrored in TERRAIN below -- because for now every terrain has exactly one
-tile. When they stop matching, this layer keeps meaning terrain and the game
-grows a terrain-to-tile table. Layer 1 is the resources, RES_* in
-src/map.h: a list rather than a layer, since there are few and the game
-draws them a hexagon row at a time (see map_res_first in src/map.h).
+The output (when a file is named) is what the game holds afterwards, for
+comparing with a -dumpmem: map_tile, 2560 bytes row-major [ay][ax], then
+map_res_count, map_res_first (41 bytes), map_res_ax and map_res_kind
+(map_res_count bytes each).
 
 The coordinates are the game's: array cell (ax, ay) is the hexagon
 (ax, 2*ay + (ax & 1)) in doubled coordinates; see src/map.h.
 """
 
 import argparse
-import random
 import struct
 import sys
 import zlib
-from collections import deque
 
 # MAP_COLUMNS and MAP_ROWS in src/map.h. Keep the two in step.
 COLUMNS = 128
 ROWS = 20
-MAP_VERSION = 4
+CELLS = COLUMNS * ROWS
 
 # TILE_* in src/sheet.h. Keep the two in step.
 (HILLS, GRASS, MOUNTAIN, OCEAN, SHALLOW_OCEAN, TUNDRA,
  PLAINS, FOREST, DESERT, FLOODPLAIN) = range(10)
-# Lowland: what the climate decides, and what erosion may turn into another.
-LOWLAND = (GRASS, PLAINS, FOREST, DESERT, TUNDRA)
 
 # Preview colours, one per terrain value.
 COLOURS = {
@@ -94,19 +91,20 @@ COLOURS = {
 # RES_* in src/map.h. Keep the two in step.
 (NO_RESOURCE, GRAIN, FISH, CATTLE, OLIVES, WINE, CEDAR, COPPER, TIN,
  DYE, HORSES) = range(11)
-# What each terrain may hold, and how likely each: (chance a hexagon has one,
-# [(resource, weight), ...]). Tin is about two thirds as common as copper
-# inland, so that bronze is possible but scarce before there is trade, and
-# resources() adds TIN_NODES more at the edges of the world.
+# What each terrain may hold: (per cent of hexagons with one, [(resource,
+# weight), ...]). Tin is about two thirds as common as copper inland, so
+# that bronze is possible but scarce before there is trade, and
+# resources() adds TIN_NODES more at the edges of the world. res_chance[]
+# and res_choice[] in src/mapgen.c.
 RESOURCE_TERRAIN = {
-    FLOODPLAIN: (0.20, [(GRAIN, 1)]),
-    GRASS: (0.10, [(GRAIN, 1), (CATTLE, 2), (HORSES, 1)]),
-    PLAINS: (0.12, [(CATTLE, 2), (WINE, 1), (HORSES, 2)]),
-    HILLS: (0.16, [(CATTLE, 1), (OLIVES, 2), (WINE, 2), (COPPER, 2),
-                   (TIN, 1.3)]),
-    MOUNTAIN: (0.12, [(COPPER, 3), (TIN, 2)]),
-    FOREST: (0.25, [(CEDAR, 1)]),     # 0.12 left 4 a map, too few for galleys
-    SHALLOW_OCEAN: (0.08, [(FISH, 3), (DYE, 1)]),
+    HILLS: (16, [(CATTLE, 10), (OLIVES, 20), (WINE, 20), (COPPER, 20),
+                 (TIN, 13)]),
+    GRASS: (10, [(GRAIN, 1), (CATTLE, 2), (HORSES, 1)]),
+    MOUNTAIN: (12, [(COPPER, 3), (TIN, 2)]),
+    SHALLOW_OCEAN: (8, [(FISH, 3), (DYE, 1)]),
+    PLAINS: (12, [(CATTLE, 2), (WINE, 1), (HORSES, 2)]),
+    FOREST: (25, [(CEDAR, 1)]),     # 12 left 4 a map, too few for galleys
+    FLOODPLAIN: (20, [(GRAIN, 1)]),
 }
 # MAP_RES_MAX in src/map.h: the list's count is a byte.
 MAX_RESOURCES = 255
@@ -121,298 +119,417 @@ RESOURCE_COLOURS = {
     HORSES: (140, 90, 40),
 }
 
-# Rainfall thresholds; see generate(). In the warm band, below DESERT_RAIN
-# is desert and below DRY_PLAINS_RAIN plains; elsewhere below PLAINS_RAIN is
-# plains and above FOREST_RAIN forest. The rest is grassland.
-DESERT_RAIN = 1.3
-DRY_PLAINS_RAIN = 1.9
-PLAINS_RAIN = 1.0
-FOREST_RAIN = 2.0
-# Rivers to try for; see rivers().
+# Rainfall thresholds, in sixteenths; see climate(). In the warm band, below
+# DESERT_RAIN is desert and below DRY_PLAINS_RAIN plains; elsewhere below
+# PLAINS_RAIN is plains and above FOREST_RAIN forest. The rest is grassland.
+DESERT_RAIN = 21
+DRY_PLAINS_RAIN = 30
+PLAINS_RAIN = 16
+FOREST_RAIN = 32
+# Rivers to try for, and how many hexagons to draw looking for sources.
 RIVERS = 15
+RIVER_TRIES = 2000
+# The coast distance is a nibble.
+FAR = 15
 
-# The six neighbours of a hexagon in doubled coordinates.
-HEX_STEPS = ((2, 0), (-2, 0), (1, 1), (1, -1), (-1, 1), (-1, -1))
+# The six neighbours in doubled coordinates, DIR_* order (src/map.h):
+# east, south-east, south-west, west, north-west, north-east.
+HEX_STEPS = ((2, 0), (1, 1), (-1, 1), (-2, 0), (-1, -1), (1, -1))
 
 
-def step(ax, ay, dx, dy):
-    """The cell one hex step (dx, dy) from (ax, ay), wrapped east-west, or
-    None off the top or bottom. COLUMNS is even, so wrapping keeps parity."""
-    nx, ny = ax + dx, 2 * ay + (ax & 1) + dy
-    nay = (ny - (nx & 1)) // 2
-    if ny < 0 or not 0 <= nay < ROWS:
+class Rng:
+    """xorshift16 (7, 9, 8), as rnd() in src/combat.c, but a state of its
+    own: gen_next() and gen_rand() in src/mapgen.c."""
+
+    def __init__(self, seed):
+        self.s = (seed ^ 0x2a6d) & 0xFFFF or 1
+
+    def next(self):
+        s = self.s
+        s ^= (s << 7) & 0xFFFF
+        s ^= s >> 9
+        s ^= (s << 8) & 0xFFFF
+        self.s = s
+        return s
+
+    def rand(self, n):
+        """0 to n - 1; n at most 65535."""
+        return self.next() % n
+
+
+def step(ax, ay, d):
+    """map_neighbour(): the cell one step in direction d, or None off the
+    top or bottom. COLUMNS is even, so wrapping keeps parity."""
+    dx, dy = HEX_STEPS[d]
+    hx, hy = ax + dx, 2 * ay + (ax & 1) + dy
+    if hy < 0 or hy >= 2 * ROWS:
         return None
-    return nx % COLUMNS, nay
+    hx %= COLUMNS
+    return hx, (hy - (hx & 1)) >> 1
 
 
-def neighbours(ax, ay):
-    """The cells next to (ax, ay): six, or fewer at the top and bottom."""
-    for dx, dy in HEX_STEPS:
-        cell = step(ax, ay, dx, dy)
-        if cell:
-            yield cell
+class Map:
+    def __init__(self):
+        self.t = [[OCEAN] * COLUMNS for _ in range(ROWS)]
+
+    def terrain(self, x, y):
+        return self.t[y][x] & 15
+
+    def set_terrain(self, x, y, v):
+        self.t[y][x] = (self.t[y][x] & 0xF0) | v
+
+    def nib(self, x, y):
+        return self.t[y][x] >> 4
+
+    def set_nib(self, x, y, v):
+        self.t[y][x] = (self.t[y][x] & 15) | (v << 4)
+
+    def land(self, x, y):
+        t = self.terrain(x, y)
+        return t != OCEAN and t != SHALLOW_OCEAN
 
 
-def inside(ay, margin):
-    return margin <= ay < ROWS - margin
-
-
-def make_land(rng, land_percent):
-    """Step 1: a boolean grid, True for land."""
-    land = [[False] * COLUMNS for _ in range(ROWS)]
-    target = COLUMNS * ROWS * land_percent // 100
+def make_land(rng, m, land_percent):
+    """Step 1."""
+    target = CELLS * land_percent // 100
     count = 0
     while count < target:
-        ax = rng.randrange(COLUMNS)
-        ay = rng.randrange(3, ROWS - 3)
-        for _ in range(rng.randrange(8, 64)):
-            for cx, cy in [(ax, ay)] + list(neighbours(ax, ay)):
-                if inside(cy, 2) and not land[cy][cx]:
-                    land[cy][cx] = True
+        ax = rng.rand(COLUMNS)
+        ay = 3 + rng.rand(ROWS - 6)
+        for _ in range(8 + rng.rand(56)):
+            for d in range(-1, 6):
+                cell = (ax, ay) if d < 0 else step(ax, ay, d)
+                if cell is None:
+                    continue
+                cx, cy = cell
+                if 2 <= cy < ROWS - 2 and m.terrain(cx, cy) == OCEAN:
+                    m.set_terrain(cx, cy, GRASS)
                     count += 1
-            nx, ny = rng.choice(list(neighbours(ax, ay)))
-            if inside(ny, 3):
-                ax, ay = nx, ny
-    return land
+            cell = step(ax, ay, rng.rand(6))
+            if cell and 3 <= cell[1] < ROWS - 3:
+                ax, ay = cell
 
 
-def coast_distance(land):
-    """Steps from each land cell to the nearest water; 0 for water."""
-    dist = [[0 if not land[y][x] else None for x in range(COLUMNS)]
-            for y in range(ROWS)]
-    queue = deque((x, y) for y in range(ROWS) for x in range(COLUMNS)
-                  if not land[y][x])
-    while queue:
-        x, y = queue.popleft()
-        for nx, ny in neighbours(x, y):
-            if dist[ny][nx] is None:
-                dist[ny][nx] = dist[y][x] + 1
-                queue.append((nx, ny))
-    return dist
+def coast_distance(m):
+    """The steps from each land cell to the nearest water, at most FAR, in
+    the high nibble: relaxed until nothing changes, which gives the same
+    distances as a breadth-first search without its queue, sweeping
+    forwards and backwards in turn."""
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            m.set_nib(x, y, FAR if m.land(x, y) else 0)
+    changed = True
+    back = False
+    while changed:
+        changed = False
+        for j in range(ROWS):
+            for i in range(COLUMNS):
+                y = ROWS - 1 - j if back else j
+                x = COLUMNS - 1 - i if back else i
+                d = m.nib(x, y)
+                if not d:
+                    continue
+                for k in range(6):
+                    cell = step(x, y, k)
+                    if cell and m.nib(*cell) + 1 < d:
+                        d = m.nib(*cell) + 1
+                if d != m.nib(x, y):
+                    m.set_nib(x, y, d)
+                    changed = True
+        back = not back
+    # A nibble is enough while no land is FAR from the sea; rivers() needs
+    # the true distance.
+    assert count_cells(m, FAR) == 0, "land too far from the sea"
 
 
-def raise_mountains(rng, terrain, dist):
+def any_cell(rng, m, least):
+    """A random cell at least `least` from the coast; the caller has made
+    sure there is one."""
+    while True:
+        x = rng.rand(COLUMNS)
+        y = rng.rand(ROWS)
+        if m.nib(x, y) >= least:
+            return x, y
+
+
+def count_cells(m, least):
+    return sum(1 for y in range(ROWS) for x in range(COLUMNS)
+               if m.nib(x, y) >= least)
+
+
+def raise_mountains(rng, m):
     """Step 2: mountain ranges, inland only. About one land cell in twelve."""
-    inland = [(x, y) for y in range(ROWS) for x in range(COLUMNS)
-              if dist[y][x] >= 2]
-    if not inland:
+    if not count_cells(m, 2):
         return
-    target = len([1 for row in dist for d in row if d]) // 12
+    target = count_cells(m, 1) // 12
     placed = 0
     attempts = 0
     while placed < target and attempts < 1000:
         attempts += 1
-        x, y = rng.choice(inland)
+        x, y = any_cell(rng, m, 2)
         # A range has a heading, so it reads as a ridge rather than a blob.
-        dx, dy = rng.choice(HEX_STEPS)
-        for _ in range(rng.randrange(3, 10)):
-            if dist[y][x] >= 2 and terrain[y][x] != MOUNTAIN:
-                terrain[y][x] = MOUNTAIN
+        d = rng.rand(6)
+        for _ in range(3 + rng.rand(7)):
+            if m.nib(x, y) >= 2 and m.terrain(x, y) != MOUNTAIN:
+                m.set_terrain(x, y, MOUNTAIN)
                 placed += 1
             # Mostly keep the heading, sometimes wander one step off it.
-            if rng.random() < 0.3:
-                dx, dy = rng.choice(HEX_STEPS)
-            cell = step(x, y, dx, dy)
+            if rng.rand(10) < 3:
+                d = rng.rand(6)
+            cell = step(x, y, d)
             if not cell:
                 break
             x, y = cell
 
 
-def raise_hills(rng, terrain, dist):
+def raise_hills(rng, m):
     """Step 2, second half: foothills beside the ranges, then short walks.
     About one land cell in twelve again, all told."""
     for y in range(ROWS):
         for x in range(COLUMNS):
-            if (terrain[y][x] == GRASS and dist[y][x] >= 1
-                    and any(terrain[ny][nx] == MOUNTAIN
-                            for nx, ny in neighbours(x, y))
-                    and rng.random() < 0.35):
-                terrain[y][x] = HILLS
-    lowland = [(x, y) for y in range(ROWS) for x in range(COLUMNS)
-               if dist[y][x] >= 1]
-    if not lowland:
-        return
-    target = len(lowland) // 24
+            if m.terrain(x, y) != GRASS:
+                continue
+            near = False
+            for k in range(6):
+                cell = step(x, y, k)
+                if cell and m.terrain(*cell) == MOUNTAIN:
+                    near = True
+            if near and rng.rand(100) < 35:
+                m.set_terrain(x, y, HILLS)
+    target = count_cells(m, 1) // 24
     placed = 0
-    while placed < target:
-        x, y = rng.choice(lowland)
-        for _ in range(rng.randrange(2, 6)):
-            if dist[y][x] >= 1 and terrain[y][x] == GRASS:
-                terrain[y][x] = HILLS
+    attempts = 0
+    while placed < target and attempts < 1000:
+        attempts += 1
+        x, y = any_cell(rng, m, 1)
+        for _ in range(2 + rng.rand(4)):
+            if m.terrain(x, y) == GRASS:
+                m.set_terrain(x, y, HILLS)
                 placed += 1
-            cell = rng.choice(list(neighbours(x, y)))
-            x, y = cell
+            cell = step(x, y, rng.rand(6))
+            if cell:
+                x, y = cell
 
 
-def rainfall(terrain, land):
-    """Step 3: moisture per cell from two passes of wind along each row."""
-    rain = [[0.0] * COLUMNS for _ in range(ROWS)]
+def climate(rng, m):
+    """Steps 3 and 4, a row at a time: its rainfall from two passes of wind,
+    then its grassland made desert, plains, forest or tundra. The desert
+    band sits between the tropics and the cold, and the noise on both
+    thresholds is what makes the edges ragged."""
     for y in range(ROWS):
-        for xs in (range(COLUMNS), range(COLUMNS - 1, -1, -1)):
-            moisture = 0.0
+        rain = [0] * COLUMNS
+        for back in (0, 1):
+            moisture = 0
             for lap in (0, 1):
-                for x in xs:
-                    if not land[y][x]:
-                        moisture = min(moisture + 1.0, 8.0)
+                for i in range(COLUMNS):
+                    x = COLUMNS - 1 - i if back else i
+                    if not m.land(x, y):
+                        moisture = min(moisture + 16, 128)
                         continue
-                    drop = moisture * (0.5 if terrain[y][x] == MOUNTAIN else 0.15)
+                    if m.terrain(x, y) == MOUNTAIN:
+                        drop = moisture >> 1
+                    else:
+                        drop = (moisture * 5) >> 5
                     if lap:
-                        rain[y][x] += drop
+                        rain[x] += drop
                     moisture -= drop
-    return rain
+        # Latitude in hundredths, 0 at the equator, 100 at either pole.
+        base = abs(2 * y - (ROWS - 1)) * 100 // (ROWS - 1)
+        for x in range(COLUMNS):
+            if m.terrain(x, y) != GRASS:
+                continue
+            lat = base + rng.rand(17) - 8
+            wet = rain[x] + rng.rand(24)
+            if lat > 68:
+                m.set_terrain(x, y, TUNDRA)
+            elif 25 < lat < 55:
+                if wet < DESERT_RAIN:
+                    m.set_terrain(x, y, DESERT)
+                elif wet < DRY_PLAINS_RAIN:
+                    m.set_terrain(x, y, PLAINS)
+            elif wet < PLAINS_RAIN:
+                m.set_terrain(x, y, PLAINS)
+            elif wet > FOREST_RAIN:
+                m.set_terrain(x, y, FOREST)
 
 
-def rivers(rng, terrain, dist):
+def lowland(t):
+    """What the climate decides, and what erosion may turn into another."""
+    return t in (GRASS, PLAINS, FOREST, DESERT, TUNDRA)
+
+
+def erode(m):
+    """Roughly Civ 1's "age" step: a cell most of whose neighbours are one
+    other lowland terrain becomes that terrain. Without it the rainfall
+    noise leaves the desert band speckled with single grass cells. The
+    change waits in the high nibble, one more than the terrain, until the
+    whole map has been looked at. At most one terrain can have four of six
+    neighbours."""
+    for _ in range(2):
+        for y in range(ROWS):
+            for x in range(COLUMNS):
+                m.set_nib(x, y, 0)
+                t = m.terrain(x, y)
+                if not lowland(t):
+                    continue
+                around = [m.terrain(*cell) if cell else None
+                          for cell in (step(x, y, k) for k in range(6))]
+                for u in around:
+                    if u is None or u == t or not lowland(u):
+                        continue
+                    if around.count(u) >= 4:
+                        m.set_nib(x, y, u + 1)
+        for y in range(ROWS):
+            for x in range(COLUMNS):
+                if m.nib(x, y):
+                    m.set_terrain(x, y, m.nib(x, y) - 1)
+                    m.set_nib(x, y, 0)
+
+
+def rivers(rng, m):
     """Step 5: each river runs from a mountain or hill to the sea, always
     to a neighbour nearer the coast, and turns the desert and plains on its
     way into floodplain. Only rivers that cross some of either are kept."""
-    sources = [(x, y) for y in range(ROWS) for x in range(COLUMNS)
-               if terrain[y][x] in (MOUNTAIN, HILLS) and dist[y][x] >= 2]
-    rng.shuffle(sources)
     made = 0
-    for x, y in sources:
+    for _ in range(RIVER_TRIES):
         if made >= RIVERS:
             break
+        x = rng.rand(COLUMNS)
+        y = rng.rand(ROWS)
+        if m.terrain(x, y) not in (MOUNTAIN, HILLS) or m.nib(x, y) < 2:
+            continue
         path = []
-        while dist[y][x] > 0:
-            lower = [(nx, ny) for nx, ny in neighbours(x, y)
-                     if dist[ny][nx] < dist[y][x]]
-            x, y = rng.choice(lower)
+        while m.nib(x, y):
+            lower = []
+            for k in range(6):
+                cell = step(x, y, k)
+                if cell and m.nib(*cell) < m.nib(x, y):
+                    lower.append(cell)
+            x, y = lower[rng.rand(len(lower))]
             path.append((x, y))
-        dry = [(px, py) for px, py in path if terrain[py][px] in (DESERT, PLAINS)]
+        dry = [(px, py) for px, py in path
+               if m.terrain(px, py) in (DESERT, PLAINS)]
         if len(dry) < 2:
             continue
         for px, py in dry:
-            terrain[py][px] = FLOODPLAIN
+            m.set_terrain(px, py, FLOODPLAIN)
         made += 1
 
 
-def resources(rng, terrain):
-    """Step 7: a resource layer, NO_RESOURCE or one of the others per cell.
-    No two resources are neighbours, so a city's seven hexagons never hold
-    more than a few."""
-    res = [[NO_RESOURCE] * COLUMNS for _ in range(ROWS)]
+def clean_up(m):
+    """Step 6. Lakes first, so a filled lake does not leave a shallow ring."""
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            m.set_nib(x, y, 0)
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            if m.terrain(x, y) != OCEAN:
+                continue
+            if all(m.land(*cell) for cell in
+                   (step(x, y, k) for k in range(6)) if cell):
+                m.set_terrain(x, y, GRASS)
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            if m.terrain(x, y) == OCEAN and any(
+                    m.land(*cell) for cell in
+                    (step(x, y, k) for k in range(6)) if cell):
+                m.set_terrain(x, y, SHALLOW_OCEAN)
+
+
+def resources(rng, m):
+    """Step 7: a resource in the high nibble of the cells that have one. No
+    two resources are neighbours, so a city's hexagons never hold more
+    than a few. The cells are gone through in a fixed stride from a random
+    start, which visits each once, since RES_STRIDE and CELLS share no
+    factor."""
+    count = 0
 
     def free(x, y):
-        return res[y][x] == NO_RESOURCE and all(
-            res[ny][nx] == NO_RESOURCE for nx, ny in neighbours(x, y))
+        if m.nib(x, y):
+            return False
+        for k in range(6):
+            cell = step(x, y, k)
+            if cell and m.nib(*cell):
+                return False
+        return True
 
-    edge = [(x, y) for y in range(ROWS) for x in range(COLUMNS)
-            if not inside(y, TIN_ROWS)
-            and terrain[y][x] in (MOUNTAIN, HILLS, TUNDRA)]
-    rng.shuffle(edge)
     placed = 0
-    for x, y in edge:
+    for _ in range(1000):
         if placed == TIN_NODES:
             break
-        if free(x, y):
-            res[y][x] = TIN
+        x = rng.rand(COLUMNS)
+        y = rng.rand(2 * TIN_ROWS)
+        if y >= TIN_ROWS:
+            y += ROWS - 2 * TIN_ROWS
+        if m.terrain(x, y) in (MOUNTAIN, HILLS, TUNDRA) and free(x, y):
+            m.set_nib(x, y, TIN)
             placed += 1
+    count = placed
 
-    cells = [(x, y) for y in range(ROWS) for x in range(COLUMNS)]
-    rng.shuffle(cells)
-    for x, y in cells:
-        chance, choices = RESOURCE_TERRAIN.get(terrain[y][x], (0, []))
-        if not choices or rng.random() >= chance or not free(x, y):
+    c = rng.rand(CELLS)
+    for _ in range(CELLS):
+        c += RES_STRIDE
+        if c >= CELLS:
+            c -= CELLS
+        x, y = c % COLUMNS, c // COLUMNS
+        chance, choices = RESOURCE_TERRAIN.get(m.terrain(x, y), (0, []))
+        if count == MAX_RESOURCES or not choices:
             continue
-        pick = rng.uniform(0, sum(w for _, w in choices))
+        if rng.rand(100) >= chance or not free(x, y):
+            continue
+        pick = rng.rand(sum(w for _, w in choices))
         for r, w in choices:
-            pick -= w
-            if pick < 0:
+            if pick < w:
                 break
-        res[y][x] = r
-    return res
+            pick -= w
+        m.set_nib(x, y, r)
+        count += 1
 
 
-def latitude(ay):
-    """0 at the equator, 1 at either pole."""
-    centre = (ROWS - 1) / 2
-    return abs(ay - centre) / centre
+RES_STRIDE = 1597
+
+
+def res_list(m):
+    """The resources as the game keeps them (map_res_* in src/map.h), the
+    nibbles cleared: hexagon row by row, column by column."""
+    first, ax, kind = [], [], []
+    for hy in range(2 * ROWS):
+        first.append(len(ax))
+        for x in range(hy & 1, COLUMNS, 2):
+            y = (hy - (x & 1)) >> 1
+            if m.nib(x, y):
+                ax.append(x)
+                kind.append(m.nib(x, y))
+                m.set_nib(x, y, 0)
+    first.append(len(ax))
+    return first, ax, kind
 
 
 def generate(seed, land_percent):
-    rng = random.Random(seed)
-    land = make_land(rng, land_percent)
-    terrain = [[GRASS if land[y][x] else OCEAN for x in range(COLUMNS)]
-               for y in range(ROWS)]
-    dist = coast_distance(land)
-    raise_mountains(rng, terrain, dist)
-
-    raise_hills(rng, terrain, dist)
-
-    # Steps 3 and 4. The desert band sits between the tropics and the cold,
-    # and the noise on both thresholds is what makes the edges ragged.
-    rain = rainfall(terrain, land)
-    for y in range(ROWS):
-        for x in range(COLUMNS):
-            if terrain[y][x] != GRASS:
-                continue
-            lat = latitude(y) + rng.uniform(-0.08, 0.08)
-            wet = rain[y][x] + rng.uniform(0, 1.5)
-            if lat > 0.68:
-                terrain[y][x] = TUNDRA
-            elif 0.25 < lat < 0.55:
-                if wet < DESERT_RAIN:
-                    terrain[y][x] = DESERT
-                elif wet < DRY_PLAINS_RAIN:
-                    terrain[y][x] = PLAINS
-            elif wet < PLAINS_RAIN:
-                terrain[y][x] = PLAINS
-            elif wet > FOREST_RAIN:
-                terrain[y][x] = FOREST
-
-    # Erosion, roughly Civ 1's "age" step: a cell most of whose neighbours
-    # are one other lowland terrain becomes that terrain. Without it the
-    # rainfall noise leaves the desert band speckled with single grass cells.
-    for _ in range(2):
-        changes = []
-        for y in range(ROWS):
-            for x in range(COLUMNS):
-                if terrain[y][x] not in LOWLAND:
-                    continue
-                counts = {}
-                for nx, ny in neighbours(x, y):
-                    t = terrain[ny][nx]
-                    counts[t] = counts.get(t, 0) + 1
-                for t, n in counts.items():
-                    if n >= 4 and t != terrain[y][x] and t in LOWLAND:
-                        changes.append((x, y, t))
-        for x, y, t in changes:
-            terrain[y][x] = t
-
-    rivers(rng, terrain, dist)
-
-    # Step 6. Lakes first, so a filled lake does not leave a shallow ring.
-    for y in range(ROWS):
-        for x in range(COLUMNS):
-            if terrain[y][x] == OCEAN and all(
-                    land[ny][nx] for nx, ny in neighbours(x, y)):
-                terrain[y][x] = GRASS
-                land[y][x] = True
-    for y in range(ROWS):
-        for x in range(COLUMNS):
-            if terrain[y][x] == OCEAN and any(
-                    land[ny][nx] for nx, ny in neighbours(x, y)):
-                terrain[y][x] = SHALLOW_OCEAN
-    return terrain, resources(rng, terrain)
+    """map_generate() in src/mapgen.c."""
+    rng = Rng(seed)
+    m = Map()
+    make_land(rng, m, land_percent)
+    coast_distance(m)
+    raise_mountains(rng, m)
+    raise_hills(rng, m)
+    climate(rng, m)
+    erode(m)
+    coast_distance(m)
+    rivers(rng, m)
+    clean_up(m)
+    resources(rng, m)
+    return m, res_list(m)
 
 
-def write_map(path, seed, terrain, res):
-    header = b"HXM" + struct.pack("<BBBBBII", MAP_VERSION, COLUMNS, ROWS, 2, 0,
-                                  seed & 0xFFFFFFFF, 0)
-    assert len(header) == 16
-    body = bytes(t for row in terrain for t in row)
-    found = sorted((2 * y + (x & 1), x, res[y][x])
-                   for y in range(ROWS) for x in range(COLUMNS) if res[y][x])
-    if len(found) > MAX_RESOURCES:
-        sys.exit("mapgen: %d resources, more than %d" % (len(found),
-                                                          MAX_RESOURCES))
-    body += bytes([len(found)]) + bytes(b for entry in found for b in entry)
+def write_dump(path, m, res):
+    first, ax, kind = res
     with open(path, "wb") as f:
-        f.write(header + body)
+        f.write(bytes(v for row in m.t for v in row))
+        f.write(bytes([len(ax)]) + bytes(first) + bytes(ax) + bytes(kind))
 
 
-def write_png(path, terrain, res):
+def write_png(path, m, res):
     """A rough preview: each hexagon a 6x8 brick, odd columns half a row down,
     which is the same arrangement the game draws. The map wraps east-west, so
     the left and right edges of the picture join."""
@@ -422,14 +539,17 @@ def write_png(path, terrain, res):
     for y in range(ROWS):
         for x in range(COLUMNS):
             top = (2 * y + (x & 1)) * rh
-            colour = COLOURS[terrain[y][x]]
+            colour = COLOURS[m.terrain(x, y)]
             for py in range(top, top + 2 * rh):
                 for px in range(x * cw, x * cw + cw):
                     pixels[py][px] = colour
-            if res[y][x]:
-                for py in range(top + rh - 1, top + rh + 1):
-                    for px in range(x * cw + 2, x * cw + 4):
-                        pixels[py][px] = RESOURCE_COLOURS[res[y][x]]
+    first, ax, kind = res
+    for hy in range(2 * ROWS):
+        for i in range(first[hy], first[hy + 1]):
+            x, top = ax[i], hy * rh
+            for py in range(top + rh - 1, top + rh + 1):
+                for px in range(x * cw + 2, x * cw + 4):
+                    pixels[py][px] = RESOURCE_COLOURS[kind[i]]
     raw = b"".join(b"\0" + bytes(c for p in row for c in p) for row in pixels)
 
     def chunk(kind, data):
@@ -446,7 +566,7 @@ def write_png(path, terrain, res):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("output")
+    parser.add_argument("output", nargs="?")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--land", type=int, default=35,
                         help="land as a percentage of the map (default 35)")
@@ -454,19 +574,20 @@ def main():
     args = parser.parse_args()
     if not 5 <= args.land <= 70:
         sys.exit("mapgen: --land must be between 5 and 70")
+    if not 0 <= args.seed <= 0xFFFF:
+        sys.exit("mapgen: --seed is 16 bits")
 
-    terrain, res = generate(args.seed, args.land)
-    write_map(args.output, args.seed, terrain, res)
+    m, res = generate(args.seed, args.land)
+    if args.output:
+        write_dump(args.output, m, res)
     if args.png:
-        write_png(args.png, terrain, res)
+        write_png(args.png, m, res)
     counts = {}
-    for row in res:
-        for r in row:
-            if r:
-                counts[r] = counts.get(r, 0) + 1
+    for r in res[2]:
+        counts[r] = counts.get(r, 0) + 1
     names = ("", "grain", "fish", "cattle", "olives", "wine", "cedar",
              "copper", "tin", "dye", "horses")
-    print("mapgen: resources " + ", ".join(
+    print("mapgen: seed %d, resources " % args.seed + ", ".join(
         "%s %d" % (names[r], counts.get(r, 0)) for r in range(1, HORSES + 1)))
 
 

@@ -20,22 +20,23 @@ cur_region: .byte   0
 ; Region r's slot (src/region.h has the scheme), and
 ; the region each slot holds, 0 for none yet: region_load() leaves them all
 ; empty, so a region is first copied in when it is first called.
-slot_of:    .byte   0, 1, 2, 2, 2, 2, 2, 2, 2
+slot_of:    .byte   0, 1, 2, 2, 2, 2, 2, 2, 2, 2
 slot_held:  .byte   0, 0, 0
 
 ; Where each region is in attic RAM, REGION_ATTIC(r): bank bits 16-19 and
 ; bits 8-15, for r from 0 (unused) up. And where each slot is in bank 1,
 ; bits 8-15.
-attic_bank: .byte   0, 1, 1, 1, 1, 1, 1, 1, 1
-attic_hi:   .byte   0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xa0, 0xc0, 0xe0
+; Region 9 is in attic's bank 3, since bank 2 is the music's.
+attic_bank: .byte   0, 1, 1, 1, 1, 1, 1, 1, 1, 3
+attic_hi:   .byte   0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xa0, 0xc0, 0xe0, 0x00
 slot_hi:    .byte   0, 0x30, 0x50
 
 ; Each region's length, set by region_load() from its file.
             .public region_length_lo, region_length_hi
 region_length_lo:
-            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0
+            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 region_length_hi:
-            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0
+            .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 ; The copy from attic RAM into a slot: an enhanced job with the source in
 ; megabyte $80, the destination in $00, then F018B as in src/mega65.c.
@@ -169,10 +170,8 @@ stub:       .macro  name, target, region
             jmp     dispatch
             .endm
 
-; Region 0: the screens and the tile sheet's
-; and the map's loaders.
+; Region 0: the screens and the tile sheet's loader.
             stub    sheet_load, sheet_load_r0, 0
-            stub    map_load, map_load_r0, 0
             stub    help_screen, help_screen_r0, 0
             stub    title_show, title_show_r0, 0
             stub    title_run, title_run_r0, 0
@@ -257,3 +256,6 @@ stub:       .macro  name, target, region
             stub    treasury_turn, treasury_turn_r8, 8
             stub    ai_place, ai_place_r8, 8
             stub    finance_screen, finance_screen_r8, 8
+
+; Region 9, slot 2: the map generator, between the title and a new game.
+            stub    map_new, map_new_r9, 9

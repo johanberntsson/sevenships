@@ -71,7 +71,7 @@
 //
 // **Bit 6 says the human player has seen the hexagon.** Until then it is
 // drawn as TILE_UNDISCOVERED and anything on it stays hidden. map_explore()
-// sets it; nothing clears it. The map file has it clear everywhere.
+// sets it; nothing clears it. A new map has it clear everywhere.
 //
 // **Bits 4 and 5 are the builders' improvement** (src/improve.h): 0, or
 // MAP_IRRIGATED or MAP_MINED, or both, MAP_EMPORIUM, which a merchant ship
@@ -106,8 +106,8 @@ extern byte map_tile[MAP_ROWS][MAP_COLUMNS];
 #define MAP_TERRAIN(AX, AY) (map_tile[AY][AX] & MAP_TERRAIN_MASK)
 #define MAP_IS_EXPLORED(AX, AY) ((map_tile[AY][AX] | map_show) & MAP_EXPLORED)
 
-// **The resources** (milestone 7, vision.md section 2), from the map file and
-// never changed. Drawn as an overlay over the terrain (MAP_RESOURCE_TILE)
+// **The resources** (milestone 7, vision.md section 2), made with the map
+// (src/mapgen.h) and never changed. Drawn as an overlay over the terrain (MAP_RESOURCE_TILE)
 // and added to the yield (hex_yield() in src/growth.h).
 //
 // **A list sorted by hexagon row, not a layer.** There are about a hundred
@@ -188,32 +188,17 @@ byte map_neighbour(byte ax, byte ay, byte dir, byte *nax, byte *nay);
 // Which way (bx, by) is from (ax, ay), or DIR_NONE if not a neighbour.
 byte map_direction(byte ax, byte ay, byte bx, byte by);
 
-// Back to the map as it was loaded: nothing explored, nothing on it.
+// Back to the map as it was made: nothing explored, nothing on it.
 void map_reset(void);
 
 // Mark (ax, ay) and its six neighbours seen, which is what one of the human
 // player's units sees from where it stands.
 void map_explore(byte ax, byte ay);
 
-// The map file, made by tools/mapgen.py (which documents the layout) and put
-// on the disk next to the program by `make d81`.
-//
-// **The name is spelled in capitals because the disk spells it that way.**
-// tools/diskutil.rb turns the host name sevenships.map into unshifted PETSCII,
-// which is the bytes of ASCII "SEVENSHIPS.MAP", and Calypsi passes literals
-// through unchanged.
-#define MAP_FILE_NAME "SEVENSHIPS.MAP"
-#define MAP_VERSION 4
-
 // The cell whose hexagon is under map-space character (cx, cy), cx below
 // MAP_WIDTH_CHARS. Tiles overlap, so a character can lie inside two tiles'
 // rectangles; this picks the hexagon whose centre is nearest, measured on the
 // glass, where a character is half as wide as it is tall.
 void map_cell_at(word cx, word cy, byte *ax, byte *ay);
-
-// Read the terrain layer of MAP_FILE_NAME into map_tile and the resource
-// list into map_res_*. Returns 0 if the file cannot be opened or is not
-// a map of this size and version.
-byte map_load(void);
 
 #endif // SEVENSHIPS_MAP_H

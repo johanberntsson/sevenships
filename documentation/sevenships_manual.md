@@ -56,6 +56,11 @@ Start Game asks for your people, then the difficulty level:
 On harder levels the computer players also think less well of you, and
 anger more easily.
 
+**Every game is played on a new world**, made for it when the game
+starts, which takes a couple of seconds: land masses, mountains, rivers,
+deserts and resources, never the same twice. Each world has a number,
+shown on World → Score; a saved game keeps its world.
+
 You begin with a **settler** and a **warrior**. Found your first city
 quickly: press **b** with the settler.
 
@@ -454,7 +459,7 @@ levels.
 
 The game runs from **1600 BC** to **1026 BC**: two years a turn until
 1250 BC (turn 176), then one, **400 turns** in all. World → Score shows
-how many are left.
+how many are left, and the number of the world.
 
 ## 15. The Crisis
 

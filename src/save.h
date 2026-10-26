@@ -18,7 +18,7 @@
 #include "mega65.h"
 
 #define SAVE_FILE_NAME "SEVENSHIPS.SV"  // and the slot's digit
-#define SAVE_VERSION 23
+#define SAVE_VERSION 24          // 24: the world's seed
 #define SAVE_SLOTS 10
 #define SAVE_COMMENT 36         // with its 0: "Suppiluliuma - Hittites - 1600 BC"
 #define SAVE_NONE 0xff

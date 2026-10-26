@@ -7,6 +7,7 @@
 
 #include "sheet.h"
 #include "minimap.h"
+#include "music.h"
 #include "picture.h"
 #include "region.h"
 #include "screen.h"
@@ -249,5 +250,8 @@ byte sheet_load(void)
     ok = read_sheet(fd);
     _Stub_close(fd);
     if (ok) make_flags();
+    // The music's player too, since this is region 0's last call at boot
+    // and the player has to be in place before anything calls it.
+    music_init();
     return ok;
 }

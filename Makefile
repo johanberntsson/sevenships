@@ -59,6 +59,20 @@ endif
 ifneq ($(AUTOPLAY_TURNS),)
 CFLAGS  += -DAUTOPLAY_TURNS=$(AUTOPLAY_TURNS)
 endif
+# The world (src/mapgen.h): a new one every game, from a seed the game
+# draws, unless MAP_SEED says which -- as it does for NO_TITLE and
+# FAKE_KEYS builds, so that a headless run is the same every time.
+# `python3 tools/mapgen.py --seed N --png F.png` shows one without the
+# game, and `make` leaves build/sevenships-map.png of MAP_SEED's. MAP_LAND
+# is the percentage of it that is land.
+ifneq ($(NO_TITLE)$(FAKE_KEYS),)
+MAP_SEED ?= 1
+endif
+MAP_LAND ?= 35
+CFLAGS  += -DMAP_LAND=$(MAP_LAND)
+ifneq ($(MAP_SEED),)
+CFLAGS  += -DMAP_SEED=$(MAP_SEED)
+endif
 ASFLAGS  = $(TARGET)
 # Raw, one file a memory, since the windows' regions share addresses;
 # tools/packprg.py makes the PRG and the region files from them. --hosted
@@ -88,7 +102,7 @@ SRCS     = src/sevenships.c \
            src/sheet.c \
            src/view.c \
            src/map.c \
-           src/mapload.c \
+           src/mapgen.c \
            src/minimap.c \
            src/input.c \
            src/unit.c \
@@ -119,7 +133,7 @@ SRCS     = src/sevenships.c \
 # The files whose code is in a MAP window region (src/region.h), compiled
 # without the shared instruction fragments that could be called across one.
 BANKED   = src/title.c src/picture.c src/music.c src/turn.c src/hover.c src/score.c src/military.c src/crisis.c src/treasury.c src/culture.c src/command.c src/cities.c src/aiplace.c src/cityscreen.c src/topcities.c src/fight.c src/diplomacy.c \
-           src/save.c src/sheet.c src/mapload.c src/help.c src/menu.c src/ai.c src/aibuild.c src/aisite.c \
+           src/save.c src/sheet.c src/mapgen.c src/help.c src/menu.c src/ai.c src/aibuild.c src/aisite.c \
            src/improve.c src/growth.c src/trade.c src/path.c src/boat.c src/emporium.c \
            src/goto.c src/orders.c src/roadadd.c src/tablets.c
 
@@ -138,14 +152,12 @@ PRG      = $(BUILD)/sevenships.prg
 REGION_FILES = $(BUILD)/sevenships.r1 $(BUILD)/sevenships.r2 \
                $(BUILD)/sevenships.r3 $(BUILD)/sevenships.r4 \
                $(BUILD)/sevenships.r5 $(BUILD)/sevenships.r6 \
-               $(BUILD)/sevenships.r7 $(BUILD)/sevenships.r8
+               $(BUILD)/sevenships.r7 $(BUILD)/sevenships.r8 \
+               $(BUILD)/sevenships.r9
 
-# The map, made by tools/mapgen.py and read off the disk at start-up. Same seed,
-# same map: `make MAP_SEED=7` is how to look at another one, and MAP_LAND is the
-# percentage of it that is land.
-MAP_SEED ?= 1
-MAP_LAND ?= 35
-MAP      = $(BUILD)/sevenships.map
+# A preview of the world MAP_SEED makes (1 if none is given), by
+# tools/mapgen.py, which makes the same worlds as the game.
+MAP_PNG  = $(BUILD)/sevenships-map.png
 D81      = $(BUILD)/sevenships.d81
 
 # The texts, packed by tools/mktext.py into a file for the disk and a header
@@ -222,12 +234,13 @@ TEXTS    = $(RES)/text/help.txt \
 TEXT_PAK = $(BUILD)/text.pak
 TEXT_IDS = $(BUILD)/textid.h
 
-all: $(PRG) $(D81)
+all: $(PRG) $(D81) $(MAP_PNG)
 
 # xemu-xmega65 blocks until the window is closed. For an automated check run it
 # headless and screenshot on exit -- see the Verification section of CLAUDE.md.
-# **The disk has to be mounted**: the program reads its map from drive 8, and
-# without the image it stops at "cannot read SEVENSHIPS.MAP".
+# **The disk has to be mounted**: the program reads its texts, code regions
+# and tile sheet from drive 8, and without the image it stops at "cannot
+# read TEXT.PAK".
 run: $(PRG) $(D81)
 	xemu-xmega65 -besure -keymap $(CURDIR)/res/xemu-keymap.cfg -8 $(D81) -prg $(PRG)
 
@@ -259,17 +272,16 @@ ifneq ($(file <$(STAMP)),$(CFLAGS))
 $(file >$(STAMP),$(CFLAGS))
 endif
 
-# The same for the map's arguments, kept separate so that a new seed remakes
-# the map and the disk but not every object.
+# The same for the preview's arguments.
 ifneq ($(file <$(MAP_STAMP)),$(MAP_SEED) $(MAP_LAND))
 $(file >$(MAP_STAMP),$(MAP_SEED) $(MAP_LAND))
 endif
 
-# --png leaves a preview beside it, which is much the quickest way to judge a
-# change to the generator.
-$(MAP): tools/mapgen.py $(MAP_STAMP) | $(BUILD)
-	python3 tools/mapgen.py --seed $(MAP_SEED) --land $(MAP_LAND) \
-	    --png $(BUILD)/sevenships-map.png $@
+# Much the quickest way to judge a change to the generator, which has to
+# be made in src/mapgen.c as well.
+$(MAP_PNG): tools/mapgen.py $(MAP_STAMP) | $(BUILD)
+	python3 tools/mapgen.py --seed $(or $(MAP_SEED),1) --land $(MAP_LAND) \
+	    --png $@
 
 # The pack and the header come out of one run. mktext.py leaves the header
 # alone when the numbering has not changed, so editing what a text says
@@ -315,7 +327,7 @@ $(ELF) $(PRG) $(REGION_FILES) &: $(OBJS) $(LINKFILE) tools/packprg.py
 	    $(PRG) $(BUILD)/sevenships
 
 # The disk image, which is how the program gets onto a real MEGA65 and where it
-# finds its map and its tile sheet (res/tiles.fci, which tiles/Makefile
+# finds its texts, code regions and tile sheet (res/tiles.fci, which tiles/Makefile
 # makes and which is checked in). The name autoboot.c65 is what makes the ROM boot it: a C65-mode
 # PRG at $2001 needs no wrapper, which is what old-cc65/c65bin/c65toc64wrapper.prg
 # used to supply.
@@ -325,8 +337,8 @@ $(ELF) $(PRG) $(REGION_FILES) &: $(OBJS) $(LINKFILE) tools/packprg.py
 # reads about five times faster on a MEGA65 than with the 1581's default.
 # It names a file on the disk after the host file's basename, which is why the
 # PRG is copied to autoboot.c65 first, and writes that name as unshifted
-# PETSCII, so sevenships.map here is "SEVENSHIPS.MAP" to the program; see
-# MAP_FILE_NAME in src/map.h. It refuses to overwrite a file already on the
+# PETSCII, so tiles.fci here is "TILES.FCI" to the program; see
+# SHEET_FILE_NAME in src/sheet.h. It refuses to overwrite a file already on the
 # image, so the image is always built from scratch. The data files go on as
 # SEQ, as Search And Rescue's do: they have no load address, and the program
 # opens them by name whatever their type.
@@ -336,12 +348,12 @@ d81: $(D81)
 PICTURES = $(RES)/intro.pic $(RES)/defeat.pic $(RES)/win_survival.pic \
            $(RES)/win_hegemony.pic $(RES)/win_legacy.pic
 
-$(D81): $(PRG) $(REGION_FILES) $(MAP) $(RES)/tiles.fci $(TEXT_PAK) $(PICTURES) tools/diskutil.rb
+$(D81): $(PRG) $(REGION_FILES) $(RES)/tiles.fci $(TEXT_PAK) $(PICTURES) tools/diskutil.rb
 	rm -f $@
 	cp $(PRG) $(BUILD)/autoboot.c65
 	ruby tools/diskutil.rb $@ -name sevenships -id ss \
 	    -writeprg -copyf1 $(BUILD)/autoboot.c65 \
-	    -writeseq -copyf1 $(MAP) $(RES)/tiles.fci $(TEXT_PAK) $(REGION_FILES) \
+	    -writeseq -copyf1 $(RES)/tiles.fci $(TEXT_PAK) $(REGION_FILES) \
 	    $(PICTURES)
 
 # The disk image as it is handed out, with xemu's keymap for the keypad

@@ -10,7 +10,7 @@
 //
 // The player and its state are in HIGH_BSS, where music_init() copies it
 // at boot, and music_on() and music_off() are its entries there: **neither
-// may be called before music_init()**, which map_load() calls, region 0's
+// may be called before music_init()**, which sheet_load() calls, region 0's
 // last load. Callable from any region, since HIGH_BSS is always mapped.
 #ifndef SEVENSHIPS_MUSIC_H
 #define SEVENSHIPS_MUSIC_H

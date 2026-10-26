@@ -21,6 +21,7 @@
 #include "trade.h"
 #include "game.h"
 #include "map.h"
+#include "mapgen.h"
 #include "unit.h"
 #include "road.h"
 #include "tablets.h"
@@ -40,8 +41,9 @@ struct block { void *at; word size; };
 
 static const struct block blocks[] = {
     { map_tile, sizeof map_tile },
-    // From the map file and never changed, but saved with the terrain it
-    // belongs to.
+    // Made with the map and never changed, but saved with the terrain it
+    // belongs to; and the world's seed, for World -> Score.
+    { &map_seed, sizeof map_seed },
     { &map_res_count, sizeof map_res_count },
     { map_res_first, sizeof map_res_first },
     { map_res_ax, sizeof map_res_ax },
