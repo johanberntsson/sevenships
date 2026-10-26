@@ -22,7 +22,13 @@ kingdom fell: *"Seven ships of the enemy came, and they did great damage."*
 
 The game is the disk image, `release/sevenships.d81`. Mount it on a MEGA65
 (or in xemu) and boot it. It can be played with a mouse, a joystick or the
-keyboard alone.
+keyboard alone. In xemu, the keymap `release/xemu-keymap.cfg` lets the
+PC's keypad move units (7 9 4 6 1 3); HELP is on PgUp. From the
+repository's top directory:
+
+```sh
+xemu-xmega65 -besure -keymap release/xemu-keymap.cfg -8 release/sevenships.d81
+```
 
 **How to play is in the manual, `release/sevenships_manual.pdf`.** It covers
 the peoples, the rules, the Crisis, and how a game is won or lost.

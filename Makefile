@@ -344,7 +344,8 @@ $(D81): $(PRG) $(REGION_FILES) $(MAP) $(RES)/tiles.fci $(TEXT_PAK) $(PICTURES) t
 	    -writeseq -copyf1 $(MAP) $(RES)/tiles.fci $(TEXT_PAK) $(REGION_FILES) \
 	    $(PICTURES)
 
-# The disk image as it is handed out. Plain `make release` after a test build
+# The disk image as it is handed out, with xemu's keymap for the keypad
+# (README.md's command line). Plain `make release` after a test build
 # is safe, since the config stamp sees the flags change and rebuilds; what is
 # refused is a release *of* a test build. `make clean` leaves release/ alone.
 RELEASE  = release
@@ -367,7 +368,7 @@ ifeq ($(DEBUG),1)
 	$(error a release must not be built with DEBUG=1)
 endif
 	mkdir -p $(RELEASE)
-	cp $(D81) $(RELEASE)/
+	cp $(D81) $(RES)/xemu-keymap.cfg $(RELEASE)/
 
 clean:
 	rm -rf $(BUILD)
