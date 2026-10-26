@@ -115,6 +115,11 @@ and the keypad's 7 9 4 6 1 3 move the unit.
 By default the turn ends by itself once every unit has had its orders;
 Game → Options → End of Turn makes it wait for Return instead.
 
+A harp plays in the background, a piece in the style of the Hurrian hymn
+to Nikkal, which was written down at Ugarit around 1400 BC and is the
+oldest tune that survives nearly whole. It pauses while the disk is busy. Game → Options →
+Music turns it off and on.
+
 ## 5. Cities
 
 A settler founds a city where it stands (**b**). A city stands on a road,

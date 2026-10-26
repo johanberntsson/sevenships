@@ -18,6 +18,7 @@
 #include "treasury.h"
 #include "military.h"
 #include "unit.h"
+#include "music.h"
 
 #pragma clang section text="r6text" rodata="r6rodata"
 
@@ -65,6 +66,10 @@ void game_menu_command(byte command)
         break;
     case MENU_NEXT_BUILD:
         game_build_quiet ^= 1;
+        break;
+    case MENU_MUSIC:
+        if ((music_wanted ^= 1)) music_on();
+        else music_off();
         break;
     case MENU_LOAD:
         // game_run() ends, and main() reads the slot into a new game.

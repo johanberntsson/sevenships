@@ -25,6 +25,7 @@
 #include "road.h"
 #include "tablets.h"
 #include "input.h"
+#include "music.h"
 #include "screen.h"
 #include "text.h"
 
@@ -137,15 +138,20 @@ static int open_slot(char *name, byte slot, byte writing)
 static byte save_write(void)
 {
     char name[sizeof SAVE_FILE_NAME + 8];
-    int fd = open_slot(name, save_slot, 1);
-    byte i, ok;
+    int fd;
+    byte i, ok = 0;
 
-    if (fd < 0) return 0;
-    for (i = 0; i < sizeof header; ++i) head[i] = header[i];
-    ok = _Stub_write(fd, head, sizeof head) == sizeof head;
-    for (i = 0; ok && i < BLOCKS; ++i)
-        ok = _Stub_write(fd, blocks[i].at, blocks[i].size) == blocks[i].size;
-    _Stub_close(fd);
+    music_off();
+    fd = open_slot(name, save_slot, 1);
+    if (fd >= 0) {
+        for (i = 0; i < sizeof header; ++i) head[i] = header[i];
+        ok = _Stub_write(fd, head, sizeof head) == sizeof head;
+        for (i = 0; ok && i < BLOCKS; ++i)
+            ok = _Stub_write(fd, blocks[i].at, blocks[i].size)
+                 == blocks[i].size;
+        _Stub_close(fd);
+    }
+    music_on();
     return ok;
 }
 
@@ -193,12 +199,15 @@ static byte peek(byte slot, int *fd)
 byte save_read(void)
 {
     int fd;
-    byte i, ok;
+    byte i, ok = 0;
 
-    if (peek(save_slot, &fd) != SLOT_GAME) return 0;
-    for (ok = 1, i = 0; ok && i < BLOCKS; ++i)
-        ok = read_block(fd, blocks[i].at, blocks[i].size);
-    _Stub_close(fd);
+    music_off();
+    if (peek(save_slot, &fd) == SLOT_GAME) {
+        for (ok = 1, i = 0; ok && i < BLOCKS; ++i)
+            ok = read_block(fd, blocks[i].at, blocks[i].size);
+        _Stub_close(fd);
+    }
+    music_on();
     return ok;
 }
 
@@ -315,12 +324,14 @@ byte save_screen(byte saving)
     hint("Reading the disk...");
     screen_putsxy(saving ? 35 : 32, 1, saving ? "Save Game" : "Load Saved Game",
                   COLOR_WHITE);
+    music_off();
     for (slot = 0; slot < SAVE_SLOTS; ++slot) {
         screen_putcxy(NUMBER_LEFT, TOP + 2 * slot, (char)('0' + slot),
                       COLOR_YELLOW);
         got[slot] = peek(slot, 0);
         draw_slot(slot, got[slot]);
     }
+    music_on();
 
 again:
     hint(saving ? "Pick a slot to save in, or Esc to go back"
@@ -364,7 +375,11 @@ again:
         }
         if (!edit(slot)) {
             // What was on the row.
-            if (got[slot] == SLOT_GAME) peek(slot, 0);
+            if (got[slot] == SLOT_GAME) {
+                music_off();
+                peek(slot, 0);
+                music_on();
+            }
             draw_slot(slot, got[slot]);
             goto again;
         }

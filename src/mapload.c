@@ -9,6 +9,7 @@
 #include <calypsi/stubs.h>
 
 #include "map.h"
+#include "music.h"
 
 #pragma clang section text="r0text" rodata="r0rodata"
 
@@ -30,8 +31,12 @@ byte map_load(void)
     static byte header[MAP_HEADER_SIZE];
     static byte entry[3];       // a resource: hexagon row, column, kind
     byte ok = 0;
-    int fd = _Stub_open(MAP_FILE_NAME, O_RDONLY | O_BINARY);
+    int fd;
 
+    // The music's player too, since this is region 0's last call at boot
+    // and the player has to be in place before anything calls it.
+    music_init();
+    fd = _Stub_open(MAP_FILE_NAME, O_RDONLY | O_BINARY);
     if (fd < 0) return 0;
 
     // "HXM" is compared as written: Calypsi does not turn literals into

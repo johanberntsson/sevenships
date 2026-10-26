@@ -81,6 +81,8 @@ OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
 
+Music has been added, based on tne ancient Song Of Moon Goddess Nikkal
+
 DONE (26 Oct): the next build popup (the user's, to make it easier to play). When one of the
    human's cities finishes something, the view goes to it and a popup says "Mycenae has
    built: Warrior. What shall we build next?" with two buttons: what the computer would

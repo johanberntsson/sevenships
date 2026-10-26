@@ -213,18 +213,19 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 52 bytes free (26 Oct 2026, after the next build popup; 103 before it), at the top of `$2001-$5FFF` |
-| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`). 1.7 KB free (26 Oct 2026) |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 44 bytes free (26 Oct 2026, after the music; 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
+| `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's and the map's loaders, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 238 bytes free (26 Oct 2026, after the music; 1.7 KB before it) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
 | `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
-| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; 234 bytes free (26 Oct 2026) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
+| `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header; **12 bytes free** (26 Oct 2026, after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, 314 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
 | `$8000000` | ~3 KB | attic RAM: the texts, `TEXT.PAK`'s body (`src/text.h`) |
-| `$8010000` | 8 KB a region | attic RAM: code regions 1 and up as read from the disk, region r at `REGION_ATTIC(r)` (`src/region.h`); the rest of the 8 MB free |
+| `$8010000` | 8 KB a region | attic RAM: code regions 1 and up as read from the disk, region r at `REGION_ATTIC(r)` (`src/region.h`) |
+| `$8020000` | ~0.8 KB | attic RAM: the music's tune (`MUSIC_ATTIC` in `src/music.h`); the rest of the 8 MB free |
 | `$FF81000` | 4000 | colour RAM |
 
 **The store's rows are padded to 4096 bytes, and the padding is load bearing.**
@@ -913,7 +914,11 @@ goes on play-testing before the next session):
    the orders (to the next unit, and on `c`), Help → Peoples and
    Clay Tablets, and **the next build popup** (its suggestion, Return,
    `s` into CHANGE, two cities finishing in one turn, Options' tick;
-   working in the user's play on 26 Oct, after the fix).
+   working in the user's play on 26 Oct, after the fix); and **the
+   music** (26 Oct 2026, **The music**: that it plays at all, in time,
+   in both speakers and in tune; that it stops for Save Game, Load
+   Game and the end's picture and comes back; Options → Music; and
+   `DIM` after quitting).
    **Confirmed there on 26 Oct**: the fixes from the
    user's first play-test -- the blink redrawing only its band (the
    busy screen no longer flickers), GOTO along roads, and `d`, Disband.
@@ -933,8 +938,11 @@ goes on play-testing before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (52
-   bytes), region 1 (68 bytes), region 2 (350 bytes) or region 4 (250 bytes): **The way to resident room is
+5. **Make room first** before anything grows in resident code (44
+   bytes), region 0 (238 bytes), region 1 (68 bytes), region 2 (350
+   bytes), region 4 (250 bytes) or highram (12 bytes, after the music):
+   a second tune would want a file of its own read into attic at boot,
+   not region 0; **The way to resident room is
    `game.c`** (tile select and the panel are the next candidates;
    `click_hex()` went on 26 Oct 2026), and region 1's is more of `ai.c` moving to a region of
    its own (attic's bank 1 is full with eight: a ninth needs bank 2).
@@ -2380,6 +2388,56 @@ it). `win_legacy.png` came with the legacy victory (23 Oct 2026,
 **Buildings and wonders**). Checked
 headlessly: the splash, the tiles' colours after it, and the survival
 picture and score at the end of a throwaway five-turn game.
+
+**The music** (26 Oct 2026, the user's: a recording of the Hurrian
+hymn to Nikkal, Ugarit about 1400 BC, as the model): a harp piece of
+our own for the SID's three voices, in the recording's style (B minor,
+a quarter note of 22 frames, a plucked ostinato on B and F# under a
+tune stepping down E-D-C#-B), **not a transcription**: the recording is
+a modern arrangement, and was analysed for its key, tempo and texture
+only. **`tools/mkmusic.py` has the tune** (phrases in note:eighths
+notation, a chord a bar, the form) and makes `build/music_tune.h`, the
+stream the player reads (its docstring has the format: `v lo hi` to
+strike a voice, `$80|n` to wait n frames, `$80` to go round again);
+`python3 tools/mkmusic.py --wav F.wav` makes a rough preview, which is
+how the user approved it. The voices are triangle waves, struck and let
+go a frame later, so each note dies away in the SID's release (9, 9 and
+8: 750, 750 and 300 ms; `ring[]` in `src/music.c`).
+**The player is `src/musicplay.s`, about 190 bytes, chained in front of
+the KERNAL's interrupt** through `$0314`, which comes once a frame
+(measured: after 18490 frames of the main loop the tune was where 50 a
+second puts it). **It runs from `HIGH_BSS`** (`$A000`), the one place
+that is always mapped and that disk access leaves alone: the window at
+`$6000` changes under an interrupt, the resident program is full, and
+`LOW_FREE` is under the KERNAL's disk buffers. Since `HIGH_BSS` cannot
+be loaded from the PRG, it is assembled into region 0's code,
+**position-independent** (branches only inside it; absolute addresses
+only for its variables, the SID and the vector), and `music_init()`
+copies it out at boot, called from `map_load()`, region 0's last boot
+load, so as to cost no stub. `music_on()` and `music_off()` are entries
+of the copy, so any region can call them, and resident code at 3 bytes
+a call. **It reads the tune out of attic with `lda [zp],z`**, through
+`$FC-$FF`, which it saves and puts back, not by DMA, which could land
+between the stores of a job the main program is setting up; it sets
+base page 0 and leaves Z 0 for the KERNAL's handler. **Every disk
+access after boot is between `music_off()` and `music_on()`** (in
+`save.c` and round `end_picture()` in `score.c`), since the KERNAL's
+disk code maps memory its own way and an interrupt then could not count
+on the player; a new disk access needs the same. `main()` calls
+`music_on()` once the boot's loads are done (so the title's "Press a
+key" has music) and `music_off()` before it returns. **Game → Options
+→ Music** (`music_wanted`, `MENU_MUSIC` 69, after the pages) turns it
+off and on; a preference, not saved. The notes go to SID 1 and SID 3,
+`$D400` and `$D440`, **assumed to be the left and the right** as the
+MEGA65's are by default; the frequencies are for a PAL C64's SID clock,
+985248 Hz, which the MEGA65's may not quite be -- both are for a real
+MEGA65 to say. Checked headlessly: 100 turns of autoplay with the music
+on left the map and every unit and city array byte-identical with HEAD;
+a save into slot 3 and a load with the music hooked again after both;
+Options → Music unhooking it and restoring `$0314`; and a quit reaching
+READY with the vector the KERNAL's. **Two xemus at once** gave one of
+those runs the title screen instead of its build: run them one after
+the other.
 
 **Popups** (`src/popup.c`) are a box of word-wrapped text over the middle
 of the map window, closed by a click anywhere, fire, Return, space or Esc.

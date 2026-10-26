@@ -63,6 +63,10 @@ most important routines included in each source file.
 | game.c | the turn loop, the player's orders and the panel |
 | &nbsp;&nbsp;&nbsp;_game\_run_ | the main loop, once round per frame |
 |  |  |
+| music.c, musicplay.s | the background music: a harp piece on the SID's three voices, played from the KERNAL's interrupt |
+| &nbsp;&nbsp;&nbsp;_music\_init_ | at boot, copies the player to \$a000 and the tune to Attic RAM |
+| &nbsp;&nbsp;&nbsp;_music\_on_, _music\_off_ | start and stop it, round every disk access after boot |
+|  |  |
 | turn.c | the end of a turn and the start of a game, out of game.c into region 0 |
 | &nbsp;&nbsp;&nbsp;_game\_init_ | sets up a new game with a settler and a warrior |
 | &nbsp;&nbsp;&nbsp;_game\_end\_turn_ | runs the computer players, diplomacy and the cities, and starts the next turn |
@@ -197,9 +201,12 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
    which holds the picture, and the sheet's palette goes to Attic RAM
    rather than to the VIC, for `picture_end` to put in place once the
    picture has gone;
-3. reads SEVENSHIPS.MAP: the terrain into `map_tile`, and the resources,
-   a list sorted by hexagon row, into `map_res_*` (`map_load`);
-4. sets up the pointer sprites (`input_init`), waits for a key over the
+3. copies the music's player to \$a000 and its tune to Attic RAM
+   (`music_init`), and reads SEVENSHIPS.MAP: the terrain into `map_tile`,
+   and the resources, a list sorted by hexagon row, into `map_res_*`
+   (`map_load`);
+4. sets up the pointer sprites (`input_init`), starts the music
+   (`music_on`), waits for a key over the
    picture and puts the tiles' palette in place, and runs the title menu
    (`title_run`): Start Game, Load Saved Game or Quit.
    Start Game then asks for a people (Mycenaeans, Hittites, Egyptians or
@@ -214,7 +221,9 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
 6. clears the tile store and enters the main loop (`game_run`).
 
 Apart from saving and loading a game, and the picture before the final
-score, all disk access is finished by the end of step 3. The KERNAL stays available
+score, all disk access is finished by the end of step 3. The music stops
+for each of those (`music_off`, then `music_on`), since its player runs in
+the KERNAL's interrupt and the KERNAL's disk code maps memory its own way. The KERNAL stays available
 throughout, because the only part of the ROM the program banks out is BASIC,
 at \$a000-\$bfff, and that before `main()` starts.
 
@@ -223,7 +232,7 @@ step 4 for a new game; `game_init` clears everything the old one left on the
 map and in the unit and city lists. Game/Load Game goes back to step 5
 instead, reading the slot picked. When the player quits, from the title
 menu or from the game, `main()` turns
-the sprites off, writes back the VIC registers `screen_save()` read before
+the sprites and the music off, writes back the VIC registers `screen_save()` read before
 the game touched them, so that BASIC gets its own 80-column screen and
 colours, banks BASIC back in, and returns to it.
 
@@ -247,15 +256,15 @@ window shows one region of code at a time. The figures below are from the linker
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
 | \$1638-\$1dd5 | 1.9 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, and the route search of the galleys and of GOTO |
 | \$1dd6-\$1eff | 0.3 | free |
-| \$2001-\$5cb0 | 15.2 | BASIC stub, startup and resident code |
-| \$5cb1-\$5d64 | 0.15 | initialised data: the DMA lists and a few small tables |
-| \$5d65-\$5e64 | 0.25 | C stack |
-| \$5e65-\$5fcd | 0.35 | BSS: small state |
-| \$5fce-\$5fff | 0.05 | free |
-| \$6000-\$7fff | 8 | the code window; region 0 as loaded (6.3 KB used) |
+| \$2001-\$5cb6 | 15.2 | BASIC stub, startup and resident code |
+| \$5cb7-\$5d6a | 0.15 | initialised data: the DMA lists and a few small tables |
+| \$5d6b-\$5e6a | 0.25 | C stack |
+| \$5e6b-\$5fd3 | 0.35 | BSS: small state |
+| \$5fd4-\$5fff | 0.04 | free |
+| \$6000-\$7fff | 8 | the code window; region 0 as loaded (7.8 KB used, 0.8 KB of it the music's tune) |
 | \$8000-\$9fff | 8 | resident constant data and code |
-| \$a000-\$bf26 | 7.8 | `highbss` (`HIGH_BSS`): the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown and the cities' builds waiting for the next build popup, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
-| \$bf27-\$bfff | 0.2 | free |
+| \$a000-\$bff3 | 8 | `highbss` (`HIGH_BSS`): the music's player and its state, first, then the map `map_tile` (terrain, improvements, explored and occupied bits), the roads, a list by hexagon row, the unit and city arrays (where units are going among them, the cities' size, food box and worked hexagons among them), what `city_work()` found, the peoples' relations and attitudes, the trade deals and their ships' due turns, the emporia, the treasuries, the buildings and the legacy points, the fights waiting to be shown and the cities' builds waiting for the next build popup, the sprite blocks, the AI's headings, the staging buffers of the texts, the regions and the pictures, the texts' line buffers, the sheet loader's buffers and its rows' extents and addresses, the saved VIC registers, the save slots' header, and the resources, a list by hexagon row |
+| \$bff4-\$bfff | 0.01 | free |
 
 The long texts and the names are not in this table at all: they are in
 TEXT.PAK, read into Attic RAM at start-up, which is most of why the
@@ -343,7 +352,7 @@ and the main loop stay resident, where a call costs nothing.
 | \$20000-\$3ffff | 128 | The C65 ROM, left in place |
 | \$40000-\$56fff | 92 | The tile store: the map window's character definitions, and in the row padding the minimap's 80 and the owners' flags |
 | \$57000-\$5ffff | 36 | The expanded tile sheet, first area |
-| \$08000000- | 8192 | Attic RAM: the texts from TEXT.PAK at the bottom, the tiles' palette at \$0800f000 (for after a picture), the code regions from \$08010000, 8 KB each, the rest free |
+| \$08000000- | 8192 | Attic RAM: the texts from TEXT.PAK at the bottom, the tiles' palette at \$0800f000 (for after a picture), the code regions from \$08010000, 8 KB each, the music's tune at \$08020000, the rest free |
 | \$0ff81000-\$0ff81f9f | 4 | Colour RAM |
 
 **The tile store** is the heart of the display. A screen cell in this mode is a

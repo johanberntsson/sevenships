@@ -18,6 +18,7 @@
 #include "culture.h"
 #include "unit.h"
 #include "view.h"
+#include "music.h"
 
 #pragma clang section text="r5text" rodata="r5rodata"
 
@@ -149,7 +150,9 @@ static void end_picture(byte outcome)
 {
     screen_clear();
     view_init();
+    music_off();                // the disk (src/music.h)
     picture_show(outcome);
+    music_on();
     screen_putsxy(1, 10, "The end of the", COLOR_WHITE);
     screen_putsxy(1, 11, "Bronze Age", COLOR_WHITE);
     screen_putsxy(1, 13, "Press a key", COLOR_LIGHTGREY);

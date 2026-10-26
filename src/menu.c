@@ -18,6 +18,7 @@
 #include "text.h"
 #include "unit.h"
 #include "view.h"
+#include "music.h"
 
 #pragma clang section text="r6text" rodata="r6rodata"
 
@@ -63,9 +64,12 @@ static const byte game_commands[] = {
 // the names in res/text/list_terrains.txt, in alphabetical order, as
 // Civilization's Civilopedia lists them: item_name() and item_command().
 static const char *const options_items[] = {
-    "End of Turn", "Next Build Popup"
+    "End of Turn", "Next Build Popup", "Music"
 };
-static const byte options_commands[] = { MENU_END_OF_TURN, MENU_NEXT_BUILD };
+static const byte options_commands[] = {
+    MENU_END_OF_TURN, MENU_NEXT_BUILD, MENU_MUSIC
+};
+#define OPTIONS_ITEMS (sizeof options_commands)
 static const byte terrain_order[] = {
     TILE_DESERT, TILE_FLOODPLAIN, TILE_FOREST, TILE_GRASS, TILE_HILLS,
     TILE_MOUNTAIN, TILE_OCEAN, TILE_PLAINS, TILE_SHALLOW_OCEAN, TILE_TUNDRA
@@ -104,6 +108,9 @@ static const byte *const kind_order[] = {
 // from TEXT_PEDIA_MYCENAEANS, the peoples' then the tablets'.
 #define PEOPLE_PAGES (CIVS + 1)
 #define TABLET_PAGES 3
+#if MENU_MUSIC < MENU_PAGE + PEOPLE_PAGES + TABLET_PAGES
+#error "MENU_MUSIC in menu.h has to be after the pages' commands"
+#endif
 static const char *const sub_heading[] = {
     "Options:", "Terrain Types:", "Military Units:", "City Buildings:",
     "Wonders:", "Peoples:", "Clay Tablets:"
@@ -157,7 +164,7 @@ static const byte *const menu_commands[MENUS + SUBMENUS] = {
     debug_commands, help_commands, options_commands
 };
 static byte menu_count[MENUS + SUBMENUS] = {
-    GAME_ITEMS, 0, 4, 2, 2, HELP_ITEMS, 2, TERRAIN_COUNT, UNIT_PAGES,
+    GAME_ITEMS, 0, 4, 2, 2, HELP_ITEMS, OPTIONS_ITEMS, TERRAIN_COUNT, UNIT_PAGES,
     BUILDING_PAGES, WONDER_PAGES, PEOPLE_PAGES, TABLET_PAGES
 };
 #else
@@ -170,7 +177,7 @@ static const byte *const menu_commands[MENUS + SUBMENUS] = {
     help_commands, options_commands
 };
 static byte menu_count[MENUS + SUBMENUS] = {
-    GAME_ITEMS, 0, 4, 2, HELP_ITEMS, 2, TERRAIN_COUNT, UNIT_PAGES,
+    GAME_ITEMS, 0, 4, 2, HELP_ITEMS, OPTIONS_ITEMS, TERRAIN_COUNT, UNIT_PAGES,
     BUILDING_PAGES, WONDER_PAGES, PEOPLE_PAGES, TABLET_PAGES
 };
 #endif
@@ -265,8 +272,10 @@ static void draw_item(byte i, byte selected)
     screen_fill(drop_left + 1, y, drop_width - 2, colour);
     screen_putsxy(drop_left + 2, y, item_name(drop_menu, i), colour);
     // The toggles are ticked when on: End of Turn when the game waits,
-    // Next Build Popup, and Debug's Show Map.
-    if ((drop_menu == OPTIONS && (i ? !game_build_quiet : game_end_wait))
+    // Next Build Popup, Music, and Debug's Show Map.
+    if ((drop_menu == OPTIONS
+         && (i == 0 ? game_end_wait : i == 1 ? !game_build_quiet
+                                             : music_wanted))
 #ifdef DEBUG_MENU
         || (drop_menu == DEBUG && i == 0 && map_show)
 #endif

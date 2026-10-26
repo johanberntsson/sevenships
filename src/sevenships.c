@@ -12,6 +12,7 @@
 #include "picture.h"
 #include "region.h"
 #include "mega65.h"
+#include "music.h"
 #include "screen.h"
 #include "sheet.h"
 #include "text.h"
@@ -63,6 +64,8 @@ int main(void)
     if (!map_load()) fatal("cannot read " MAP_FILE_NAME);
 
     input_init();
+    // The disk is done with until a save or the end (src/music.h).
+    music_on();
 #ifndef NO_TITLE
     title_splash(1);
 #else
@@ -106,6 +109,7 @@ int main(void)
         if ((ended = game_run()) == GAME_QUIT) break;
     }
 
+    music_off();
     input_shutdown();
     screen_restore();
     bank_basic_in();

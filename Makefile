@@ -113,19 +113,20 @@ SRCS     = src/sevenships.c \
            src/civ.c \
            src/popup.c \
            src/menu.c \
-           src/title.c src/picture.c \
+           src/title.c src/picture.c src/music.c \
            src/region.c
 
 # The files whose code is in a MAP window region (src/region.h), compiled
 # without the shared instruction fragments that could be called across one.
-BANKED   = src/title.c src/picture.c src/turn.c src/hover.c src/score.c src/military.c src/crisis.c src/treasury.c src/culture.c src/command.c src/cities.c src/aiplace.c src/cityscreen.c src/topcities.c src/fight.c src/diplomacy.c \
+BANKED   = src/title.c src/picture.c src/music.c src/turn.c src/hover.c src/score.c src/military.c src/crisis.c src/treasury.c src/culture.c src/command.c src/cities.c src/aiplace.c src/cityscreen.c src/topcities.c src/fight.c src/diplomacy.c \
            src/save.c src/sheet.c src/mapload.c src/help.c src/menu.c src/ai.c src/aibuild.c src/aisite.c \
            src/improve.c src/growth.c src/trade.c src/path.c src/boat.c src/emporium.c \
            src/goto.c src/orders.c src/roadadd.c src/tablets.c
 
-# Assembly: src/bank.s, which banks BASIC out before main(), and
-# src/dispatch.s, the MAP window and the calls into it.
-ASRCS    = src/bank.s src/dispatch.s
+# Assembly: src/bank.s, which banks BASIC out before main(),
+# src/dispatch.s, the MAP window and the calls into it, and src/musicplay.s,
+# the music's player.
+ASRCS    = src/bank.s src/dispatch.s src/musicplay.s
 
 OBJS     = $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS)) \
            $(patsubst src/%.s,$(BUILD)/%.o,$(ASRCS))
@@ -275,6 +276,14 @@ $(MAP): tools/mapgen.py $(MAP_STAMP) | $(BUILD)
 # remakes the pack and the disk but no object.
 $(TEXT_PAK) $(TEXT_IDS) &: $(TEXTS) tools/mktext.py | $(BUILD)
 	python3 tools/mktext.py $(TEXT_PAK) $(TEXT_IDS) $(TEXTS)
+
+# The music, from tools/mkmusic.py, which has the tune; it rewrites the
+# header only when the tune has changed. `python3 tools/mkmusic.py --wav
+# F.wav` makes a preview to listen to.
+MUSIC_TUNE = $(BUILD)/music_tune.h
+$(MUSIC_TUNE): tools/mkmusic.py | $(BUILD)
+	python3 tools/mkmusic.py $@
+$(BUILD)/music.o: $(MUSIC_TUNE)
 
 $(patsubst src/%.c,$(BUILD)/%.o,$(BANKED)): \
     CFLAGS += --no-cross-call --no-interprocedural-cross-jump

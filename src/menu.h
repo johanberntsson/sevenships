@@ -42,7 +42,8 @@
 #define MENU_UNIT 41            // + a KIND_*, buildings too, after the terrains
 #define MENU_PEOPLES 59         // opens Peoples, after the kinds; never returned
 #define MENU_TABLETS 60         // opens Clay Tablets; never returned
-#define MENU_PAGE 61            // + a page from TEXT_PEDIA_MYCENAEANS; last
+#define MENU_PAGE 61            // + a page from TEXT_PEDIA_MYCENAEANS
+#define MENU_MUSIC 69           // Options' Music, after the pages
 
 // What the Orders menu offers, for the unit that has the orders: up to four
 // of MENU_FOUND_CITY, MENU_FORTIFY, MENU_IRRIGATE, MENU_PASTURE, MENU_MINE,
