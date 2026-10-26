@@ -934,8 +934,8 @@ screen, and the Crisis — omens, Sea Peoples, shocks — with the 96-unit
 list.
 
 **Where to start next time** (26 Oct 2026, end of the day, after the
-next build popup, which the user tried and found working; the user
-goes on play-testing before the next session):
+in-game map generator and its lakes fix, which the user tried in play
+and found fixed; the user goes on play-testing before the next session):
 1. **Ask what the play-testing found**, and take the new items at the
    top of TODO.txt first. **The game is feature complete against
    vision.md** (grain logistics and attrition were taken out of it on
@@ -963,7 +963,10 @@ goes on play-testing before the next session):
    music** (26 Oct 2026, **The music**: that it plays at all, in time,
    in both speakers and in tune; that it stops for Save Game, Load
    Game and the end's picture and comes back; Options → Music; and
-   `DIM` after quitting).
+   `DIM` after quitting); and **the map generator** (**The hex grid**:
+   how long "Creating the world" takes, a new world each Start Game,
+   the world's number on World → Score, saving and loading across
+   worlds, `DIM` after quitting).
    **Confirmed there on 26 Oct**: the fixes from the
    user's first play-test -- the blink redrawing only its band (the
    busy screen no longer flickers), GOTO along roads, and `d`, Disband.

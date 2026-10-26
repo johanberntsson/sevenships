@@ -13,15 +13,17 @@ NEXT (CLAUDE.md "Where to start next time"):
    (region 8) with the scribes' + and -, and a tablet's popup; the Orders menu's Build a
    Road and Go To; GOTO with a galley and its cargo, a unit blocked on the way, a save and
    load during one; the city buildings; the ten save slots; tile select's ring following
-   the orders; Help/Peoples and Help/Clay Tablets; the next build popup and its option
-   (see DONE). Confirmed there on 25 Oct: GOTO, the city cap, roads, the wonders
-Room (26 Oct, after the next build popup): resident 52 bytes, region 0 1.7 KB, region 1
-68 bytes, region 2 350 bytes, region 3 1.4 KB, region 4 250 bytes, region 5 0.7 KB,
-region 6 0.6 KB (culture.c went to region 8), region 7 0.8 KB, region 8 (the treasury,
-the scribes, the starts, buildings and wonders) 1.1 KB, highram 217 bytes, LOW_FREE 298
-bytes; the tile sheet 6 KB, about four units; attic's bank 1 is full with eight regions.
-Resident and region 1 need room made before anything grows there; a FAKE_KEYS test build
-needs CSTACK=160
+   the orders; Help/Peoples and Help/Clay Tablets; the next build popup and its option;
+   the music; the map generator (the time "Creating the world" takes, a new world each
+   game, World/Score's world number, save and load) (see DONE). Confirmed there on 25
+   Oct: GOTO, the city cap, roads, the wonders
+Room (26 Oct, after the map generator): resident 98 bytes, region 0 707 bytes, region 1
+68 bytes, region 2 350 bytes, region 3 1.4 KB, region 4 250 bytes, region 5 0.5 KB,
+region 6 0.5 KB, region 7 0.8 KB, region 8 1.1 KB, region 9 (the map generator) 1.6 KB,
+highram 8 bytes, LOW_FREE 138 bytes; the tile sheet 6 KB, about four units; attic's
+bank 1 is full with eight regions, bank 2 is the music's, region 9 is in bank 3.
+Resident, region 1 and highram need room made before anything grows there; a title
+build with FAKE_KEYS needs DEBUG=0 CSTACK=128
 
 TUNING, from play
 - THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
@@ -80,6 +82,14 @@ under OPEN above. Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.
 OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
+
+DONE (26 Oct): the map generator in the game (the user's): a new world every Start Game,
+src/mapgen.c in region 9, from a seed drawn from $D7EF (make MAP_SEED=n fixes it; NO_TITLE
+and FAKE_KEYS builds use 1), shown on World/Score and saved (SAVE_VERSION 24). Needs no
+memory but map_tile's high nibble and a row. tools/mapgen.py is rewritten to make the
+same worlds byte for byte, for previews; SEVENSHIPS.MAP and the map loader are gone. About
+2 s a world. Then, from play: inland cities by lakes built boats that could go nowhere, so
+water cut off from the ocean is made land (fill_lakes()); confirmed fixed in play.
 
 Music has been added, based on tne ancient Song Of Moon Goddess Nikkal
 
