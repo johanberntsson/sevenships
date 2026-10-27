@@ -15,9 +15,9 @@ NEXT (CLAUDE.md "Where to start next time"):
    load during one; the city buildings; the ten save slots; tile select's ring following
    the orders; Help/Peoples and Help/Clay Tablets; the next build popup and its option;
    the music; the map generator (the time "Creating the world" takes, a new world each
-   game, World/Score's world number, save and load) (see DONE). Confirmed there on 25
-   Oct: GOTO, the city cap, roads, the wonders
-Room (26 Oct, after the map generator): resident 98 bytes, region 0 707 bytes, region 1
+   game, World/Score's world number, save and load) (see DONE). Confirmed there: 
+   GOTO, the city cap, roads, the wonders
+Room (after the map generator): resident 98 bytes, region 0 707 bytes, region 1
 68 bytes, region 2 350 bytes, region 3 1.4 KB, region 4 250 bytes, region 5 0.5 KB,
 region 6 0.5 KB, region 7 0.8 KB, region 8 1.1 KB, region 9 (the map generator) 1.6 KB,
 highram 8 bytes, LOW_FREE 138 bytes; the tile sheet 6 KB, about four units; attic's
@@ -26,7 +26,7 @@ Resident, region 1 and highram need room made before anything grows there; a tit
 build with FAKE_KEYS needs DEBUG=0 CSTACK=128
 
 TUNING, from play
-- THE CRISIS, left as it is (25 Oct, the user's): mild now that the peoples are bigger (in
+- THE CRISIS, left as it is: mild now that the peoples are bigger (in
   400-turn autoplays citizens grew from turn 250 to 300 on seeds 3 and 5). Options: the
   raids growing stronger towards the end (more ships a fleet, or more often), a higher
   SEA_CAP, shocks one turn in 8 rather than 16, fewer coastal guards (guards_wanted())
@@ -83,7 +83,7 @@ OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
 
-DONE (26 Oct): the map generator in the game (the user's): a new world every Start Game,
+the map generator in the game (the user's): a new world every Start Game,
 src/mapgen.c in region 9, from a seed drawn from $D7EF (make MAP_SEED=n fixes it; NO_TITLE
 and FAKE_KEYS builds use 1), shown on World/Score and saved (SAVE_VERSION 24). Needs no
 memory but map_tile's high nibble and a row. tools/mapgen.py is rewritten to make the
@@ -93,51 +93,51 @@ water cut off from the ocean is made land (fill_lakes()); confirmed fixed in pla
 
 Music has been added, based on tne ancient Song Of Moon Goddess Nikkal
 
-DONE (26 Oct): the next build popup (the user's, to make it easier to play). When one of the
-   human's cities finishes something, the view goes to it and a popup says "Mycenae has
-   built: Warrior. What shall we build next?" with two buttons: what the computer would
-   build there (ai_build() for that one city, which changes nothing; the same unit again,
-   or warriors after a building, when it would build nothing), highlighted, so Return takes
-   it; and "Something else" (s), the city screen with CHANGE's list open. One a city, in
-   turn, after the fights and before the greetings; not during Play 50 Turns. Game/Options/
-   Next Build Popup turns it off (on by default; a preference, not saved). The first
-   version never showed it in play (the user's): a Calypsi bug dropped the whole test in
-   game_end_turn() (CLAUDE.md's list), and my first check had been built before that
-   line changed. Checked headlessly: the popup, Return taking the suggestion (a fishing
-   boat), s, the Options box, 30 turns with the warrior given orders each turn (four
-   popups), and 100 turns of autoplay byte-identical with HEAD. Works in the user's play
-   after the fix (26 Oct)
+The next build popup (the user's, to make it easier to play). When one of the
+human's cities finishes something, the view goes to it and a popup says "Mycenae has
+built: Warrior. What shall we build next?" with two buttons: what the computer would
+build there (ai_build() for that one city, which changes nothing; the same unit again,
+or warriors after a building, when it would build nothing), highlighted, so Return takes
+it; and "Something else" (s), the city screen with CHANGE's list open. One a city, in
+turn, after the fights and before the greetings; not during Play 50 Turns. Game/Options/
+Next Build Popup turns it off (on by default; a preference, not saved). The first
+version never showed it in play (the user's): a Calypsi bug dropped the whole test in
+game_end_turn(), and my first check had been built before that
+line changed. Checked headlessly: the popup, Return taking the suggestion (a fishing
+boat), s, the Options box, 30 turns with the warrior given orders each turn (four
+popups), and 100 turns of autoplay byte-identical with HEAD. Works in the user's play
+after the fix
 
-DONE (26 Oct): the first MEGA65 play-test, all confirmed fixed there. From a floppy, 45 s to
-   the main menu and Load/Save work; from the SD card, 15 s. A busy screen flickered: the
-   active unit's blink redrew the whole view twice a second, and it now redraws only its
-   band (view_redraw()'s band: its hexagon row and the rows round it, clipped to its tile).
-   GOTO follows roads (path_route() is Dijkstra's in thirds of a move). d / Orders->Disband
-   disbands a unit, after asking. Chariots right after a pasture on horses: not reproduced
-   headlessly, and fine on the machine since. click_hex() went to orders.c (region 2) for
-   resident room
+The first MEGA65 play-test, all confirmed fixed there. From a floppy, 45 s to
+the main menu and Load/Save work; from the SD card, 15 s. A busy screen flickered: the
+active unit's blink redrew the whole view twice a second, and it now redraws only its
+band (view_redraw()'s band: its hexagon row and the rows round it, clipped to its tile).
+GOTO follows roads (path_route() is Dijkstra's in thirds of a move). d / Orders->Disband
+disbands a unit, after asking. Chariots right after a pasture on horses: not reproduced
+headlessly, and fine on the machine since. click_hex() went to orders.c (region 2) for
+resident room
 
-DONE (26 Oct): Help/Peoples, a page for each people (ruler, capital, starting resource,
+Help/Peoples, a page for each people (ruler, capital, starting resource,
 advantage, the wonder its AI builds first) and one for the barbarians and the Sea Peoples;
 and Help/Clay Tablets, a page each for Linear B, the law code and the alphabet. Checked
 headlessly: the menus and a page of each kind. Region 6 has 98 bytes left. Not tried on a
 real MEGA65
 
-DONE (26 Oct): tile select's ring follows the orders: when they pass to another unit, and
+tile select's ring follows the orders: when they pass to another unit, and
 on c, the ring goes onto the active unit (select_follow() in game.c). Paid for by title.c's
 describe_civ() line going to LOW_FREE; resident room 70 bytes after. Checked headlessly:
 a settler moved by the ring hands the ring to the warrior, and c brings it back from two
 hexagons away. Not tried on a real MEGA65
 
-DONE (26 Oct): ten save slots, SEVENSHIPS.SV0 to .SV9, each with a comment that starts as
+ten save slots, SEVENSHIPS.SV0 to .SV9, each with a comment that starts as
 "leader - people - year" and is typed in on Game/Save Game's slot screen; Load Saved Game
 on the title screen lists them. save.c moved to region 6 (216 bytes left there). Checked
 headlessly: save after 20 turns, the list, and a load byte-identical. Not tried: the
 title's Load Saved Game (a title build with FAKE_KEYS no longer links), Esc out of the
 comment, a slot "from another version", and a real MEGA65. Old SEVENSHIPS.SAV files are
-not read. Game/Load Game too (26 Oct), checked headlessly the same way
+not read. Game/Load Game too, checked headlessly the same way
 
-DONE (25 Oct): city buildings besides the temple -- the stele (30, no upkeep, legacy
+city buildings besides the temple -- the stele (30, no upkeep, legacy
 twice at war), the edubba (60, 1 gold, knowledge) and the feasting hall (60, 2 gold, twice
 the legacy); every city building gives a legacy point every 32 turns; Help has City
 Buildings and Wonders. Checked headlessly. In 255 turns on seed 3 legacy went from 53-104
@@ -145,112 +145,112 @@ a people to 88-190: TUNE from play (LEGACY_TURNS in culture.h, the AI's sizes in
 building_for() in aibuild.c). Not tried: Advisors/Finance's "Buildings' upkeep", a
 building sold for want of gold, and a real MEGA65
 
-DONE (25 Oct 2026): escorts, the last of vision.md's features: a galley fortified on a
+Escorts, the last of vision.md's features: a galley fortified on a
 merchant ship's hexagon goes where it goes and defends it, twice as strong at sea (f, or
 Orders "f: Escort"); the AI's idle galleys escort their merchant ships. With it, feature
 complete against vision.md
 
-DONE (25 Oct 2026): vassals (vision.md 3 and 5): a people at war, weaker and with half the
+Vassals (vision.md 3 and 5): a people at war, weaker and with half the
 cities, submits instead of asking a ceasefire -- the AI at once, the human by a letter in
 the vassals' formula, or S on Advisors/Diplomacy. Peace with the lord, an eighth of its
 gold a turn as tribute, 10 points of the lord's score (a Vassals column); free when
 stronger or its lord falls. Purple dye: a legacy point every 16 turns. SAVE_VERSION 22.
 Rare: none in 255-turn autoplays; seed 5's Hittites had two vassals by turn 400
 
-DONE (25 Oct 2026): the peoples differ (vision.md 3): each starts by a resource of its own
+The peoples differ (vision.md 3): each starts by a resource of its own
 (Mycenaeans wine/olives, Hittites copper, Egyptians grain, Canaanites cedar/dye) and has an
 advantage: Hittite chariots and Mycenaean ships a quarter cheaper, Egyptian cities a quarter
 less food to grow, Canaanite buying a third cheaper and a gold more a deal. The people
 screen says so. ai_place moved to region 8. Seeds 1, 3, 7, 255 turns: all four stand
 
-DONE (25 Oct 2026): difficulty levels that do something, Civilization's way: the computer
+Difficulty levels that do something, Civilization's way: the computer
 players pay 150/120/100/80/70% of shields and food by level (level_scale() in city.c), and
 barbarians come one turn in 16/8/8/4/4, up to 6/8/8/10/12. Prince is the game as tuned.
 Seed 3, 255 turns: the AI's citizens 153/158/194 at Scribe/Prince/Great King
 
-DONE (25 Oct 2026): the clay tablets (src/tablets.c, region 8). Gold pays scribes, a point
+The clay tablets (src/tablets.c, region 8). Gold pays scribes, a point
 of knowledge a gold; at 100, 300 and 600 a people sets down Linear B (a quarter less
 corruption), a law code (5 more cities before the realm costs gold) and the alphabet (trade
 deals bring twice the gold), 10 legacy each, 20 to the first in the world. The human sets
 the pay on Advisors/Finance with + and -; the AI pays a 50th of its treasury, at most 10.
 SAVE_VERSION 21
 
-DONE (25 Oct 2026): a 400-turn check on seeds 3, 7 and 5 (CLAUDE.md "Where to start" 3).
+A 400-turn check on seeds 3, 7 and 5
 Fixed: a leftover else that made a temple replace any wonder an AI city had picked; the AI
 now goes for its own people's wonder first (the Hittites had taken three of four on every
 seed). Found: the Crisis is mild now (left as it is, see OPEN)
 
-DONE (25 Oct 2026): three more wonders: the Palace of Knossos (half the corruption), the
+Three more wonders: the Palace of Knossos (half the corruption), the
 Temple of Karnak (temples free and double legacy), the Great Harbour of Ugarit (coastal; a
 move more for ships), each for whoever holds its city; Help/Buildings pages; the AI builds
 them at its cap. The treasury moved to a region 8 of its own; the Orders menu has Build a
 Road and Go To; moving and attacking moved out of game.c into src/orders.c for resident room
 
-DONE (25 Oct 2026): roads, milestone 6's last item (src/road.c, roadadd.c). r for a
+Roads, milestone 6's last item (src/road.c, roadadd.c). r for a
 builder (2/4/6 turns), every city on one, a third of a move from road to road (moves in
 thirds), a trade on grassland, plains and desert. A list by hexagon row, drawn as joins
 between junctions (tools/mkroads.py), only between explored hexagons; the city screen too.
 The AI joins its cities with roads, and builds builders over its unit cap. About 2 ms of
 the redraw in a busy view. Confirmed on a real MEGA65. SAVE_VERSION 20
 
-DONE (25 Oct 2026): the AI's city cap 6 -> 8, MAX_CITIES 32 -> 40, tuned to the two rings
+The AI's city cap 6 -> 8, MAX_CITIES 32 -> 40, tuned to the two rings
 (CITY_SPACING 5 was no better). SAVE_VERSION 19
 
-DONE (25 Oct 2026): GOTO: g, then Return or a click on a hexagon; the unit walks there by
+GOTO: g, then Return or a click on a hexagon; the unit walks there by
 itself over explored land (or the shallows), a turn's moves at a time (src/goto.c, a
 breadth-first search in path.c). SAVE_VERSION 18
 
-DONE (24 Oct 2026): Advisors/Military (src/military.c, region 5): units of each kind, fortified,
+Advisors/Military (src/military.c, region 5): units of each kind, fortified,
 aboard, their figures, the upkeep and the wars. F1-F4 open Cities, Military, Diplomacy and
 Finance from the map, and the menu says so. HELP is HELP only (PageUp in xemu); xemu's keypad
 moves are F5-F10 now (res/xemu-keymap.cfg)
 
-DONE (24 Oct 2026): upkeep in gold against exploits: 4 units free and 3 a city, then 1 gold
+Upkeep in gold against exploits: 4 units free and 3 a city, then 1 gold
 a unit a turn (short of gold, a unit a turn is disbanded); 10 cities free, then k*k gold a
 turn for k more. Above what the AI reaches: 136 turns of autoplay unchanged but for gold.
 Advisors/Finance shows both (and no longer runs off the screen with 11+ cities). The city-
 site search moved out of ai.c to src/aisite.c (region 2): region 1 has 841 bytes. Region 6
 is down to 0.3 KB: a region 8 for the treasury (3 KB) would be the next room there
 
-DONE (24 Oct 2026): pastures. p (Orders: "p: Build a Pasture") on cattle and horses, 5 turns,
+Pastures. p (Orders: "p: Build a Pasture") on cattle and horses, 5 turns,
 no water; the mine bit on those hexagons, +1 food +1 shield, and what makes them owned, so
 chariots need horses with a pasture; irrigating them only adds food. alltiles'
 tile_horses_improved, no mine overlay under a pasture. The moving keys 0 - p * : = are gone
 (Tab and the cursor keys move a unit; xemu's keypad stays). The Orders menu shows the keys.
 To try on a MEGA65
 
-DONE (24 Oct 2026): fight feedback. Every fight of the human's -- its own attacks and those on
+Fight feedback. Every fight of the human's -- its own attacks and those on
 it during the other turns, a city taken or burnt included -- is brought into view and told in
 a popup ("Victory!/Defeat!", "Your Warrior was destroyed attacking a Hittite Spearman.",
 "Mycenae was burnt to the ground by a Barbarian Raider."), up to 8 a turn, not in Play 50
 Turns (src/fight.c, region 2). The panel's news line is gone. To try on a MEGA65
 
-DONE (23 Oct 2026): two rings. A city works its own hexagon and the best of the 18 in its
+Two rings. A city works its own hexagon and the best of the 18 in its
 two rings (RING in map.h); a hexagon in reach of two cities is the nearer one's, the earlier
 on a tie. The city screen shows all 19 (units left, production right, figures under the
 map), in a region 7 of its own; the moving and cursor keys step the arrow between hexagons
 and space works one. A human city sees its whole reach. SAVE_VERSION 17. 300 turns of
 autoplay: citizens 95 -> 122 on seed 1, 65 -> 105 on seed 7, largest city 7 -> 13
 
-DONE (23 Oct 2026): the chariot (4/1/2, 40 shields, needs horses only, never onto
+The chariot (4/1/2, 40 shields, needs horses only, never onto
 mountains) and horses (plains and grassland, +2 shields, a trade good). The AI builds
 chariots at war with horses (2 + 1 per 2 cities, over the cap) and hunts with them within 16.
 SAVE_VERSION 16. And c centres the view on the active unit
 
-DONE (23 Oct 2026): the temple (40 shields, 1 gold upkeep, 3 legacy, sold when broke) and the
+The temple (40 shields, 1 gold upkeep, 3 legacy, sold when broke) and the
 Lion Gate (160 shields, one in the world, doubles defence in its city, 20 legacy), as kinds
 after the units; legacy points in the score and the legacy victory (posthumous; after
 hegemony) with win_legacy's picture; Help/Buildings; the AI builds both at its unit cap.
 SAVE_VERSION 15. The menu commands moved out of game.c into src/command.c, region 6, for
 resident room
 
-DONE (23 Oct 2026): merchant fleets carry the trade deals (option A): a deal lapses 40 turns
+Merchant fleets carry the trade deals (option A): a deal lapses 40 turns
 after its last ship unless a merchant ship loaded at home comes to a partner's city;
 neighbours (cities within 8) trade overland. The AI's merchant sails between its own and a
 partner's coast. The Crisis's random loss at sea is gone. SAVE_VERSION 14. Menus moved to a
 new region 6 to make room
 
-DONE (22 Oct 2026): the treasury, Civ 1's: city trade less corruption (trade x distance to
+The treasury, Civ 1's: city trade less corruption (trade x distance to
 the capital x 3 / 100, Despotism's) into gold, +2 a turn a trade deal to each partner, no
 expenses yet. Buy on the city screen (b, Civ 1's price); the AI turns gold into shields for
 soldiers and galleys as Civ 1's does. Panel, Advisors/Finance, a Gold column in the score
@@ -261,38 +261,38 @@ Need a financial adviros screen that shows main stats - income and expenses
 
 Need city advisor screen (list of cities and basic stats (production etc). POssible to go into
 a city screen by selecting on city from this advisor screen.
-- DONE (23 Oct 2026): Advisors/Cities (src/cities.c): size, food, shields, trade, production
+- Advisors/Cities (src/cities.c): size, food, shields, trade, production
   and turns; Return or a click opens the city screen, and back to the list after it
 
 Need cultural building and monument/wonders for the lasting legacy win. This also means
 wonders and Help/Wonders screen with descriptions. The Lion Gate, Pyramids etc
 (if it fits the time period - the oldest pyramids are probably too old anyway)
-- DONE (23 Oct 2026): the temple and the Lion Gate, Help/Buildings, the legacy victory
-- DONE (25 Oct 2026): Knossos, Karnak and Ugarit, and the clay tablets (see above)
+- the temple and the Lion Gate, Help/Buildings, the legacy victory
+- Knossos, Karnak and Ugarit, and the clay tablets (see above)
 
 Milestone 10: the end game -- the Bronze Age Collapse (vision.md sections 4 and 5): done parts
-- DONE (22 Oct 2026): calendar, 2 years a turn to turn 176 (1250 BC), then 1; the Crisis
+- calendar, 2 years a turn to turn 176 (1250 BC), then 1; the Crisis
   is due at turn 226 (1200 BC) and the game ends after turn 400 (1026 BC). Turns left on
   World/Score
-- DONE (22 Oct 2026, src/crisis.c, region 5): omens (a rumour at turn 200, a warning at
+- src/crisis.c, region 5: omens (a rumour at turn 200, a warning at
   215, Ammurapi's letter at 226), the Sea Peoples (barbarian galleys with warriors, later
   spearmen, off the richest coastal cities; the barbarians' AI moves them), shocks
   (drought, earthquake, plague, revolt), pleas from rulers losing cities, trade deals lost
   at sea, AI coastal guards. The unit list is 96 now (64 was full by the Crisis)
-- DONE (22 Oct 2026): the raider, the Sea Peoples' own unit (attack 3, defence 1,
+- the raider, the Sea Peoples' own unit (attack 3, defence 1,
   alltiles' swordsman), and raids 3 in 16 rising to 8. Warriors with attack 1 almost never
   took a guarded city. 400 turns: one people of eight fell, one broke up, citizens down a
   tenth to a half. A revolt now puts the city in the rebels' hands
-- DONE (22 Oct 2026): collapse of the computer players, Civ 1's civil war: a people that
+- collapse of the computer players, Civ 1's civil war: a people that
   loses its capital (its first city) with 3 or more cities left loses the cities furthest
   from its largest, a third of its citizens, to the rebels -- barbarian-owned cities, which
   keep a guard and can be taken back. Not done: half its cities lost as a second trigger
-- DONE (22 Oct 2026): the end at turn 400, or when the human's people is the last left, or
+- the end at turn 400, or when the human's people is the last left, or
   is out; the final screen (src/score.c, region 5) with each people's cities, citizens,
   goods, deals and score (1 a citizen, 2 a city, 2 a good, 3 a deal) and the outcome:
   defeat, survival victory, or hegemony victory with the highest score. Game over now goes
   to the title, not to BASIC. Retire shows the same screen, and World/Score during the game
-- DONE (22 Oct 2026): screens/' pictures, in the map window with their own palette: the
+- screens/' pictures, in the map window with their own palette: the
   intro as a splash at boot while the sheet and map load, and defeat, win_survival or
   win_hegemony before the final score (src/picture.c, res/*.pic from screens/Makefile).
   win_legacy needs monuments, vision.md 5B, a milestone of its own. The survival bonus left out: everybody standing would get it, and the fallen score
@@ -308,39 +308,39 @@ Milestone 10: the end game -- the Bronze Age Collapse (vision.md sections 4 and 
   peoples survive the Crisis about half the time, and that the score screen is right
 
 Milestone 9: trade: done parts
-- DONE (21 Oct 2026): gift exchange of goods by letter. Olives, wine, cedar, copper, tin
+- gift exchange of goods by letter. Olives, wine, cedar, copper, tin
   and dye; a deal is a good for a good, or a gift, for as long as the two are at peace; a
   good received counts for bronze; partners like each other more; AIs ask for what they
   lack (copper/tin first) and demand tribute when strong and cold; the human answers by
   letter and proposes (or ends a trade) with T on Advisors/Diplomacy (src/trade.c, region 4)
-- DONE (21 Oct 2026): the galley (Civ 1's trireme): cedar and a coastal city, the shallows
+- the galley (Civ 1's trireme): cedar and a coastal city, the shallows
   only, carries 2 land units (step onto it to board; woken when it stops next to land);
   computer players build one and explore with it. Cedar 12% -> 25% of forests
-- DONE (21 Oct 2026): AI ferrying of settlers: a settler that cannot walk to its site asks
+- AI ferrying of settlers: a settler that cannot walk to its site asks
   for the galley, boards, and is landed near the site; galleys route along the shallows by a
   breadth-first search (src/path.c); with a galley the AI looks 16 hexagons for a site
-- DONE (22 Oct 2026): the fishing boat (Civ 4's work boat): a coastal city, no resources,
+- the fishing boat (Civ 4's work boat): a coastal city, no resources,
   cost 20, 2 moves, the galley's waters, carries nobody. Each computer player builds one
   early and explores the coasts with it (src/boat.c, region 4: the nearest unseen 8x4
   block with shallows, by sea_route()); galleys with nobody to ferry explore the same way.
   First contact, 300 turns of autoplay, pairs of six met: seed 1 3 -> 6 (turns 23-109),
   seed 3 1 -> 6 (34-131), seed 7 1 -> 3 (53-93)
-- DONE (22 Oct 2026): the fishing boat works fish (i, Orders/Fish): it is used up and the
+- the fishing boat works fish (i, Orders/Fish): it is used up and the
   fish becomes fishing boats, MAP_IRRIGATED on the shallows (+1 food, 4/0/2), drawn with
   alltiles' tile_fish_improved and no irrigation overlay. AI: the first boat explores, then
   fishes; a coastal city of size 2+ with unworked fish builds another, over the cap. In
   300 turns every fish next to a city was worked (1-2 a map: few cities are by fish)
-- DONE (22 Oct 2026): AI ferrying of armies: a warrior or spearman that comes no nearer the
+- AI ferrying of armies: a warrior or spearman that comes no nearer the
   enemy in 6 turns asks for the galley, which takes it to the nearest enemy city. In 400
   turns of autoplay 27 boarded on seed 1, 2 on seed 7
-- DONE (22 Oct 2026): merchant ships (alltiles' cargo ship, a coastal city, cost 30, 3
+- merchant ships (alltiles' cargo ship, a coastal city, cost 30, 3
   moves) found emporia (b, Orders/Found Emporium) on an empty coast by trade goods; the
   owner owns the goods round it, for bronze, trade and score. Drawn as the improvement bits'
   fourth value (alltiles' bazaar); burnt by an enemy standing on it. The AI builds one at a
   time without bronze and makes for copper or tin it lacks. 3-6 emporia a 400-turn game
-- DONE (23 Oct 2026): trade deals carried by merchant ships (see above); escorts 25 Oct
+- trade deals carried by merchant ships (see above)
 
-Milestone 8: basic diplomacy -- DONE (21 Oct 2026)
+Milestone 8: basic diplomacy
 - DONE: contact between all the peoples (adjacency); war, ceasefire (16 turns, then war)
   and peace; an attitude per pair (temper per people, drift, grievances: war declared,
   units by cities, cities crowding each other, refused offers; colder to the human by level)
@@ -351,7 +351,7 @@ Milestone 8: basic diplomacy -- DONE (21 Oct 2026)
 - Not yet: tribute and gifts (need trade), the vassals' formula, alliances, news of wars
   between the others
 
-Milestone 7: resources -- DONE (20 Oct 2026)
+Milestone 7: resources
 - DONE: grain, fish, cattle, olives, wine, cedar, copper, tin, purple dye (vision.md
   section 2), nine tiles in bank 1 (code region 4 given up for them); a list by hexagon row
   in highram, not a layer; mapgen.py step 7 places them (tin only at the top and bottom
@@ -369,7 +369,7 @@ Milestone 7: resources -- DONE (20 Oct 2026)
   sheet's): irrigated cattle (pasture), olives and wine (orchard recoloured). One tile
   left. Fish's improved tile is fishing boats, made by a fishing boat (milestone 9)
 
-Milestone 6: yields and city growth -- DONE (20 Oct 2026; roads 25 Oct 2026)
+Milestone 6: yields and city growth
 - DONE: food, shields and trade per terrain (src/growth.c, Civ 1's numbers); city size,
   food box, growth and famine; a city works its centre and its size's best neighbours
   (radius 1, picked automatically); settlers need size 2 and cost a citizen
@@ -377,7 +377,7 @@ Milestone 6: yields and city growth -- DONE (20 Oct 2026; roads 25 Oct 2026)
 - Builder improvements: DONE irrigation and mine (src/improve.c, overlays from bank 1,
   AI rule 5 improves the hexagons round its city; overlays are in bank 5 again since the
   map shrank). Irrigation does nothing until food.
-  Roads DONE 25 Oct 2026 (see above): a list by hexagon row, not a map bit, and art of
+  Roads (see above): a list by hexagon row, not a map bit, and art of
   their own (alltiles' road_*.png join two edges each)
   DONE: builders on one hexagon with the same orders add up their turns
 - DONE: city screen shows size, food box, food/shields/trade and rings on the worked
@@ -391,9 +391,9 @@ Milestone 6: yields and city growth -- DONE (20 Oct 2026; roads 25 Oct 2026)
   the hover readout shows food/shields/trade. All four peoples now survive seed 1
 - Per-continent policy (attack/defend/transport) when there are boats and wars
 
-The tile sheet is packed (22 Oct 2026): a tile row keeps only its characters with pixels,
+The tile sheet is packed; a tile row keeps only its characters with pixels,
 so 34 tiles took 49 KB rather than 68; rows go into bank 5 then bank 1, each row's bank and
-address in a table (CLAUDE.md "When bank 5 fills up", step 1c). tools/mktiles.py checks it
+address in a table, tools/mktiles.py checks it
 fits. The redraw went from 17.0 to 16.4 ms
 
 Game/Options/End of Turn (Civ 1's: unticked, the turn ends by itself once the last unit has
@@ -401,7 +401,7 @@ its orders; a turn nobody had orders in still waits). Debug/Show Map has a tick 
 Help/Terrain Types: a submenu of the ten terrains and a page for each with a picture
 (res/text/pedia_*.txt). The menus moved to region 4
 
-Made room before milestone 8 (21 Oct 2026): the code regions are kept in attic RAM and
+Made room before milestone 8: the code regions are kept in attic RAM and
 copied by DMA into one of two slots in bank 1 when called (slot 1 region 1, slot 2 regions
 2 and up), so there can be any number of them. Improvements moved to region 2, diplomacy to
 a new region 3. Free: resident 365 bytes, region 0 2.3 KB, 1 1.3 KB, 2 2.7 KB, 3 6.6 KB
@@ -413,7 +413,7 @@ Meeting the other peoples took 60-150 turns, or never happened (map seed 7, 150 
 - Every people starts with a warrior beside its settler; no guards before the barbarians
 - First contact now (autoplay, 150 turns): seed 1 turn 45, seed 7 turn 68, seed 3 turn 90.
   The rest are often on other landmasses, and need boats. (Measured when contact was any
-  explored hexagon; since 20 Oct 2026 it needs units or cities next to each other, as in
+  explored hexagon; it needs units or cities next to each other, as in
   Civilization, so it comes later -- seed 1 met the Canaanites by turn 101, checked only
   at the end of each Play 50 Turns)
 
@@ -426,14 +426,13 @@ Milestone 5: more terrain
   undrawn rivers that leave floodplain through desert and plains
 - Terrain still = tile number: the ten terrains first in the sheet, the rest renumbered
 - The sheet is full: 16 tiles of 16. A river tile or resources need room first
-  (CLAUDE.md, "When bank 5 fills up", step 2)
 
 Before milestone 5: make room in bank 5
 - DONE: moved 92 of the minimap's 128 characters into the tile store's row padding
-  (CLAUDE.md, "When bank 5 fills up", step 1). Room for 16 tiles now, 12 used.
+  Room for 16 tiles now, 12 used.
 - DONE: cleared out the program region from 1.4 KB to 2.8 KB free (DMA lists as initialised
-  data, C stack 512 -> 256, scratch buffers to LOW_FREE/HIGH_BSS; CLAUDE.md, "Memory map")
-- DONE: MAP-register code banking (src/region.h; CLAUDE.md, "Growing past 32 KB", step 3).
+  data, C stack 512 -> 256, scratch buffers to LOW_FREE/HIGH_BSS
+- DONE: MAP-register code banking (src/region.h
   An 8 KB window at $6000-$7FFF; region 0 in the PRG (screens, menus, save, sheet loader),
   region 1 in bank 1 (ai.c). Works on a real MEGA65. New subsystems go into a region from the
   start: resident space is 2.7 KB, with room for five more 8 KB regions in bank 1.
@@ -492,7 +491,7 @@ Milestone 2: build new units
 Move game view to right side of screen, and add minimap in top left, with an outline of the
 current view. It should be possible to click directly in the minimap to move the view quickly
 (compare with civ1-reference/civ1-pic01.png)
-  Note: this changes the layout that CLAUDE.md treats as the specification
+  Note: this changes the layout that was the specification
   (basic/civ-basic.png, a 60x23 window). Update that and VIEW_COLUMNS in
   src/view.h together; a narrower window shrinks the tile store, so memory is
   not a problem. The map is 64x64 hexagons, so a minimap at one pixel per
