@@ -325,6 +325,7 @@ static byte spearman_in(byte c)
 static byte attack_near(byte u, byte odds)
 {
     byte dir, nx, ny, me = unit_owner[u];
+    combat_side = me;
     for (dir = 0; dir < 6; ++dir) {
         if (!map_neighbour(unit_ax[u], unit_ay[u], dir, &nx, &ny)) continue;
         if (!(map_tile[ny][nx] & MAP_OCCUPIED)) continue;

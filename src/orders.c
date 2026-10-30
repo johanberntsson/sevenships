@@ -28,22 +28,37 @@
 
 // The active unit u attacks (nx, ny) -- after a declaration of war, if it
 // takes one. How it went is a popup, as for every fight of the human's
-// (fight.h), shown by game_run().
-static void attack(byte u, byte nx, byte ny)
+// (fight.h), shown by game_run(). **Whether it did anything**: on a
+// hexagon of units only, of a people at peace with the human, a No to the
+// declaration -- or a unit that cannot attack -- returns 0, and the unit
+// moves in beside them (30 Oct 2026, the user's; combat.h).
+static byte attack(byte u, byte nx, byte ny)
 {
     byte kind = unit_kind[u];
-    byte o = combat_holder(nx, ny);
+    byte c = city_at(nx, ny);
+    byte o = PLAYER_BARBARIAN, v;
 
+    if (c != CITY_NONE) {
+        o = city_owner[c];
+    } else {
+        for (v = 0; v < MAX_UNITS; ++v)
+            if (unit_kind[v] != KIND_NONE && unit_ax[v] == nx
+                && unit_ay[v] == ny && unit_owner[v] != PLAYER_HUMAN)
+                o = unit_owner[v];
+    }
+    if (!at_war(PLAYER_HUMAN, o)) {
+        if (!unit_kind_attack[kind] && c == CITY_NONE) return 0;
+    }
     if (!unit_kind_attack[kind]) {
         message(unit_kind_name[kind], "cannot attack");
-        return;
+        return 1;
     }
     if (!at_war(PLAYER_HUMAN, o)) {
         popup_begin();
         popup_add("Declare war on the ");
         popup_add(player_people(o));
         popup_add("?");
-        if (!popup_ask_shown()) return;
+        if (!popup_ask_shown()) return c != CITY_NONE;
         declare_war(PLAYER_HUMAN, o);
     }
     message("", "");
@@ -51,6 +66,7 @@ static void attack(byte u, byte nx, byte ny)
     dirty = 1;
     hover_dirty = 1;
     select_unit(u);
+    return 1;
 }
 
 void game_move(byte dir)
@@ -72,10 +88,7 @@ void game_move(byte dir)
         message("Chariots keep", "off mountains");
         return;
     }
-    if (t == ENTER_FOREIGN) {
-        attack(u, nx, ny);
-        return;
-    }
+    if (t == ENTER_FOREIGN && attack(u, nx, ny)) return;
     message("", "");
     unit_move_to(u, nx, ny);
     if (!unit_moves[u]) unit_wake_cargo(u);

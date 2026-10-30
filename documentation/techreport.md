@@ -216,10 +216,11 @@ The C65 ROM boots AUTOBOOT.C65 automatically. `main()` then:
    joystick can pick an item;
 5. for a new game, makes a new world (`map_new`, region 9): a seed from
    the MEGA65's random number register, then land masses, relief,
-   rainfall and climate, erosion, rivers, the coasts and the resources,
+   rainfall and climate, erosion, rivers, the coasts, straits of shallows
+   that join every land mass to the rest for the ships, and the resources,
    into `map_tile` and the resource list, a list sorted by hexagon row,
-   using no memory but `map_tile`'s spare bits and a row; about two
-   seconds;
+   using no memory but `map_tile`'s spare bits and a row; two to three and
+   a half seconds;
 6. clears the screen, writes the map window's character numbers into screen
    RAM, once (`view_init`), and places the player's settler (`game_init`) --
    or, for Load Saved Game, reads the slot picked (SEVENSHIPS.SV0 to .SV9)
@@ -261,7 +262,7 @@ window shows one region of code at a time. The figures below are from the linker
 | -- |  - | ---- |
 | \$0002-\$0039 | 0.1 | Calypsi's pseudo registers, in zero page |
 | \$1600-\$1637 | 0.05 | `zpsave`: BASIC's zero page \$02-\$39, saved at start-up and put back on exit |
-| \$1638-\$1e75 | 2.1 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, the route search of the galleys and of GOTO, and the map generator's row of rainfall and river |
+| \$1638-\$1e81 | 2.1 | the `lowfree` section (`LOW_FREE`): the popup's text, the scratch buffers of the view, the minimap and the screens' numbers, the next build popup's button, the title's people line, the route search of the galleys and of GOTO, and the map generator's row of rainfall and river and its strait search's row pointers |
 | \$1e76-\$1eff | 0.13 | free |
 | \$2001-\$5c83 | 15.0 | BASIC stub, startup and resident code |
 | \$5c84-\$5d43 | 0.19 | initialised data: the DMA lists and a few small tables |

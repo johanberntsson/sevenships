@@ -37,6 +37,7 @@ HIGH_BSS word map_seed;
 HIGH_BSS static word state;
 LOW_FREE static byte rain[MAP_COLUMNS];
 LOW_FREE static byte path_x[FAR + 1], path_y[FAR + 1];
+LOW_FREE static byte around[6];
 
 // The neighbour map_neighbour() found.
 static byte nx, ny;
@@ -438,6 +439,143 @@ static void clean_up(void)
         }
 }
 
+// Row y of map_tile and the rows above and below it (0 for none), for
+// gather(); set once a row, since map_tile[y] is a multiply.
+LOW_FREE static byte *row_here, *row_up, *row_down;
+
+static void rows(byte y)
+{
+    row_here = map_tile[y];
+    row_up = y ? row_here - MAP_COLUMNS : 0;
+    row_down = y < MAP_ROWS - 1 ? row_here + MAP_COLUMNS : 0;
+}
+
+// The map bytes of the neighbours of (x, row_here) into around[], and how
+// many there are: what step() finds, without its calls and in another
+// order, which is what makes join_seas() bearable. Hexagon row 2y is the
+// even columns', 2y + 1 the odd ones'.
+static byte gather(byte x)
+{
+    byte *row = row_here;
+    byte a, b;
+
+    a = x + 2;
+    a &= MAP_COLUMNS - 1;
+    b = x - 2;
+    b &= MAP_COLUMNS - 1;
+    around[0] = row[a];
+    around[1] = row[b];
+    a = x + 1;
+    a &= MAP_COLUMNS - 1;
+    b = x - 1;
+    b &= MAP_COLUMNS - 1;
+    around[2] = row[a];
+    around[3] = row[b];
+    row = x & 1 ? row_down : row_up;
+    if (!row) return 4;
+    around[4] = row[a];
+    around[5] = row[b];
+    return 6;
+}
+
+// Step 6, second half: **every land mass is reachable by ship**, since
+// the ships keep to the shallows; mapgen.py's join_seas() says how. The
+// high nibble is 1 for the area joined so far, d + 1 for the open sea d
+// steps from it, 0 for anything not reached; a strait made is joined, and
+// the relaxing goes on from there.
+static void join_seas(void)
+{
+    byte x, y, j, k, d, e, n, t, u, sea, changed, back, best, bx, by, sx, sy;
+    word i;
+
+    // The first cell of land or shallows; the land target makes sure
+    // there is one.
+    sx = sy = 0;
+    while (TER(sx, sy) == TILE_OCEAN)
+        if (++sx == MAP_COLUMNS) {
+            sx = 0;
+            ++sy;
+        }
+    for (y = 0; y < MAP_ROWS; ++y)
+        for (x = 0; x < MAP_COLUMNS; ++x) map_tile[y][x] &= MAP_TERRAIN_MASK;
+    SET_NIB(sx, sy, 1);
+    for (;;) {
+        back = 0;
+        do {
+            changed = 0;
+            // Each row both ways before the next.
+            for (j = 0; j < MAP_ROWS; ++j) {
+                y = back ? MAP_ROWS - 1 - j : j;
+                rows(y);
+                for (i = 0; i < 2 * MAP_COLUMNS; ++i) {
+                    x = i < MAP_COLUMNS ? i : 2 * MAP_COLUMNS - 1 - i;
+                    t = row_here[x];
+                    d = t >> 4;
+                    if (d == 1) continue;
+                    sea = (t & MAP_TERRAIN_MASK) == TILE_OCEAN;
+                    if (sea && d == 2) continue;
+                    e = d;
+                    for (k = gather(x); k--; ) {
+                        u = around[k];
+                        n = u >> 4;
+                        if (!n) continue;
+                        if (!sea) {
+                            if (n == 1) e = 1;
+                        } else if (n + 1 < FAR && (!e || n + 1 < e)
+                                   && (n == 1
+                                       || (u & MAP_TERRAIN_MASK) == TILE_OCEAN))
+                            e = n + 1;
+                    }
+                    if (e != d) {
+                        row_here[x] = (t & MAP_TERRAIN_MASK) | (e << 4);
+                        changed = 1;
+                    }
+                }
+            }
+            back ^= 1;
+        } while (changed);
+
+        // The open sea nearest the joined area next to an area not joined.
+        best = 0;
+        for (y = 0; y < MAP_ROWS; ++y) {
+            rows(y);
+            for (x = 0; x < MAP_COLUMNS; ++x) {
+                t = row_here[x];
+                d = t >> 4;
+                if (d < 2 || (t & MAP_TERRAIN_MASK) != TILE_OCEAN) continue;
+                if (best && d >= best) continue;
+                for (k = gather(x); k--; ) {
+                    u = around[k];
+                    if (!(u >> 4) && (u & MAP_TERRAIN_MASK) != TILE_OCEAN) {
+                        best = d;
+                        bx = x;
+                        by = y;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!best) break;
+
+        // Back down the distances to the joined area, making shallows.
+        x = bx;
+        y = by;
+        for (;;) {
+            d = NIB(x, y);
+            map_tile[y][x] = (1 << 4) | TILE_SHALLOW_OCEAN;
+            if (d == 2) break;
+            for (k = 0; k < 6; ++k)
+                if (step(x, y, k) && NIB(nx, ny) == d - 1
+                    && TER(nx, ny) == TILE_OCEAN)
+                    break;
+            x = nx;
+            y = ny;
+        }
+    }
+    for (y = 0; y < MAP_ROWS; ++y)
+        for (x = 0; x < MAP_COLUMNS; ++x) map_tile[y][x] &= MAP_TERRAIN_MASK;
+}
+
 static byte free_cell(byte x, byte y)
 {
     byte k;
@@ -537,6 +675,7 @@ void map_new(void)
     coast_distance();
     rivers();
     clean_up();
+    join_seas();
     resources();
     res_list();
 }

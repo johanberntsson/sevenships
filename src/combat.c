@@ -10,6 +10,7 @@
 byte combat_war[PLAYERS];
 
 byte combat_owner;
+byte combat_side;
 byte combat_kind;
 byte combat_city;
 byte fight_count;
@@ -74,13 +75,19 @@ static byte defence(byte u)
     return d;
 }
 
-// The unit on (ax, ay) that defends best, or UNIT_NONE.
+// Whether unit v is on (ax, ay) and at war with combat_side.
+static byte foe(byte v, byte ax, byte ay)
+{
+    return unit_kind[v] != KIND_NONE && unit_ax[v] == ax && unit_ay[v] == ay
+           && at_war(combat_side, unit_owner[v]);
+}
+
+// The unit on (ax, ay) that defends best against combat_side, or UNIT_NONE.
 static byte defender(byte ax, byte ay)
 {
     byte u, d, best = UNIT_NONE, best_d = 0;
     for (u = 0; u < MAX_UNITS; ++u) {
-        if (unit_kind[u] == KIND_NONE || unit_ax[u] != ax || unit_ay[u] != ay)
-            continue;
+        if (!foe(u, ax, ay)) continue;
         d = defence(u);
         if (best == UNIT_NONE || d > best_d) {
             best = u;
@@ -146,8 +153,10 @@ static void note(byte what, byte kind, byte foe, byte foe_kind)
 byte combat_attack(byte u, byte ax, byte ay)
 {
     byte me = unit_owner[u], kind = unit_kind[u];
-    byte d = defender(ax, ay);
-    byte a, v, c, o, dk;
+    byte d, a, v, c, o, dk;
+
+    combat_side = me;
+    d = defender(ax, ay);
 
     unit_moves[u] = 0;
     at_x = ax;
@@ -189,9 +198,7 @@ byte combat_attack(byte u, byte ax, byte ay)
     if (city_at(ax, ay) == CITY_NONE) {
         lost = 0;
         for (v = 0; v < MAX_UNITS; ++v)
-            if (unit_kind[v] != KIND_NONE && unit_ax[v] == ax
-                && unit_ay[v] == ay)
-                ++lost;
+            if (foe(v, ax, ay)) ++lost;
     }
     if (me == PLAYER_HUMAN) note(FIGHT_WON, kind, o, dk);
     else if (o == PLAYER_HUMAN) note(FIGHT_FELL, dk, me, kind);
@@ -199,9 +206,7 @@ byte combat_attack(byte u, byte ax, byte ay)
         unit_remove(d);
     } else {
         for (v = 0; v < MAX_UNITS; ++v)
-            if (unit_kind[v] != KIND_NONE && unit_ax[v] == ax
-                && unit_ay[v] == ay)
-                unit_remove(v);
+            if (foe(v, ax, ay)) unit_remove(v);
     }
     return COMBAT_WON;
 }

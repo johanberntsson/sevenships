@@ -254,7 +254,9 @@ and the fish yields a food more for good.
 | Fishing boat | 0 | 1 | 2 | 20 | a coastal city |
 | Merchant ship | 0 | 1 | 3 | 30 | a coastal city |
 
-Ships sail the **shallows** only, and their own cities. **A galley carries
+Ships sail the **shallows** only, and their own cities. Every land mass
+of the world can be reached through them: where open sea would cut one
+off, a strait of shallows joins it to the rest. **A galley carries
 two land units**: step onto it to board; they are woken when it stops next
 to land, to step ashore. The fishing boat explores the coasts and works
 fish. The merchant ship carries trade and founds emporia (section 10). Help →
@@ -275,7 +277,10 @@ you, and your wars.
 ## 8. Combat
 
 Moving onto another people's unit or city is an attack — the game asks
-first if it means declaring war. The attacker wins with a chance of
+first if it means declaring war. **Answer No, and your unit moves in
+beside theirs** instead, sharing the hexagon, as long as there is no city
+on it; so does a unit that cannot attack, such as a settler or a fishing
+boat, without being asked. The attacker wins with a chance of
 attack against defence: a chariot (4) attacking a warrior (1) wins four
 times in five. The defender's strength is multiplied by its ground:
 
@@ -285,7 +290,8 @@ times in five. The defender's strength is multiplied by its ground:
 - a galley fortified at sea (an escort), ×2.
 
 The best defender on a hexagon fights. Outside a city, if it loses, every
-unit on the hexagon dies with it; in a city only the defender dies. **A
+unit on the hexagon dies with it — but only the units of peoples at war
+with the attacker: on a shared hexagon the others are left alone; in a city only the defender dies. **A
 city is taken by moving into it when nobody is left in it**; barbarians
 burn it instead.
 

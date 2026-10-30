@@ -30,6 +30,13 @@ extern word combat_seed;
 // Who holds (ax, ay): the owner of the unit or city there.
 byte combat_holder(byte ax, byte ay);
 
+// **A hexagon may hold two peoples' units** (30 Oct 2026, the user's: the
+// human may answer No to "Declare war?" and move in beside units it is at
+// peace with), so only those at war with the attacker, combat_side, fight
+// there and die with the stack: a third people sharing it is left alone.
+// combat_attack() sets it; a caller of combat_worth() sets it first.
+extern byte combat_side;
+
 // Unit u attacks (ax, ay), a neighbour held by an enemy: a battle with the
 // best defender there, or, with nobody left in an enemy city, u walks in and
 // takes it -- or burns it, for a barbarian. Uses all of u's moves.

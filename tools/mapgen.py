@@ -41,7 +41,9 @@ the sheet has today:
 6. Clean-up: ocean next to land becomes shallow ocean. There are no
    lakes: water cut off from the world ocean is made land straight after
    step 1 (fill_lakes()), since a city by a lake built boats that could
-   go nowhere.
+   go nowhere. Then the shortest run of open sea between each area of
+   land and shallows and the rest is made shallows too (join_seas()), so
+   that a ship can reach every land mass.
 7. Resources (milestone 7, vision.md section 2): tin first, a few nodes in
    the far north and south (the imports from the edge of the world), then
    the rest by terrain, a little more tin among them, never next to each
@@ -239,9 +241,6 @@ def coast_distance(m):
                     m.set_nib(x, y, d)
                     changed = True
         back = not back
-    # A nibble is enough while no land is FAR from the sea; rivers() needs
-    # the true distance.
-    assert count_cells(m, FAR) == 0, "land too far from the sea"
 
 
 def any_cell(rng, m, least):
@@ -407,6 +406,8 @@ def rivers(rng, m):
                 cell = step(x, y, k)
                 if cell and m.nib(*cell) < m.nib(x, y):
                     lower.append(cell)
+            if not lower:
+                break   # land FAR or more from the sea, where the nibble ends
             x, y = lower[rng.rand(len(lower))]
             path.append((x, y))
         dry = [(px, py) for px, py in path
@@ -463,6 +464,103 @@ def clean_up(m):
                     m.land(*cell) for cell in
                     (step(x, y, k) for k in range(6)) if cell):
                 m.set_terrain(x, y, SHALLOW_OCEAN)
+
+
+def join_seas(m):
+    """Step 6, second half: **every land mass is reachable by ship**. The
+    ships keep to the shallows, which are one ring round the land, so a land
+    mass further than two hexagons from the others was cut off for good: a
+    people starting there met nobody (seed 12876, 30 Oct 2026). So the area
+    of land and shallows joined so far is found from the first cell of it,
+    the open sea's distance from it measured, and the shortest run of open
+    sea to the nearest area not joined yet made shallows; again, until
+    every area is joined. All in the high nibble: 1 for the joined area,
+    d + 1 for the open sea d steps from it, 0 for anything not reached;
+    relaxed, sweeping forwards and backwards in turn, as fill_lakes() is.
+    A strait made is marked joined and the relaxing goes on from there
+    rather than from the start: the distances only fall, so it settles
+    where a fresh start would, in a fraction of the sweeps.
+    A gap wider than FAR - 2 is left open (none in seeds 1-2000, where
+    1-5 joins were needed in 57% of worlds)."""
+    start = next((x, y) for y in range(ROWS) for x in range(COLUMNS)
+                 if m.terrain(x, y) != OCEAN)
+    joins = 0
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            m.set_nib(x, y, 0)
+    m.set_nib(*start, 1)
+    while True:
+        changed = True
+        back = False
+        while changed:
+            changed = False
+            # Each row both ways before the next, which carries the
+            # flood along a winding coast in half the sweeps.
+            for j in range(ROWS):
+                y = ROWS - 1 - j if back else j
+                for i in range(2 * COLUMNS):
+                    x = i if i < COLUMNS else 2 * COLUMNS - 1 - i
+                    d = m.nib(x, y)
+                    if d == 1:
+                        continue
+                    sea = m.terrain(x, y) == OCEAN
+                    if sea and d == 2:
+                        continue        # as near as the open sea can be
+                    e = d
+                    for k in range(6):
+                        cell = step(x, y, k)
+                        if not cell:
+                            continue
+                        n = m.nib(*cell)
+                        if not n:
+                            continue
+                        if not sea:
+                            # Land and shallows join the area they touch.
+                            if n == 1:
+                                e = 1
+                        elif n + 1 < FAR and (not e or n + 1 < e) and (
+                                n == 1 or m.terrain(*cell) == OCEAN):
+                            e = n + 1
+                    if e != d:
+                        m.set_nib(x, y, e)
+                        changed = True
+            back = not back
+        # The open sea nearest the joined area next to an area not joined.
+        best = 0
+        for y in range(ROWS):
+            for x in range(COLUMNS):
+                d = m.nib(x, y)
+                if not d or d == 1 or m.terrain(x, y) != OCEAN:
+                    continue
+                if best and d >= best:
+                    continue
+                for k in range(6):
+                    cell = step(x, y, k)
+                    if cell and not m.nib(*cell) \
+                            and m.terrain(*cell) != OCEAN:
+                        best, bx, by = d, x, y
+                        break
+        if not best:
+            break
+        # Back down the distances to the joined area, making shallows.
+        x, y = bx, by
+        while True:
+            d = m.nib(x, y)
+            m.set_terrain(x, y, SHALLOW_OCEAN)
+            m.set_nib(x, y, 1)
+            if d == 2:
+                break
+            for k in range(6):
+                cell = step(x, y, k)
+                if cell and m.nib(*cell) == d - 1 \
+                        and m.terrain(*cell) == OCEAN:
+                    x, y = cell
+                    break
+        joins += 1
+    for y in range(ROWS):
+        for x in range(COLUMNS):
+            m.set_nib(x, y, 0)
+    return joins
 
 
 def resources(rng, m):
@@ -548,6 +646,7 @@ def generate(seed, land_percent):
     coast_distance(m)
     rivers(rng, m)
     clean_up(m)
+    m.joins = join_seas(m)
     resources(rng, m)
     return m, res_list(m)
 

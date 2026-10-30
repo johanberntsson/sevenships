@@ -214,13 +214,13 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 98 bytes free (26 Oct 2026, after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 74 bytes free (30 Oct 2026, after shared hexagons took 24; 98 on 26 Oct 2026 after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's loader, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 707 bytes free (26 Oct 2026, since the map loader went; 238 after the music, 1.7 KB before it) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 1.9 KB free), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.4 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 351 bytes free since `join_seas()`), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header, the world's seed and the generator's state; **8 bytes free** (26 Oct 2026, after the map generator; 12 after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
-| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, and the map generator's row of rainfall and river, 138 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
+| `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, and the map generator's row of rainfall and river and its strait search's buffers, 126 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
 | `$12000` | 4000 | screen RAM, 80x25 cells of 2 bytes |
 | `$40000-$56FFF` | 94208 | the view's tile store, 23 rows of 4096: 3840 for the window, then 256 holding four of the minimap's characters (all 80 of them, rows 0-19) or, in rows 20-22, two of the owners' flags (92 slots) |
 | `$57000-$5FFFF` | 36864 | the packed, x-expanded tile sheet's first area: the tiles' rows, only the characters with pixels, as they come off the disk (`src/sheet.h`) |
@@ -636,6 +636,25 @@ that the climate makes it whatever land it would be. A lake made the
 cities beside it coastal (`city_coastal()` looks only for shallows next
 to the city), and the boats they built could go nowhere; both
 generators made them, the old one's seed 1 a lake of 36 hexagons.
+**Every land mass is reachable by ship** (30 Oct 2026, from the user's
+play: a save on world 12876 started the Mycenaeans on an island whose
+shallows touched nobody's, and with no ship for the open sea they could
+never meet anyone): after the shallows, `join_seas()` floods the area of
+land and shallows joined so far from the first such cell, measures the
+open sea's distance from it in the high nibble, and makes the shortest
+run of open sea to the nearest area not joined yet shallows, a strait;
+again, until every area is joined, the relaxing going on from where it
+was rather than starting again. Of seeds 1-2000, 57% needed straits, 1 to
+5 (seed 870 five), and afterwards none was split (a gap wider than 13
+would be left open, and none was). **It costs time**: about 0.3 s with no
+strait and 0.3 s a strait, measured as below (seed 1 2.1 s → 2.4, seed
+55 with four 1.8 → 3.4), which took two things: each row swept both ways
+before the next, and the neighbours read straight off the rows
+(`gather()`, `rows()`) instead of through `step()` and `map_tile[y]`,
+whose multiply Calypsi makes a loop; the first version took 3.7 and 8.1
+s. It cost region 9 about 1.6 KB and `LOW_FREE` 12 bytes. `mapgen.py`
+used to stop with "land too far from the sea" on 11% of seeds (67, 126,
+...), where the C ends the river; it does the same now.
 `main()` calls it when a new game starts, after the title's screens and
 before `game_init()`, never for a loaded game, whose map is in the save;
 "Creating the world" is on the screen meanwhile. **Until then the map was
@@ -667,8 +686,8 @@ identical on seeds 1, 3, 7 and 54321 (and on 1 and 48854 again after
 `fill_lakes()`). In 255 turns of autoplay on the new seeds 1, 3 and 7 all
 four peoples stood, with 26-31 cities and 144, 149 and 211 citizens;
 without lakes, 27-34 cities and 129, 165 and 217.
-A world takes 1.8 s in xemu (CIA2, real speed), so about 2 s on the
-machine; 2.45 before `step()` was its own and erosion looked at its
+A world took 1.8-2.1 s in xemu (CIA2, real speed) before `join_seas()`
+and 2.4-3.4 since, so up to about 4 s on the machine; 2.45 before `step()` was its own and erosion looked at its
 neighbours once. Layer
 0 is terrain, and **its values are `TILE_*` numbers** because every
 terrain has exactly one tile, which is why the ten terrain tiles come first
@@ -986,10 +1005,10 @@ and found fixed; the user goes on play-testing before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (98
-   bytes), region 1 (68 bytes), region 2 (350 bytes), region 4 (250
-   bytes), highram (8 bytes) or `LOW_FREE` (138 bytes, after the map
-   generator; region 0 has 707 since the map loader went):
+5. **Make room first** before anything grows in resident code (74
+   bytes), region 1 (65 bytes), region 2 (230 bytes), region 4 (250
+   bytes), highram (8 bytes) or `LOW_FREE` (126 bytes, after the map
+   generator's straits; region 0 has 707 since the map loader went):
    a second tune would want a file of its own read into attic at boot,
    not region 0; **The way to resident room is
    `game.c`** (tile select and the panel are the next candidates;
@@ -1420,6 +1439,26 @@ barbarians (`city_destroy()`, which moves the last city into the hole).
 `unit_can_enter()` still says `ENTER_FOREIGN` for another player's
 hexagon, and the caller decides that it is an attack: `attack()` in
 `src/game.c` for the human, `attack_near()` in `src/ai.c` otherwise.
+**A hexagon may hold two peoples' units** (30 Oct 2026, the user's, as
+Civilization IV allows units at peace to share a tile): a No to "Declare
+war on the Hittites?" moves the human's unit in beside theirs, and so
+does a unit that cannot attack (a settler, a boat), unasked -- never into
+a city (`attack()` in `src/orders.c`, which finds the foreign owner on
+the hexagon itself, since `combat_holder()` gives the top unit's, which
+may be the human's own). Only the human can make one; the computer
+players' `unit_can_enter() != ENTER_OK` tests still refuse any foreign
+hexagon. So **only units at war with the attacker fight and die there**:
+`combat_side` (set by `combat_attack()`, and by `attack_near()` in
+`src/ai.c` before `combat_worth()`) and `foe()` in `combat.c`, used for the
+defender and the stack. Checked headlessly with throwaways: the move in
+beside a Hittite warrior with no war, and an Egyptian chariot at war with
+the Hittites alone killing the Hittite warrior and not the Mycenaean on
+its hexagon; and 100 turns of autoplay byte-identical. 24 bytes resident.
+**Not handled**: a war declared while two peoples share a hexagon leaves
+them there together (Civilization IV moves one out); a computer player
+weighs a shared hexagon by its top unit's owner (`combat_holder()`), so
+it may pass up an enemy standing under a friend; the redraw and the
+readout show one unit of the two.
 **War** is a bitmask per player in `combat.c` (`at_war()`, hot, stays
 resident); everyone is at war with the barbarians and the peoples start
 at peace. The human declares war by attacking ("Declare war on the
