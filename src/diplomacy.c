@@ -134,6 +134,50 @@ static void make_peace(byte p, byte q, byte truce)
     set_truce(p, q, truce);
 }
 
+// **War clears a shared hexagon** (30 Oct 2026, the user's; combat.h has
+// the sharing): a's units step off every hexagon they share with b's, to
+// the first neighbour they may enter, or the outer ring's, all together
+// -- a ship with those aboard -- and keep their moves and orders. The
+// declarer is a, so that its attack meets only the enemy; when a
+// ceasefire runs out it is the lower player, which is the human, since
+// only the human ever shares. With nowhere to go they stay.
+static void separate(byte a, byte b)
+{
+    byte u, v, x, y, k, kv, dir, nx, ny;
+
+    for (u = 0; u < MAX_UNITS; ++u) {
+        if (unit_kind[u] == KIND_NONE || unit_owner[u] != b) continue;
+        x = unit_ax[u];
+        y = unit_ay[u];
+        // Where a's stack may go is where its ship, or a chariot, may.
+        k = KIND_NONE;
+        for (v = 0; v < MAX_UNITS; ++v) {
+            kv = unit_kind[v];
+            if (kv == KIND_NONE || unit_owner[v] != a || unit_ax[v] != x
+                || unit_ay[v] != y)
+                continue;
+            if (k == KIND_NONE || KIND_IS_SHIP(kv)
+                || (kv == KIND_CHARIOT && !KIND_IS_SHIP(k)))
+                k = kv;
+        }
+        if (k == KIND_NONE) continue;
+        for (dir = 0; dir < 18; ++dir)
+            if (map_neighbour(x, y, dir, &nx, &ny)
+                && unit_can_enter(a, k, nx, ny) == ENTER_OK)
+                break;
+        if (dir == 18) continue;
+        for (v = 0; v < MAX_UNITS; ++v)
+            if (unit_kind[v] != KIND_NONE && unit_owner[v] == a
+                && unit_ax[v] == x && unit_ay[v] == y) {
+                unit_ax[v] = nx;
+                unit_ay[v] = ny;
+            }
+        unit_mark(x, y);
+        unit_mark(nx, ny);
+        if (a == PLAYER_HUMAN) map_explore(nx, ny);
+    }
+}
+
 static void say(byte p, byte kind)
 {
     letter[p] = kind;
@@ -150,6 +194,7 @@ void declare_war(byte a, byte b)
     if (lord[b] == a) lord[b] = LORD_NONE;
     combat_war[a] |= (byte)(1 << b);
     combat_war[b] |= (byte)(1 << a);
+    separate(a, b);
     set_truce(a, b, 0);
     diplomacy_known[a] |= (byte)(1 << b);
     diplomacy_known[b] |= (byte)(1 << a);
@@ -391,6 +436,7 @@ void diplomacy_turn(void)
                 } else if (rel == RELATION_CEASEFIRE && !--t) {
                     combat_war[p] |= (byte)(1 << q);
                     combat_war[q] |= (byte)(1 << p);
+                    separate(p, q);
                     set_truce(p, q, 0);
                     if (HUMAN_ASKED(p)) say(q, LETTER_TRUCE_OVER);
                     continue;

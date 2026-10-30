@@ -280,7 +280,9 @@ Moving onto another people's unit or city is an attack — the game asks
 first if it means declaring war. **Answer No, and your unit moves in
 beside theirs** instead, sharing the hexagon, as long as there is no city
 on it; so does a unit that cannot attack, such as a settler or a fishing
-boat, without being asked. The attacker wins with a chance of
+boat, without being asked. When war comes between two peoples that
+share a hexagon, the units of the one that declared it step out to a
+hexagon next to it (when a ceasefire runs out, yours do). The attacker wins with a chance of
 attack against defence: a chariot (4) attacking a warrior (1) wins four
 times in five. The defender's strength is multiplied by its ground:
 
