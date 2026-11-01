@@ -68,7 +68,7 @@ void game_draw_hover(void)
             // still fits in the 40 columns.
             if (x) line_add(x == MAP_MINED ? (RES_PASTURE(r) ? "+pasture" : "+mine")
                             : x == MAP_EMPORIUM ? "+emporium"
-                            : MAP_TERRAIN(ax, ay) == TILE_SHALLOW_OCEAN ? "+boats"
+                            : MAP_TERRAIN(ax, ay) == TILE_SHALLOW_OCEAN ? "+nets"
                             : "+irr");
             // What it yields, food/shields/trade, where there is room:
             // with nothing on it; and only then a road, which is on the

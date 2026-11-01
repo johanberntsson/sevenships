@@ -254,8 +254,8 @@ byte ai_build(byte p, byte only)
             kind = KIND_MERCHANT;
             ++merchants;
         } else if (boats < 2 && city_size[c] >= 2 && fish_to_work(c)) {
-            // A second boat, to work the fish (boat_explore()): over the
-            // cap, since it is used up once it gets there. Not from a city
+            // A second boat, to work the fish (boat_explore()), from one
+            // fish to the next: over the cap, as builders are. Not from a city
             // of size 1, which would rather grow and send a settler.
             kind = KIND_BOAT;
             ++boats;

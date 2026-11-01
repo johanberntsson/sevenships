@@ -53,7 +53,7 @@ make FAKE_KEYS='{10,0,0,13},{12,0,0,13},{14,0,0,13},{16,0,0,13},{30,0,0,98}'  # 
 make NO_TITLE=1           # straight to the map, no title screen
 make DEBUG=0              # without the Debug menu, as a release is
 make release              # build the d81 (DEBUG=0) and the manual's PDF (pandoc) into release/
-make release alpha1       # the same, named release/sevenships_alpha1.d81 and sevenships_alpha1_manual.pdf
+make release alpha1       # the same, named release/sevenships_alpha1.d81 and sevenships_alpha1_manual.pdf (1 Nov 2026)
 make clean
 ```
 
@@ -215,10 +215,10 @@ buffers at the default `$FF80000` and corrupts the display.
 
 | Address | Size | Contents |
 |---|---|---|
-| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 74 bytes free (30 Oct 2026, after shared hexagons took 24; 98 on 26 Oct 2026 after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
+| `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 73 bytes free (1 Nov 2026, after the wilderness warning; 74 on 30 Oct 2026, after shared hexagons took 24; 98 on 26 Oct 2026 after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's loader, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 707 bytes free (26 Oct 2026, since the map loader went; 238 after the music, 1.7 KB before it) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 540 bytes free since the land masses, 1 Nov 2026) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 351 bytes free since `join_seas()`), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 64 bytes free since the wilderness warning, 1 Nov 2026) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 137 bytes free, 1 Nov 2026) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026, and the fishing boats' work, `src/boatwork.c`; 326 bytes free since the land masses and the nets, 1 Nov 2026) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 351 bytes free since `join_seas()`), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header, the world's seed and the generator's state; **8 bytes free** (26 Oct 2026, after the map generator; 12 after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, and the map generator's row of rainfall and river and its strait search's buffers, 126 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -953,9 +953,13 @@ hover readout from region 0, the calendar, the score and the end
 screen, and the Crisis — omens, Sea Peoples, shocks — with the 96-unit
 list.
 
-**Where to start next time** (26 Oct 2026, end of the day, after the
-in-game map generator and its lakes fix, which the user tried in play
-and found fixed; the user goes on play-testing before the next session):
+**Where to start next time** (1 Nov 2026, end of the day: the user's
+test player is trying the game again before the next session. That day
+brought the wilderness warning, units of two peoples at peace sharing a
+hexagon and leaving it at war, the straits that join every land mass by
+the shallows (30 Oct), **no island starts** (**The computer players**),
+**fishing boats laying nets as builders work** (**Fishing boats**, under
+**Galleys**) and `make release NAME`):
 1. **Ask what the play-testing found**, and take the new items at the
    top of TODO.txt first. **The game is feature complete against
    vision.md** (grain logistics and attrition were taken out of it on
@@ -986,7 +990,14 @@ and found fixed; the user goes on play-testing before the next session):
    `DIM` after quitting); and **the map generator** (**The hex grid**:
    how long "Creating the world" takes, a new world each Start Game,
    the world's number on World → Score, saving and loading across
-   worlds, `DIM` after quitting).
+   worlds, `DIM` after quitting); and from 30 Oct and 1 Nov: **the
+   starts** (a few new games: the human on the largest land mass with a
+   computer player beside it, overland contact early, the extra moment
+   after "Creating the world"), **the nets** (`i` on fish, five turns,
+   "Fishing nets / laid", the boat staying; waking a working boat and
+   `i` again; how the placeholder net looks), the wilderness warning
+   and its option, two peoples' units on one hexagon (a No to "Declare
+   war?") and their parting when war comes, and the straits.
    **Confirmed there on 26 Oct**: the fixes from the
    user's first play-test -- the blink redrawing only its band (the
    busy screen no longer flickers), GOTO along roads, and `d`, Disband.
@@ -1006,10 +1017,11 @@ and found fixed; the user goes on play-testing before the next session):
    placeholders); the player's manual (`documentation/sevenships_manual.md`, a
    first draft; `make release` makes its PDF) kept in step with every
    rule changed.
-5. **Make room first** before anything grows in resident code (74
-   bytes), region 1 (65 bytes), region 2 (230 bytes), region 4 (250
-   bytes), highram (8 bytes) or `LOW_FREE` (126 bytes, after the map
-   generator's straits; region 0 has 707 since the map loader went):
+5. **Make room first** before anything grows in resident code (73
+   bytes), region 1 (65 bytes), region 2 (64 bytes), region 4 (137
+   bytes), region 8 (326), highram (8 bytes) or `LOW_FREE` (126 bytes;
+   region 0 has 708, region 3 1.1 KB, region 7 0.8 KB, region 5 0.5 KB,
+   region 6 391, region 9 351; 1 Nov 2026):
    a second tune would want a file of its own read into attic at boot,
    not region 0; **The way to resident room is
    `game.c`** (tile select and the panel are the next candidates;
@@ -1839,8 +1851,8 @@ as `res_olives` and `res_wine` are. The improvement's own overlay is
 still drawn under it, and shows through a little (the blue of the
 irrigation in the middle of a pasture). They are lines 2-30, all four
 character rows, which costs the redraw two more jobs than lines 8-23, on
-the few hexagons that have one. Fish's is fishing boats, `alltiles/`'
-`tile_fish_improved`, which a fishing boat makes (**Galleys**); grain,
+the few hexagons that have one. Fish's is its nets, `res_fish_net.png`,
+which a fishing boat lays (**Galleys**); grain,
 cedar and dye have no improved art. The city screen's CHANGE lists Spearman only with bronze, and
 otherwise says which is missing ("Spearman needs bronze: tin"). **The
 computer players**: any builder goes first for unmined copper or tin next
@@ -2112,12 +2124,20 @@ it explores (`boat_explore()`, `src/boat.c`, region 4): to the nearest
 8x4 block with shallows that its people has not seen (`ai_seen`, and
 `ai_sea`, set by `ai_place()` beside `ai_land`), by `sea_route()`; a
 block out of reach, or reached, counts as seen. **A boat works fish**,
-Civilization IV's way: on a fish not worked yet, `i` or Orders → Fish
-(`boat_order()`, `src/boat.c`) uses it up and makes the fish fishing
-boats — `MAP_IRRIGATED` on the shallows, so `yield()` gives the 1 food
-irrigation does (4/0/2 for worked fish), `RES_TILE()` draws
-`TILE_FISH_BOATS` through `map_res_improved_by[]`, and the readout says
-"+boats". **The irrigation overlay is not drawn on the shallows**: the
+**as a builder works the land** (1 Nov 2026, from the user's tester:
+until then a boat was used up at once, Civilization IV's way, which
+felt unlike the builders): on a fish not worked yet, `i` or Orders →
+Fish (`boat_order()`, `boat_fish()`, `src/boat.c`) gives the boat
+`ORDERS_IRRIGATE`, and `boat_work()` counts its turns in `unit_work[]`
+(`src/boatwork.c`, **region 8**, from `treasury_turn()`, since region 4
+had no room); after `FISH_TURNS` (5, irrigation's) the fish gets its
+nets, "Fishing nets / laid" in the panel, and **the boat is free
+again**, to explore or go to other fish. The nets are `MAP_IRRIGATED` on
+the shallows, so `yield()` gives the 1 food irrigation does (4/0/2 for
+worked fish), `RES_TILE()` draws `TILE_FISH_NET` (the fish with a net
+over it, a placeholder drawn for it; it was `alltiles/`'
+`tile_fish_improved`, boats) through `map_res_improved_by[]`, and the
+readout says "+nets". **The irrigation overlay is not drawn on the shallows**: the
 test is in `view_redraw()` and the city screen's `draw_patch()` behind the
 `MAP_IMPROVEMENT` test, so it costs only improved hexagons anything.
 The computer players' first boat explores while there is anything left
@@ -2125,8 +2145,10 @@ to; any other boat, and the first once everything is seen, makes for the
 nearest unworked fish in the reach of one of its people's cities and works it
 (`boat_explore()`); and a coastal city with unworked fish next to it
 (`fish_to_work()` in `src/ai.c`) and of size 2 or more builds a second
-boat, over the unit cap since it is gone once it gets there (under the
-cap, almost none was built: 0 of 14 fish worked on seed 1). In 300 turns
+boat, over the unit cap (under it, almost none was built: 0 of 14 fish
+worked on seed 1), which since the nets goes on from fish to fish, so a
+people has two boats at most. In 150 turns of autoplay on seed 1, the
+boats all stood at the end and 2 of 9 fish had nets, one more under way. In 300 turns
 of autoplay every fish next to a city was worked — 1, 2 and 2 on seeds
 1, 3 and 7 — of 14-26 a map: few cities are founded by fish. Measured (a throwaway record of the turn each
 pair first met, 300 turns of autoplay, the human's side played by the
@@ -2138,7 +2160,10 @@ by the settler): drawn with its flag, "Ships keep to the shallows" for
 a step onto land, "Cannot swim" for the warrior stepping onto it; and
 the city screen's CHANGE list; and with a boat on the fish at (21,4) on
 seed 1, `i`: "Fishing boats at work", the boat gone, the fishing boats
-drawn with no overlay, and "Shallows+Fish+boats 4/0/2".
+drawn with no overlay, and "Shallows+Fish+boats 4/0/2". With the nets
+(1 Nov 2026), a boat on the fish at (23,10): `i`, Yes to the wilderness
+warning, and after five turns "Fishing nets / laid", the boat still
+there with no orders, and the net drawn.
 
 **Chariots** (23 Oct 2026, the user's request; `KIND_CHARIOT`,
 Civilization's: attack 4, defence 1, 2 moves, cost 40) **need horses**
@@ -3066,7 +3091,8 @@ land, the overlays, irrigation, mine and emporium (**Emporia**), the ten resourc
 cattle, olives and wine (see **Bronze**), and the galley and the
 fishing boat (see **Galleys**, `alltiles/`' `unit_galley.png` and
 `unit_work_boat.png` as they are), and fish worked by one
-(`tile_fish_improved.png`, as `res_fish_boats`), and the Sea Peoples'
+(its nets, `res_fish_net.png`, the fish with a net drawn over them;
+`alltiles/`' `tile_fish_improved.png`, boats, until 1 Nov 2026), and the Sea Peoples'
 raider and the merchant ship (`alltiles/`' `unit_swordsman.png` and
 `unit_cargo_ship.png`, as `unit_raider` and `unit_merchant`), and the
 chariot (`unit_chariot_archer.png` as it is, as `unit_chariot`;

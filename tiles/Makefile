@@ -36,8 +36,9 @@ RESOURCES = res_grain.png res_fish.png res_cattle.png res_olives.png \
 MINES = res_copper_mine.png res_tin_mine.png
 IRRIGATED = res_cattle_pasture.png res_olives_grove.png res_wine_vineyard.png
 # Then the galley (milestone 9) and the fishing boat, alltiles' galley and
-# work boat as they are, and fish worked by a fishing boat, alltiles'
-# tile_fish_improved. Then the Sea Peoples' raider (milestone 10's Crisis),
+# work boat as they are, and fish worked by a fishing boat, its nets: the
+# fish with a net drawn over them (1 Nov 2026; it was alltiles'
+# tile_fish_improved, boats, when the boat was used up). Then the Sea Peoples' raider (milestone 10's Crisis),
 # alltiles' swordsman as it is; and the merchant ship, its cargo ship. Then
 # the chariot, alltiles' chariot archer as it is. Then horses with a
 # pasture, alltiles' tile_horses_improved as it is. Then the roads: the
@@ -47,7 +48,7 @@ ROADS = road_e.png road_se.png road_sw.png road_dot.png
 TILES = $(TERRAIN) tile_city.png tile_select.png \
         unit_settler.png unit_warrior.png unit_builder.png tile_undiscovered.png \
         $(OVERLAYS) $(RESOURCES) $(MINES) unit_spearman.png $(IRRIGATED) \
-        unit_galley.png unit_fishing_boat.png res_fish_boats.png \
+        unit_galley.png unit_fishing_boat.png res_fish_net.png \
         unit_raider.png unit_merchant.png unit_chariot.png \
         res_horses_pasture.png $(ROADS)
 

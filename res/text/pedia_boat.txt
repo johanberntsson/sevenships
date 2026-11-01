@@ -8,5 +8,6 @@
   Moves: 2
   Cost: 20 shields
   Needs: a city by the shallows
-{at 6 17}{text}Sails the shallows. On fish it can fish (i), and is used up: the fish
-then gives a food more to the city that works it.
+{at 6 17}{text}Sails the shallows. On fish it can lay nets (i), which takes 5 turns:
+the fish then gives a food more to the city that works it, and the boat
+is free to go on.

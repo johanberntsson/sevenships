@@ -21,6 +21,8 @@
 #include "trade.h"
 #include "tablets.h"
 
+#include "boat.h"
+
 #pragma clang section text="r8text" rodata="r8rodata"
 
 HIGH_BSS word player_gold[PLAYERS];
@@ -169,6 +171,7 @@ void treasury_turn(void)
     byte c, p, u, n, k, bit, legacy = !(game_turn % LEGACY_TURNS);
     word buy, left, cost;
 
+    boat_work();                // the fishing boats' turn of work
     wonders();
     for (p = 0; p < PLAYERS; ++p) add(p, deal_gold(p));
     for (c = 0; c < city_count; ++c) {

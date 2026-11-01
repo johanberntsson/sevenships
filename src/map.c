@@ -15,13 +15,13 @@ byte map_show;
 // RES_* order. Grain, cedar and dye have no improved picture yet. Cattle
 // and horses are improved by a pasture, the mine bit (improve.h). Fish is
 // "irrigated" by a fishing boat (boat_fish(), src/boat.h): the bit means
-// fishing boats on the shallows.
+// its nets on the shallows.
 const byte map_res_improved_by[RES_COUNT] = {
     0, 0, MAP_IRRIGATED, MAP_MINED, MAP_IRRIGATED, MAP_IRRIGATED, 0,
     MAP_MINED, MAP_MINED, 0, MAP_MINED
 };
 const byte map_res_improved[RES_COUNT] = {
-    0, 0, TILE_FISH_BOATS, TILE_CATTLE_PASTURE, TILE_OLIVES_GROVE,
+    0, 0, TILE_FISH_NET, TILE_CATTLE_PASTURE, TILE_OLIVES_GROVE,
     TILE_WINE_VINEYARD, 0, TILE_COPPER_MINE, TILE_TIN_MINE, 0,
     TILE_HORSES_PASTURE
 };

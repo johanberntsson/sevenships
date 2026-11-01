@@ -77,7 +77,7 @@
 // Standing orders: what a unit does instead of asking for any.
 #define ORDERS_NONE 0
 #define ORDERS_FORTIFY 1
-#define ORDERS_IRRIGATE 2       // a builder at work (src/improve.h)
+#define ORDERS_IRRIGATE 2       // a builder at work (src/improve.h), or a boat laying nets (boat.h)
 #define ORDERS_MINE 3
 #define ORDERS_PASTURE 4        // MAP_IRRIGATED on cattle or horses
 #define ORDERS_GOTO 5           // on its way to unit_goto_x/y (src/goto.h)

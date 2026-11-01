@@ -26,6 +26,7 @@
 // up for the turn: each costs a search.
 #define TRIES 4
 
+
 // Hexagons between two cells, as ai.c's distance().
 static word distance(byte ax, byte ay, byte bx, byte by)
 {
@@ -74,8 +75,9 @@ byte boat_fish(byte u)
     if (unit_kind[u] != KIND_BOAT || map_resource_at(ax, ay) != RES_FISH
         || (map_tile[ay][ax] & MAP_IRRIGATED))
         return 0;
-    map_tile[ay][ax] |= MAP_IRRIGATED;
-    unit_remove(u);
+    unit_orders[u] = ORDERS_IRRIGATE;
+    unit_work[u] = 0;
+    unit_moves[u] = 0;
     return 1;
 }
 
@@ -102,7 +104,7 @@ void boat_order(byte u)
         message("No fish", "to work here");
         return;
     }
-    message("Fishing boats", "at work");
+    message("Fishing boat", "at work");
     dirty = 1;
     hover_dirty = 1;
     select_unit(u);

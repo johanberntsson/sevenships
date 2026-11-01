@@ -105,7 +105,7 @@
 #define TILE_WINE_VINEYARD 34
 #define TILE_GALLEY 35
 #define TILE_FISHING_BOAT 36
-#define TILE_FISH_BOATS 37       // fish worked: drawn instead of it, as above
+#define TILE_FISH_NET 37         // fish worked: its nets, drawn instead of it, as above
 #define TILE_RAIDER 38          // the Sea Peoples (src/crisis.c)
 #define TILE_MERCHANT 39        // the merchant ship (src/emporium.h)
 #define TILE_CHARIOT 40         // horses (unit.h)

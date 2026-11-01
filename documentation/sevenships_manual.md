@@ -242,12 +242,15 @@ off.
 | Mine | m | 10 | hills, mountains, desert; copper and tin anywhere | 3 / 2 / 1 shields on hills / mountains / desert |
 | Pasture | p | 5 | cattle and horses | 1 food, 1 shield |
 | Road | r | 2 (4 on hills and in forest, 6 on mountains) | any land | 1 trade on grassland, plains and desert |
+| Nets (fishing boat) | i | 5 | fish | 1 food |
 
 **A step from road to road costs a third of a move.** Every city stands on
 a road.
 
-A **fishing boat** works fish: on a fish, press **i**. The boat is used up
-and the fish yields a food more for good.
+A **fishing boat** works fish as a builder works the land: on a fish,
+press **i**, and after 5 turns its nets are laid and the fish yields a
+food more for good. The boat is free again, to work other fish or to
+explore.
 
 ## 7. Units
 

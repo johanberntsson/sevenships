@@ -1,10 +1,5 @@
 --- OPEN ---
 
-My test player thinks that it's strange that fishing boats work differently from builers.
-I suggest changing so that fising boats work the tile for some time and then add a net
-overlay on the fish. The fishing boat can then go exploring or to another tile.
-It's not consumed, similar to a builder
-
 STATUS (26 Oct 2026): feature complete against vision.md.  What is left is tuning, polish,
 and what vision.md does not ask for.
 
@@ -87,6 +82,14 @@ under OPEN above. Ideas for the AI: documentation/civ1-civ2-ai-analysis-sources.
 OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
+
+fishing boats work like builders (1 Nov 2026, the user's tester): i on fish takes 5 turns,
+then the fish gets nets (a net drawn over the fish, a placeholder) and +1 food, and the
+boat is not used up but free to explore or work other fish. To try on a real MEGA65.
+
+no island starts (1 Nov 2026, the user's save on world 34013): the human starts on the
+largest land mass and the first computer player on the same one, the others on land
+masses of 100 hexagons or more. To try on a real MEGA65: a few new games.
 
 the wilderness warning (1 Nov 2026, the user's): a builder's i, m or p, or a fishing
 boat's fishing, outside the reach of all of the human's cities asks "This hexagon is too
