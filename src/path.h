@@ -28,4 +28,10 @@ byte sea_route(byte fx, byte fy, byte tx, byte ty);
 byte path_route(byte fx, byte fy, byte tx, byte ty, byte kind,
                 byte explored_only);
 
+// The search's queue, PATH_QUEUE cells, **lent to ai_place()** for its
+// floods of the land masses at a game's start (src/aiplace.c), when no
+// route is being found. LOW_FREE, so nothing in it lasts.
+#define PATH_QUEUE 255
+extern byte path_queue_x[PATH_QUEUE], path_queue_y[PATH_QUEUE];
+
 #endif // SEVENSHIPS_PATH_H

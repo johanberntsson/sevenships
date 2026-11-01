@@ -59,7 +59,10 @@ anger more easily.
 **Every game is played on a new world**, made for it when the game
 starts, which takes a couple of seconds: land masses, mountains, rivers,
 deserts and resources, never the same twice. Each world has a number,
-shown on World → Score; a saved game keeps its world.
+shown on World → Score; a saved game keeps its world. You always start
+on the largest land mass, and at least one other people starts there
+with you; the rest start on land masses large enough for several
+cities.
 
 You begin with a **settler** and a **warrior**. Found your first city
 quickly: press **b** with the settler.

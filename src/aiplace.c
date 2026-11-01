@@ -11,6 +11,7 @@
 #include "combat.h"
 #include "map.h"
 #include "minimap.h"
+#include "path.h"
 #include "sheet.h"
 #include "unit.h"
 
@@ -84,38 +85,134 @@ static byte own(byte p, byte ax, byte ay)
     return 0;
 }
 
-// **The human's settler and warrior** are where game_init() put them, on
-// the grassland nearest the middle of the first view; without one of its
-// people's resources in reach there, they go to the nearest grassland
-// within NUDGE hexagons that has one, if any. **Not in a NO_TITLE build**:
-// the headless scrolling check (CLAUDE.md, "Verifying a change") needs the
-// settler in the first view, at START_OFF_X's grassland, and every test
-// script in CLAUDE.md has it there.
-#define NUDGE 8
+// **Nobody starts alone if it can be helped** (1 Nov 2026, the user's: a
+// save on world 34013 had all four peoples on land masses of their own,
+// the Mycenaeans on an island of 46 hexagons, and the human met nobody's
+// army until late in the game). The human's start used to be the
+// grassland nearest the middle of the first view, which on a new world
+// every game is wherever that happens to be. So the land masses are
+// flooded first (masses()), and **the human starts on the largest**, and
+// **the first computer player on the same one**, room permitting; the
+// others on any land mass of START_MASS hexagons or more. Of worlds
+// 1-1000 the largest was 249 hexagons at the least.
+#define START_MASS 100
 
-#ifndef NO_TITLE
-static void nudge(void)
+// Marks in the map byte while ai_place() runs, cleared before it returns:
+// the improvement bits, which nothing has set yet at a game's start.
+#define LARGEST MAP_IRRIGATED   // the largest land mass
+#define BIG MAP_MINED           // a land mass of START_MASS or more
+
+#define LAND(T) ((T) != TILE_OCEAN && (T) != TILE_SHALLOW_OCEAN)
+
+// Marks the land mass of (ax, ay) with `bit`, breadth first over the land
+// hexagons without it, through path.c's queue, and says how many it
+// marked. The queue is PATH_QUEUE cells and a hexagon not queued for want
+// of room would be left out with what lies beyond it, but of worlds 1-1000
+// no flood had more than 94 waiting.
+static word flood(byte ax, byte ay, byte bit)
 {
-    byte ax = unit_ax[0], ay = unit_ay[0], x, y, u, bx = 0, by = 0;
-    int dy;
-    word d, best = NUDGE + 1;
+    byte head = 0, tail = 1, waiting = 1, dir, nx, ny, t;
+    word n = 1;
 
-    if (own(PLAYER_HUMAN, ax, ay)) return;
-    for (dy = -NUDGE; dy <= NUDGE; ++dy) {
-        if ((int)ay + dy < 2 || (int)ay + dy > MAP_ROWS - 3) continue;
-        y = (byte)((int)ay + dy);
-        for (x = 0; x < MAP_COLUMNS; ++x) {
-            if (MAP_TERRAIN(x, y) != TILE_GRASS
-                || land_neighbours(x, y) < 4 || !own(PLAYER_HUMAN, x, y))
+    map_tile[ay][ax] |= bit;
+    path_queue_x[0] = ax;
+    path_queue_y[0] = ay;
+    while (waiting) {
+        ax = path_queue_x[head];
+        ay = path_queue_y[head];
+        if (++head == PATH_QUEUE) head = 0;
+        --waiting;
+        for (dir = 0; dir < 6; ++dir) {
+            if (!map_neighbour(ax, ay, dir, &nx, &ny)) continue;
+            t = map_tile[ny][nx];
+            if ((t & bit) || !LAND(t & MAP_TERRAIN_MASK)
+                || waiting == PATH_QUEUE)
                 continue;
-            d = distance(ax, ay, x, y);
-            if (d >= best) continue;
-            best = d;
-            bx = x;
-            by = y;
+            map_tile[ny][nx] = t | bit;
+            ++n;
+            path_queue_x[tail] = nx;
+            path_queue_y[tail] = ny;
+            if (++tail == PATH_QUEUE) tail = 0;
+            ++waiting;
         }
     }
-    if (best > NUDGE) return;
+    return n;
+}
+
+static void unmark(byte bits)
+{
+    byte ax, ay;
+    for (ay = 0; ay < MAP_ROWS; ++ay)
+        for (ax = 0; ax < MAP_COLUMNS; ++ax)
+            map_tile[ay][ax] &= (byte)~bits;
+}
+
+// Every land mass flooded with LARGEST to measure it, and again with BIG
+// if it is large enough; then LARGEST taken off and put back on the
+// largest alone.
+static void masses(void)
+{
+    byte ax, ay, bx = 0, by = 0;
+    word n, best = 0;
+
+    for (ay = 0; ay < MAP_ROWS; ++ay)
+        for (ax = 0; ax < MAP_COLUMNS; ++ax) {
+            if (!LAND(MAP_TERRAIN(ax, ay)) || (map_tile[ay][ax] & LARGEST))
+                continue;
+            n = flood(ax, ay, LARGEST);
+            if (n >= START_MASS) flood(ax, ay, BIG);
+            if (n > best) {
+                best = n;
+                bx = ax;
+                by = ay;
+            }
+        }
+    unmark(LARGEST);
+    flood(bx, by, LARGEST);
+}
+
+// Where player p starts: grassland with four land neighbours and nobody
+// on it, as far from every unit as can be had, on a land mass marked
+// `want`, by one of p's own resources first; then without the resource;
+// then anywhere. 0 if nowhere at all.
+static byte place(byte p, byte want, byte *rx, byte *ry)
+{
+    byte ax, ay, tries, pass;
+    word spacing;
+
+    for (pass = 0; pass < 3; ++pass)
+        for (spacing = START_SPACING;; spacing -= START_SPACING_STEP) {
+            for (tries = 0; tries < START_TRIES; ++tries) {
+                ax = rnd() & (MAP_COLUMNS - 1);
+                ay = 2 + rnd() % (MAP_ROWS - 4);    // not the edge rows
+                if (MAP_TERRAIN(ax, ay) == TILE_GRASS
+                    && !(map_tile[ay][ax] & MAP_OCCUPIED)
+                    && (pass == 2 || (map_tile[ay][ax] & want))
+                    && land_neighbours(ax, ay) >= 4
+                    && nearest_unit(ax, ay) >= spacing
+                    && (pass || own(p, ax, ay))) {
+                    *rx = ax;
+                    *ry = ay;
+                    return 1;
+                }
+            }
+            if (spacing <= (pass ? START_SPACING_STEP : OWN_SPACING))
+                break;                              // no room: the next pass
+        }
+    return 0;
+}
+
+// **The human's settler and warrior** are where game_init() put them, on
+// the grassland nearest the middle of the first view, and go to their
+// start from there. **Not in a NO_TITLE build**: the headless scrolling
+// check (CLAUDE.md, "Verifying a change") needs the settler in the first
+// view, at START_OFF_X's grassland, and every test script in CLAUDE.md
+// has it there.
+#ifndef NO_TITLE
+static void move_human(byte bx, byte by)
+{
+    byte ax = unit_ax[0], ay = unit_ay[0], x, y, u;
+
     for (u = 0; u < 2; ++u) {              // the settler and the warrior
         unit_ax[u] = bx;
         unit_ay[u] = by;
@@ -137,12 +234,7 @@ static void nudge(void)
 
 void ai_place(void)
 {
-    byte p, ax, ay, tries, t, pass;
-    word spacing;
-
-#ifndef NO_TITLE
-    nudge();
-#endif
+    byte p, ax, ay, t;
 
     // Nobody has been anywhere yet; and where the land is.
     for (ax = 0; ax < SEEN_X; ++ax) {
@@ -159,27 +251,14 @@ void ai_place(void)
                 ai_land[ax / SEEN_COLUMNS] |= (byte)(1 << (ay / SEEN_ROWS));
         }
 
-    // A start by its own resources first, at every spacing down to
-    // OWN_SPACING; only then anywhere, down to START_SPACING_STEP.
-    for (p = PLAYER_FIRST_AI; p < PLAYERS; ++p) {
-        for (pass = 0; pass < 2; ++pass)
-            for (spacing = START_SPACING;; spacing -= START_SPACING_STEP) {
-                for (tries = 0; tries < START_TRIES; ++tries) {
-                    ax = rnd() & (MAP_COLUMNS - 1);
-                    ay = 2 + rnd() % (MAP_ROWS - 4);    // not the edge rows
-                    if (MAP_TERRAIN(ax, ay) == TILE_GRASS
-                        && !(map_tile[ay][ax] & MAP_OCCUPIED)
-                        && land_neighbours(ax, ay) >= 4
-                        && nearest_unit(ax, ay) >= spacing
-                        && (pass || own(p, ax, ay)))
-                        goto found;
-                }
-                if (spacing <= (pass ? START_SPACING_STEP : OWN_SPACING))
-                    break;                          // no room: the next pass
-            }
-        continue;
-found:
-        unit_create(KIND_SETTLER, p, ax, ay);
-        unit_create(KIND_WARRIOR, p, ax, ay);   // as the human's, game.c
-    }
+    masses();
+#ifndef NO_TITLE
+    if (place(PLAYER_HUMAN, LARGEST, &ax, &ay)) move_human(ax, ay);
+#endif
+    for (p = PLAYER_FIRST_AI; p < PLAYERS; ++p)
+        if (place(p, p == PLAYER_FIRST_AI ? LARGEST : BIG, &ax, &ay)) {
+            unit_create(KIND_SETTLER, p, ax, ay);
+            unit_create(KIND_WARRIOR, p, ax, ay);   // as the human's, game.c
+        }
+    unmark(LARGEST | BIG);
 }

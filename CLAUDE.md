@@ -53,6 +53,7 @@ make FAKE_KEYS='{10,0,0,13},{12,0,0,13},{14,0,0,13},{16,0,0,13},{30,0,0,98}'  # 
 make NO_TITLE=1           # straight to the map, no title screen
 make DEBUG=0              # without the Debug menu, as a release is
 make release              # build the d81 (DEBUG=0) and the manual's PDF (pandoc) into release/
+make release alpha1       # the same, named release/sevenships_alpha1.d81 and sevenships_alpha1_manual.pdf
 make clean
 ```
 
@@ -217,7 +218,7 @@ buffers at the default `$FF80000` and corrupts the display.
 | `$2001-$5FFF`, `$8000-$9FFF` | 24 KB | the resident program: code, data, BSS, C stack. 74 bytes free (30 Oct 2026, after shared hexagons took 24; 98 on 26 Oct 2026 after the map generator, which took the map loader's stub and call out; 44 after the music, 52 before it, 103 before the next build popup), at the top of `$2001-$5FFF` |
 | `$6000-$7FFF` | 8 KB | the code window (`src/region.h`); as loaded, region 0 — the title, setup and help screens (and the Civilopedia's pages), the sheet's loader, the owners' flags, the end of a turn and a game's start (`src/turn.c`), the hover readout (`src/hover.c`), the boot splash (`title_splash()`), the music's start-up, player and tune (`src/music.c`, `src/musicplay.s`, 1.4 KB, most of it the tune). 707 bytes free (26 Oct 2026, since the map loader went; 238 after the music, 1.7 KB before it) |
 | `$13000-$14FFF` | 8 KB | code slot 1: region 1, from `SEVENSHIPS.R1` by way of attic: the computer players and their ferrying, the cities' yields and growth, bronze, the roads between their cities. 72 bytes free |
-| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 1.1 KB free) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 351 bytes free since `join_seas()`), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
+| `$15000-$16FFF` | 8 KB | code slot 2, shared: region 2 (Top Five Cities, the fights' popups, the builders' improvements, what the computer players' cities build and where their builders work, `src/aibuild.c`, and where their settlers found cities, `src/aisite.c`, and the orders keys, the unit's steps and the human's attacks, `src/orders.c`, and adding a road, `src/roadadd.c`, and a click on the map; 0.4 KB free) region 7 (the city screen and buying, `src/cityscreen.c`, and the next build popup; 0.8 KB free) region 3 (diplomacy; 1.1 KB free) region 4 (trade, the ships' routes, exploring and fishing, merchant ships and emporia, GOTO, `src/goto.c`; 250 bytes free) region 5 (the Crisis and the collapse, the score and the end, the pictures, the military advisor, `src/crisis.c`, `src/score.c`, `src/picture.c`, `src/military.c`; 0.7 KB free) region 6 (the menus and what their items do, `src/menu.c`, `src/command.c`, `src/cities.c`, and saving and loading, `src/save.c`, since the save slots; 0.6 KB free) region 8 (the treasury and the scribes, `src/treasury.c`, `src/tablets.c`, its own since 25 Oct 2026, and where the peoples start, `src/aiplace.c`, and buildings and wonders, `src/culture.c`, since 26 Oct 2026; 540 bytes free since the land masses, 1 Nov 2026) region 9 (the map generator, `src/mapgen.c`, called only between the title and a new game; 351 bytes free since `join_seas()`), whichever was called last. **Slot 1 is also the sheet loader's staging area at boot** (`STAGING` in `src/sheet.c`), before region 1 is first called |
 | `$17000-$1EFFF` | 32 KB | the packed tile sheet's second area, where regions 3 to 6 would have been: whatever rows did not fit bank 5's; with bank 5's, 6 KB free (`tools/mktiles.py` says) |
 | `$A000-$BFFF` | 8 KB | `highram`, under the BASIC ROM, banked out by `src/bank.s`: the music's player and its state (first, at `$A000`; **The music**), `map_tile`, the unit and city arrays, the sprite blocks, the AI's headings, the staging buffers of the texts and the regions, the texts' line buffers, the sheet loader's buffers, the saved VIC registers, the AI's exploration memory, the resource list, the sheet's row tables, the peoples' relations and attitudes and the letters' names, the trade deals, the emporia, the pictures' staging buffer, the treasuries, the roads, where units are going, the save slots' header, the world's seed and the generator's state; **8 bytes free** (26 Oct 2026, after the map generator; 12 after the music's 205; 234 before the next build popup) — `HIGH_BSS` in `src/mega65.h` moves a variable there, and **the startup does not clear it** |
 | `$1600-$1EFF` | 2304 | `zpsave` (56 bytes, BASIC's zero page during the run), then `lowfree`: the popup's 400-byte text and the scratch buffers of the view and the minimap, and the routes' search (`src/path.c`), and the title's people line, and the map generator's row of rainfall and river and its strait search's buffers, 126 bytes free — `LOW_FREE` in `src/mega65.h` moves a variable there |
@@ -1271,10 +1272,10 @@ vision.md §3's asymmetric civilizations; the people screen's notes,
 `list_notes.txt`, say how): **each starts by a resource of its own** --
 the Mycenaeans' wine or olives, the Hittites' copper, the Egyptians'
 grain, the Canaanites' cedar or dye (`own_res[]` in `src/aiplace.c`):
-the computer players try for such a start at every spacing down to
-`OWN_SPACING` (8) before any other, and the human's settler and warrior
-move to the nearest grassland within `NUDGE` (8) that has one, the first
-spot made unseen again (`nudge()`, **not in `NO_TITLE` builds**, whose
+every people, the human too, tries for such a start at every spacing
+down to `OWN_SPACING` (8) before any other (`place()`; the human's
+settler and warrior move there from game_init()'s spot, which is made
+unseen again, `move_human()`, **not in `NO_TITLE` builds**, whose
 settler the scrolling check and every test script expect at (16,7)) --
 and **each has an advantage**: the Hittites' chariots and the
 Mycenaeans' ships cost a quarter less (`kind_cost()` in `src/city.c`),
@@ -1308,7 +1309,24 @@ so **an autoplay test at another level** wants a throwaway
 with it, as the human gets one, so that exploring starts on the first
 turn — on grassland with at least four land
 neighbours, at least 16 hexagons from every other settler (12, 8 and 4 if
-200 random tries each find nothing). `ai_turn(p)` then plays TODO.txt's
+200 random tries each find nothing). **Nobody starts alone if it can
+be helped** (1 Nov 2026, from the user's play: world 34013 had put all
+four peoples on land masses of their own, the Mycenaeans on an island
+of 46 hexagons, since the human's start was the grassland nearest the
+middle of the first view, wherever that fell on a new world):
+`masses()` floods every land mass first, breadth first through path.c's
+queue (lent, `path_queue_x/y[]`; at most 94 waiting on worlds 1-1000,
+of 255), marking the largest with `MAP_IRRIGATED` and those of
+`START_MASS` (100) hexagons or more with `MAP_MINED`, which nothing has
+set yet and which are cleared before it returns. **The human starts on
+the largest, the first computer player on the same one, the others on
+any of 100 or more**, each falling back to anywhere only if it finds no
+room. About 0.26 s (CIA2, xemu). In a simulation of the rule on worlds
+1-300 the first computer player always shared the human's land mass,
+286 times at the full spacing of 16, and nobody started on a small one;
+on world 34013 the Mycenaeans and Hittites share the 354-hexagon land
+mass, the Egyptians and Canaanites the 289. It cost region 8 561 bytes.
+`ai_turn(p)` then plays TODO.txt's
 five rules: a settler founds a city where it stands; warriors fortify in
 a city short of guards and the rest explore (see **Exploring** below); a
 builder improves the

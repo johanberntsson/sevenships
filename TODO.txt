@@ -1,5 +1,10 @@
 --- OPEN ---
 
+My test player thinks that it's strange that fishing boats work differently from builers.
+I suggest changing so that fising boats work the tile for some time and then add a net
+overlay on the fish. The fishing boat can then go exploring or to another tile.
+It's not consumed, similar to a builder
+
 STATUS (26 Oct 2026): feature complete against vision.md.  What is left is tuning, polish,
 and what vision.md does not ask for.
 

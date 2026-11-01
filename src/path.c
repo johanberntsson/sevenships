@@ -22,7 +22,12 @@
 #define FROM 0x80               // in queue_x: the unit's hexagon, and the step
 LOW_FREE static byte visited[MAP_ROWS * MAP_COLUMNS / 8];
 LOW_FREE static byte road_done[MAX_ROADS / 8 + 1];
-LOW_FREE static byte queue_x[END], queue_y[END], queue_next[END];
+// queue_x and queue_y are lent to ai_place() (src/aiplace.c) at a game's
+// start, when nothing searches: path.h.
+LOW_FREE byte path_queue_x[END], path_queue_y[END];
+#define queue_x path_queue_x
+#define queue_y path_queue_y
+LOW_FREE static byte queue_next[END];
 LOW_FREE static byte first[BUCKETS], last[BUCKETS];
 LOW_FREE static byte fresh, spare;      // never used yet; used and given back
 

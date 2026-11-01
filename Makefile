@@ -363,10 +363,27 @@ $(D81): $(PRG) $(REGION_FILES) $(RES)/tiles.fci $(TEXT_PAK) $(PICTURES) tools/di
 # refused is a release *of* a test build. `make clean` leaves release/ alone.
 RELEASE  = release
 
+# **`make release alpha1`** names the release: release/sevenships_alpha1.d81
+# and release/sevenships_alpha1_manual.pdf. The word after `release` is
+# taken as a goal by make, so it is given a rule that does nothing; plain
+# `make release` gives sevenships.d81 and sevenships_manual.pdf as before.
+ifneq ($(filter release,$(MAKECMDGOALS)),)
+RELEASE_TAG := $(filter-out release all run d81 clean,$(MAKECMDGOALS))
+ifneq ($(word 2,$(RELEASE_TAG)),)
+$(error make release takes one name at most, not "$(RELEASE_TAG)")
+endif
+ifneq ($(RELEASE_TAG),)
+$(RELEASE_TAG):
+	@:
+.PHONY: $(RELEASE_TAG)
+endif
+endif
+RELEASE_NAME = sevenships$(if $(RELEASE_TAG),_$(RELEASE_TAG))
+
 # The player's manual goes with it as a PDF, made by pandoc with pdflatex;
 # tools/manual-header.tex is the page layout.
 MANUAL     = documentation/sevenships_manual.md
-MANUAL_PDF = $(RELEASE)/sevenships_manual.pdf
+MANUAL_PDF = $(RELEASE)/$(RELEASE_NAME)_manual.pdf
 
 $(MANUAL_PDF): $(MANUAL) tools/manual-header.tex
 	mkdir -p $(RELEASE)
@@ -381,7 +398,8 @@ ifeq ($(DEBUG),1)
 	$(error a release must not be built with DEBUG=1)
 endif
 	mkdir -p $(RELEASE)
-	cp $(D81) $(RES)/xemu-keymap.cfg $(RELEASE)/
+	cp $(D81) $(RELEASE)/$(RELEASE_NAME).d81
+	cp $(RES)/xemu-keymap.cfg $(RELEASE)/
 
 clean:
 	rm -rf $(BUILD)
