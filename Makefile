@@ -230,7 +230,8 @@ TEXTS    = $(RES)/text/help.txt \
            $(RES)/text/pedia_linear_b.txt \
            $(RES)/text/pedia_law_code.txt \
            $(RES)/text/pedia_alphabet.txt \
-           $(RES)/text/list_tablets.txt
+           $(RES)/text/list_tablets.txt \
+           $(RES)/text/far_improve.txt
 TEXT_PAK = $(BUILD)/text.pak
 TEXT_IDS = $(BUILD)/textid.h
 

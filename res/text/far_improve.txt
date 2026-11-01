@@ -1,0 +1,4 @@
+# A builder or a fishing boat of the human's is told to improve a hexagon
+# outside the reach of all of the human's cities (src/orders.c); roads
+# are built anywhere unasked. Game -> Options -> Wilderness Warning.
+This hexagon is too far from the nearest town. Improve it anyway?

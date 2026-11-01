@@ -83,6 +83,12 @@ OpenCivOne (https://codeberg.org/rhorvat/OpenCivOne).
 
 --- DONE ---
 
+the wilderness warning (1 Nov 2026, the user's): a builder's i, m or p, or a fishing
+boat's fishing, outside the reach of all of the human's cities asks "This hexagon is too
+far from the nearest town. Improve it anyway?"; roads never ask. Game/Options/Wilderness
+Warning, on by default, turns it off (the Options box opens a row higher for its fourth
+item). To try on a real MEGA65.
+
 the map generator in the game (the user's): a new world every Start Game,
 src/mapgen.c in region 9, from a seed drawn from $D7EF (make MAP_SEED=n fixes it; NO_TITLE
 and FAKE_KEYS builds use 1), shown on World/Score and saved (SAVE_VERSION 24). Needs no

@@ -12,6 +12,9 @@
 #include "path.h"
 #include "sheet.h"
 #include "unit.h"
+#include "game.h"
+#include "popup.h"
+#include "textid.h"
 
 #pragma clang section text="r4text" rodata="r4rodata"
 
@@ -78,6 +81,23 @@ byte boat_fish(byte u)
 
 void boat_order(byte u)
 {
+    byte ax = unit_ax[u], ay = unit_ay[u], c;
+
+    // Fish outside the reach of all of the human's cities is asked about
+    // first, as a builder's improvement is (orders.c's near_city()),
+    // unless Options' Wilderness Warning is off.
+    if (!game_far_quiet && map_resource_at(ax, ay) == RES_FISH
+        && !(map_tile[ay][ax] & MAP_IRRIGATED)) {
+        for (c = 0; c < city_count; ++c)
+            if (city_owner[c] == PLAYER_HUMAN
+                && distance(city_ax[c], city_ay[c], ax, ay) <= 2)
+                break;
+        if (c == city_count) {
+            popup_begin();
+            popup_add_text(TEXT_FAR_IMPROVE, 0);
+            if (!popup_ask_shown()) return;
+        }
+    }
     if (!boat_fish(u)) {
         message("No fish", "to work here");
         return;

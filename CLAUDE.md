@@ -1652,6 +1652,19 @@ it, `s`, 30 turns with the warrior given orders each turn (four
 popups, the suggestions taken: a boat, a settler, a builder), and 100 turns of autoplay byte-identical with the build
 before (`ai_build()`'s new parameter, `culture.c` in region 8).
 
+**The wilderness warning** (1 Nov 2026, the user's): `i`, `m` or `p`
+(or the Orders menu) on a hexagon outside the reach of all of the
+human's cities asks "This hexagon is too far from the nearest town.
+Improve it anyway?" (`res/text/far_improve.txt`, through
+`popup_add_text()`, since region 2 had 223 bytes): `near_city()` in
+`src/orders.c` for a builder, and a copy of the test in `boat_order()`
+(`src/boat.c`, region 4) for a fishing boat on fish, by `distance()`
+there, as region 2 had no room for it. Roads never ask. Game → Options
+→ **Wilderness Warning** (`MENU_FAR_WARN` 70, `game_far_quiet`, 0 for
+on, not saved) turns it off; with four items **the Options box opens a
+row higher than the other submenus** (`OPTIONS_TOP`), so that it ends
+above the panel's row 9, and `close_drop()` blanks row 8 under the minimap, which the box's frame used to leave behind. Region 2 has 64 bytes since, region 4 95, region 6 391; resident 1 byte.
+
 **Improvements** (`src/improve.c`, milestone 6, in region 2) are bits 4
 and 5 of the map byte: `MAP_IRRIGATED` or `MAP_MINED`, never both, drawn
 as an overlay tile over the terrain (`MAP_OVERLAY_TILE`). A builder makes

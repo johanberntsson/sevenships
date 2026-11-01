@@ -226,7 +226,12 @@ What you have decides what you can build:
 ### Improvements
 
 Builders improve the land. A builder at work asks for no orders until it
-is done; several builders on one hexagon work together.
+is done; several builders on one hexagon work together. Outside the
+reach of all your cities (two rings round each) the game asks before a
+builder irrigates, mines or builds a pasture, or a fishing boat fishes,
+since no city of yours can work the hexagon; roads are built anywhere
+without asking. Game → Options → Wilderness Warning turns the question
+off.
 
 | Improvement | Key | Turns | Where | Adds |
 |---|---|---|---|---|

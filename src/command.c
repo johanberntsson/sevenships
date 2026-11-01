@@ -67,6 +67,9 @@ void game_menu_command(byte command)
     case MENU_NEXT_BUILD:
         game_build_quiet ^= 1;
         break;
+    case MENU_FAR_WARN:
+        game_far_quiet ^= 1;
+        break;
     case MENU_MUSIC:
         if ((music_wanted ^= 1)) music_on();
         else music_off();

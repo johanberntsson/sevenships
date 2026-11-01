@@ -23,6 +23,8 @@
 #include "map.h"
 #include "menu.h"
 #include "unit.h"
+#include "textid.h"
+#include "game.h"
 
 #pragma clang section text="r2text" rodata="r2rodata"
 
@@ -128,6 +130,29 @@ static void found_city(void)
     select_unit(u);
 }
 
+// Whether (ax, ay) is a city of the human's or in its reach of two rings
+// (map.h's RING), whoever's nearer city has it; if not, the player is
+// asked whether to improve it anyway, unless Options' Wilderness Warning
+// is off. Roads are built anywhere unasked. boat.c has a copy for fishing.
+static byte near_city(byte ax, byte ay)
+{
+    byte c, dir, nx, ny;
+
+    if (game_far_quiet) return 1;
+
+    for (c = 0; c < city_count; ++c) {
+        if (city_owner[c] != PLAYER_HUMAN) continue;
+        if (city_ax[c] == ax && city_ay[c] == ay) return 1;
+        for (dir = 0; dir < RING; ++dir)
+            if (map_neighbour(city_ax[c], city_ay[c], dir, &nx, &ny)
+                && nx == ax && ny == ay)
+                return 1;
+    }
+    popup_begin();
+    popup_add_text(TEXT_FAR_IMPROVE, 0);
+    return popup_ask_shown();
+}
+
 // The active unit, a builder, starts irrigating, mining or building a
 // pasture or a road where it stands.
 static void improve(byte orders)
@@ -157,6 +182,7 @@ static void improve(byte orders)
         }
         return;
     }
+    if (orders != ORDERS_ROAD && !near_city(unit_ax[u], unit_ay[u])) return;
     improve_start(u, orders);
     select_unit(u);
 }

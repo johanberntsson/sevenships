@@ -35,6 +35,9 @@
 // are not on the bar; their indexes in the tables below are MENUS and up.
 #define SUB_DX 4                // from their menu's title
 #define SUB_TOP 3
+// Options a row higher, over the panel's side: its four items have to end
+// above row 9, where the panel starts, since nothing puts that back.
+#define OPTIONS_TOP (SUB_TOP - 1)
 #define TICK 0x7a               // a tick in the lower case character set
 
 #ifdef DEBUG_MENU
@@ -64,10 +67,10 @@ static const byte game_commands[] = {
 // the names in res/text/list_terrains.txt, in alphabetical order, as
 // Civilization's Civilopedia lists them: item_name() and item_command().
 static const char *const options_items[] = {
-    "End of Turn", "Next Build Popup", "Music"
+    "End of Turn", "Next Build Popup", "Music", "Wilderness Warning"
 };
 static const byte options_commands[] = {
-    MENU_END_OF_TURN, MENU_NEXT_BUILD, MENU_MUSIC
+    MENU_END_OF_TURN, MENU_NEXT_BUILD, MENU_MUSIC, MENU_FAR_WARN
 };
 #define OPTIONS_ITEMS (sizeof options_commands)
 static const byte terrain_order[] = {
@@ -272,10 +275,10 @@ static void draw_item(byte i, byte selected)
     screen_fill(drop_left + 1, y, drop_width - 2, colour);
     screen_putsxy(drop_left + 2, y, item_name(drop_menu, i), colour);
     // The toggles are ticked when on: End of Turn when the game waits,
-    // Next Build Popup, Music, and Debug's Show Map.
+    // Next Build Popup, Music, Wilderness Warning, and Debug's Show Map.
     if ((drop_menu == OPTIONS
          && (i == 0 ? game_end_wait : i == 1 ? !game_build_quiet
-                                             : music_wanted))
+             : i == 2 ? music_wanted : !game_far_quiet))
 #ifdef DEBUG_MENU
         || (drop_menu == DEBUG && i == 0 && map_show)
 #endif
@@ -312,6 +315,9 @@ static void close_drop(void)
 {
     menu_draw();
     minimap_show();
+    // The row between the minimap's frame and the panel, which Options'
+    // box ends on and minimap_show() does not cover.
+    screen_fill(0, MINIMAP_TOP + MINIMAP_ROWS + 1, VIEW_LEFT, 0);
     restore(drop_left, drop_top, drop_width,
             drop_first - drop_top + menu_count[drop_menu] + 1);
     if (drop_menu >= MENUS)
@@ -348,8 +354,8 @@ static byte run(byte m, byte sel)
         if (m >= MENUS) {
             parent_menu = sub_parent[m - MENUS];
             drop_left = menu_x[parent_menu] + SUB_DX;
-            drop_top = SUB_TOP;
-            drop_first = SUB_TOP + 2;
+            drop_top = m == OPTIONS ? OPTIONS_TOP : SUB_TOP;
+            drop_first = drop_top + 2;
             drop_width = length(sub_heading[m - MENUS]);
         } else {
             drop_left = menu_x[m];

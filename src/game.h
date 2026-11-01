@@ -36,6 +36,12 @@ extern byte game_end_wait;
 // a popup asks what next (city_next_build() in src/cityscreen.h). Not saved.
 extern byte game_build_quiet;
 
+// Game -> Options -> Wilderness Warning (1 Nov 2026, the user's; 0 for on,
+// as game_build_quiet): a builder told to irrigate, mine or build a
+// pasture, or a fishing boat to fish, outside the reach of all of the
+// human's cities asks first (src/orders.c). Not saved.
+extern byte game_far_quiet;
+
 // **The calendar** (milestone 10): from 1600 BC, two years a turn until
 // turn GAME_SLOW_TURN (1250 BC), then one, so that the Crisis is due at
 // GAME_CRISIS_TURN (1200 BC) and the game ends after GAME_LAST_TURN
